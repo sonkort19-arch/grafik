@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f5bd7">
-<title>MA График 2/2 — Онлайн</title>
+<title>MA График — Смены онлайн</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230f5bd7'/%3E%3Ctext x='50' y='63' text-anchor='middle' font-size='42' font-family='Arial' font-weight='700' fill='white'%3EMA%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -127,7 +127,30 @@ button{cursor:pointer}
 .login-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.login-error{color:var(--danger);font-size:12px;margin-top:8px;min-height:18px}
 @media(max-width:520px){.filters{grid-template-columns:1fr 1fr 46px!important}}
 
+
+/* --- Смена открыта / история --- */
+.today-board{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;margin:0 0 14px;box-shadow:var(--shadow)}
+.today-board h2{margin:0;color:var(--blue);font-size:22px}.today-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.today-date{font-size:12px;color:var(--muted);margin-top:4px}.shift-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.shift-card{border:1px solid var(--line);border-radius:16px;padding:12px;background:#fbfdff}.shift-card h3{margin:0 0 7px;color:#24324a;font-size:18px}
+.shift-status{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:800;margin-bottom:8px}
+.shift-status.wait{background:#f1f5f9;color:#475569}.shift-status.open{background:#e8f7ee;color:#13713e}.shift-status.late{background:#fff3d6;color:#8a5a00}
+.shift-status.closed{background:#eef2f7;color:#475569}.shift-status.missing{background:#fdecec;color:#a61b1b}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor}.shift-pair{font-size:13px;line-height:1.4;margin-bottom:9px}.shift-meta{font-size:12px;color:var(--muted);line-height:1.45;min-height:35px}
+.shift-action{width:100%;margin-top:10px}.shift-action[disabled]{opacity:.5;cursor:not-allowed}.mismatch{color:#b45309;font-weight:800}
+.history-toolbar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}.history-toolbar input,.history-toolbar select{width:100%;min-height:42px;border:1px solid var(--line);border-radius:12px;padding:0 10px;background:#fff}
+.history-list{display:grid;gap:10px}.history-item{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}.history-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.history-service{font-weight:850;color:var(--blue)}.history-date{font-size:12px;color:var(--muted)}.history-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.history-cell{background:#f8fafc;border-radius:11px;padding:9px;font-size:12px;line-height:1.45}
+.history-cell b{display:block;color:#334155;margin-bottom:3px}.tag{display:inline-block;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:800;margin-left:5px}.tag.late{background:#fff3d6;color:#8a5a00}.tag.bad{background:#fdecec;color:#a61b1b}.tag.ok{background:#e8f7ee;color:#13713e}
+.history-empty{text-align:center;color:var(--muted);padding:30px 12px}.pin-grid{display:grid;grid-template-columns:1fr 120px;gap:8px;align-items:end}.pin-grid+.pin-grid{margin-top:8px}
+.push-box{border:1px solid var(--line);border-radius:14px;padding:11px;background:#fbfdff}.push-state{font-size:12px;color:var(--muted);line-height:1.45;margin:7px 0 10px}
+.bottom-inner{grid-template-columns:repeat(3,1fr)!important}.edit-shift-btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 9px;font-weight:700;font-size:11px;color:var(--blue)}
+#historyPage .section{box-shadow:none}.modal-note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:8px}.readonly{background:#f8fafc!important;color:#64748b!important}
+@media(max-width:600px){.shift-cards{grid-template-columns:1fr}.history-toolbar{grid-template-columns:1fr}.history-grid{grid-template-columns:1fr}.pin-grid{grid-template-columns:1fr 110px}}
+
 </style>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
 <div class="app">
@@ -155,6 +178,13 @@ button{cursor:pointer}
 
   <main class="page">
     <section id="schedulePage">
+      <div class="today-board">
+        <div class="today-head">
+          <div><h2>Сегодня</h2><div class="today-date" id="todayDateLabel">—</div></div>
+          <button class="iconbtn" id="refreshShiftsBtn" title="Обновить смены">↻</button>
+        </div>
+        <div class="shift-cards" id="todayShiftCards"></div>
+      </div>
       <div class="month-title">
         <h1 id="monthTitle"></h1>
         <p id="monthSubtitle"></p>
@@ -173,6 +203,24 @@ button{cursor:pointer}
       <div class="notice">Фото строится прямо внутри приложения, поэтому таблица остаётся чёткой. На iPhone кнопка «Поделиться фото» обычно удобнее всего: можно сразу сохранить в «Фото» или отправить в WhatsApp.</div>
     </section>
 
+    <section id="historyPage" class="hidden">
+      <div class="section">
+        <h2>История смен</h2>
+        <div class="notice" id="historyNotice">История доступна администратору: открытие, закрытие, опоздания и кто подтвердил смену.</div>
+        <div class="history-toolbar" style="margin-top:12px">
+          <input type="date" id="historyFrom" aria-label="С даты">
+          <input type="date" id="historyTo" aria-label="По дату">
+          <select id="historyService"><option value="">Все сервисы</option></select>
+        </div>
+        <div class="history-toolbar">
+          <select id="historyEmployee"><option value="">Все сотрудники</option></select>
+          <select id="historyProblem"><option value="">Все смены</option><option value="late">Только опоздания</option><option value="unclosed">Только незакрытые</option></select>
+          <button class="primary" id="loadHistoryBtn">Показать</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+    </section>
+
     <section id="settingsPage" class="hidden">
       <div class="section">
         <h2>Общий онлайн-график</h2>
@@ -182,6 +230,19 @@ button{cursor:pointer}
           <button class="secondary" id="forceSyncBtn">Загрузить из облака</button>
           <button class="secondary" id="logoutBtn">Выйти из администратора</button>
         </div>
+      </div>
+
+      <div class="section">
+        <h2>Контроль открытия смен</h2>
+        <div class="push-box">
+          <b>Push-уведомления на мой телефон</b>
+          <div class="push-state" id="pushState">Проверяем поддержку уведомлений…</div>
+          <button class="primary" id="enablePushBtn">Включить уведомления</button>
+        </div>
+        <h3>PIN менеджеров</h3>
+        <div class="notice">PIN нужен менеджеру только для кнопок «Открыть смену» и «Закрыть смену». PIN не показывается сотрудникам и не хранится в HTML.</div>
+        <div id="pinFields" style="margin-top:10px"></div>
+        <button class="secondary" id="savePinsBtn" style="width:100%;margin-top:10px">Сохранить новые PIN</button>
       </div>
 
       <div class="section">
@@ -268,6 +329,7 @@ button{cursor:pointer}
 <nav class="bottom">
   <div class="bottom-inner">
     <button class="tab active" data-tab="schedule">График</button>
+    <button class="tab" data-tab="history">История</button>
     <button class="tab" data-tab="settings">Настройки</button>
   </div>
 </nav>
@@ -296,6 +358,34 @@ button{cursor:pointer}
   </div>
 </div>
 
+
+<div class="modal hidden" id="shiftActionModal">
+  <div class="sheet">
+    <div class="sheet-head"><h2 id="shiftActionTitle">Открыть смену</h2><button class="close" id="closeShiftAction">×</button></div>
+    <div class="notice" id="shiftActionInfo" style="margin-top:12px"></div>
+    <div class="field" style="margin-top:12px"><label>Кто подтверждает</label><select id="shiftEmployee"></select></div>
+    <div class="field"><label>PIN (4 цифры)</label><input id="shiftPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••"></div>
+    <div class="login-error" id="shiftActionError"></div>
+    <div class="login-actions"><button class="secondary" id="cancelShiftAction">Отмена</button><button class="primary" id="confirmShiftAction">Подтвердить</button></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="editShiftModal">
+  <div class="sheet">
+    <div class="sheet-head"><h2>Исправить смену</h2><button class="close" id="closeEditShift">×</button></div>
+    <div class="notice" id="editShiftInfo" style="margin-top:12px"></div>
+    <input type="hidden" id="editShiftId">
+    <div class="grid2" style="margin-top:12px">
+      <div class="field"><label>Кто открыл</label><input id="editOpenedBy"></div>
+      <div class="field"><label>Время открытия (МСК)</label><input id="editOpenedTime" type="time"></div>
+      <div class="field"><label>Кто закрыл</label><input id="editClosedBy"></div>
+      <div class="field"><label>Время закрытия (МСК)</label><input id="editClosedTime" type="time"></div>
+    </div>
+    <div class="modal-note">Пустое время закрытия означает, что смена пока не закрыта. Изменять историю может только администратор.</div>
+    <div class="login-actions"><button class="secondary" id="cancelEditShift">Отмена</button><button class="primary" id="saveEditShift">Сохранить</button></div>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
@@ -311,6 +401,11 @@ button{cursor:pointer}
   const CLOUD_ROW_ID = "main";
   const AUTH_STORAGE_KEY = "ma_schedule_admin_session_v1";
   const SYNC_INTERVAL_MS = 15000;
+  const SHIFT_TABLE = "ma_shifts";
+  const SHIFT_FUNCTION_URL = SUPABASE_URL + "/functions/v1/ma-shifts";
+  const VAPID_PUBLIC_KEY = "BNa-XTPFzPk8s00Rl5j9uTkBPgYHTM-zMaw6aVXP1HQSfoFfKCy_B4sf0Svcs5Tv7h_ue2-OWQBOQk41MepJOik";
+  const SHIFT_POLL_MS = 20000;
+  const SHIFT_TIMEZONE = "Europe/Moscow";
 
   const DEFAULTS = {
     startYear: 2026,
@@ -333,6 +428,11 @@ button{cursor:pointer}
   let settingsDirty = false;
   let lastCloudUpdatedAt = null;
   let syncTimer = null;
+  let shiftPollTimer = null;
+  let currentShiftRows = [];
+  let pendingShiftAction = null;
+  let editingShiftRow = null;
+  let serviceWorkerRegistration = null;
 
   const $ = id => document.getElementById(id);
   const monthSelect = $("monthSelect");
@@ -480,6 +580,239 @@ button{cursor:pointer}
     setCloudStatus("Онлайн","online"); updateCloudStatusLine(); return true;
   }
 
+
+  function moscowParts(date=new Date()){
+    const parts=new Intl.DateTimeFormat("en-US",{timeZone:SHIFT_TIMEZONE,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(date);
+    const o={}; parts.forEach(p=>{ if(p.type!=="literal") o[p.type]=p.value; });
+    return {date:`${o.year}-${o.month}-${o.day}`,time:`${o.hour}:${o.minute}`,hour:Number(o.hour),minute:Number(o.minute),year:Number(o.year),month:Number(o.month),day:Number(o.day)};
+  }
+
+  function formatMoscowDate(iso){
+    if(!iso) return "—";
+    return new Intl.DateTimeFormat("ru-RU",{timeZone:SHIFT_TIMEZONE,day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date(iso));
+  }
+  function formatMoscowTime(iso){
+    if(!iso) return "—";
+    return new Intl.DateTimeFormat("ru-RU",{timeZone:SHIFT_TIMEZONE,hour:"2-digit",minute:"2-digit"}).format(new Date(iso));
+  }
+  function isoAtMoscow(dateStr,timeStr){
+    if(!dateStr || !timeStr) return null;
+    return new Date(`${dateStr}T${timeStr}:00+03:00`).toISOString();
+  }
+  function addDaysISO(iso,days){ const d=new Date(iso+"T12:00:00Z"); d.setUTCDate(d.getUTCDate()+days); return d.toISOString().slice(0,10); }
+
+  async function shiftFunction(body,{admin=false}={}){
+    const headers={"Content-Type":"application/json","apikey":SUPABASE_PUBLISHABLE_KEY};
+    if(admin){
+      const token=await getAdminToken();
+      if(!token) throw new Error("Нужно войти как администратор");
+      headers.Authorization="Bearer "+token;
+    }
+    const res=await fetch(SHIFT_FUNCTION_URL,{method:"POST",headers,body:JSON.stringify(body)});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok || data.ok===false) throw new Error(data.error || data.message || "Ошибка сервера смен");
+    return data;
+  }
+
+  function expectedForDate(dateStr,serviceName){
+    try{
+      const [y,m,d]=dateStr.split("-").map(Number);
+      const start=new Date(Number(settings.startYear),Number(settings.startMonth),1);
+      const target=new Date(y,m-1,1);
+      const idx=(target.getFullYear()-start.getFullYear())*12 + (target.getMonth()-start.getMonth());
+      if(idx<0 || idx>11) return null;
+      const row=daySchedule(idx,d);
+      const pair=serviceName===settings.service1 ? row.s1 : serviceName===settings.service2 ? row.s2 : null;
+      return pair ? {manager:pair.manager,master:pair.master} : null;
+    }catch(e){ return null; }
+  }
+
+  function shiftMinutes(time){ const [h,m]=String(time||"00:00").split(":").map(Number); return h*60+m; }
+
+  function renderTodayShifts(){
+    const now=moscowParts();
+    $("todayDateLabel").textContent=new Intl.DateTimeFormat("ru-RU",{timeZone:SHIFT_TIMEZONE,weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date());
+    const services=[settings.service1,settings.service2];
+    const root=$("todayShiftCards"); root.innerHTML="";
+    services.forEach(service=>{
+      const row=currentShiftRows.find(x=>x.service===service) || null;
+      const exp=expectedForDate(now.date,service);
+      const currentMins=now.hour*60+now.minute, startMins=shiftMinutes(settings.shiftStart), endMins=shiftMinutes(settings.shiftEnd);
+      let cls="wait", label="Ожидаем открытия", meta="";
+      if(row && row.opened_at && !row.closed_at){
+        cls=(row.open_late_minutes||0)>0?"late":"open";
+        label=`Открыта ${formatMoscowTime(row.opened_at)}`;
+        meta=`Открыл: ${escapeHtml(row.opened_by||"—")}`;
+        if(row.opened_by && exp && row.opened_by!==exp.manager) meta+=`<br><span class="mismatch">По графику: ${escapeHtml(exp.manager)}</span>`;
+      }else if(row && row.closed_at){
+        cls="closed"; label=`Закрыта ${formatMoscowTime(row.closed_at)}`;
+        meta=`Открыл: ${escapeHtml(row.opened_by||"—")} ${formatMoscowTime(row.opened_at)}<br>Закрыл: ${escapeHtml(row.closed_by||"—")} ${formatMoscowTime(row.closed_at)}`;
+      }else if(currentMins>=startMins){
+        cls="missing"; label="Смена не открыта"; meta="Подтверждения от менеджера ещё нет";
+      }else{
+        meta=`Начало смены в ${settings.shiftStart}`;
+      }
+      const card=document.createElement("div"); card.className="shift-card";
+      const pairText=exp ? `${escapeHtml(exp.manager)} + ${escapeHtml(exp.master)}` : "График на эту дату не задан";
+      const action=(!row || !row.opened_at) ? "open" : (!row.closed_at ? "close" : "done");
+      const btnText=action==="open"?"Открыть смену":action==="close"?"Закрыть смену":"Смена закрыта";
+      card.innerHTML=`<h3>${escapeHtml(service)}</h3><div class="shift-status ${cls}"><span class="dot"></span>${label}</div><div class="shift-pair"><b>По графику:</b> ${pairText}</div><div class="shift-meta">${meta}</div><button class="${action==="open"?"primary":"secondary"} shift-action" ${action==="done"?"disabled":""}>${btnText}</button>`;
+      if(action!=="done") card.querySelector(".shift-action").onclick=()=>openShiftAction(service,action,exp);
+      root.appendChild(card);
+    });
+  }
+
+  async function loadTodayShifts(showToast=false){
+    if(!cloudConfigured()) return;
+    const date=moscowParts().date;
+    try{
+      const res=await authFetch(`/rest/v1/${SHIFT_TABLE}?shift_date=eq.${date}&select=*&order=service.asc`,{method:"GET"});
+      if(!res.ok) throw new Error(await res.text());
+      currentShiftRows=await res.json();
+      renderTodayShifts();
+      if(showToast) toast("Статус смен обновлён");
+    }catch(e){ console.error(e); if(showToast) toast("Не удалось обновить смены"); }
+  }
+
+  function openShiftAction(service,action,expected){
+    pendingShiftAction={service,action,expected};
+    $("shiftActionTitle").textContent=action==="open"?`Открыть смену — ${service}`:`Закрыть смену — ${service}`;
+    $("shiftActionInfo").innerHTML=expected?`По графику сегодня: <b>${escapeHtml(expected.manager)} + ${escapeHtml(expected.master)}</b>`:"На эту дату нет строки в годовом графике.";
+    const names=settings.managers.flat();
+    $("shiftEmployee").innerHTML=names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
+    if(expected && names.includes(expected.manager)) $("shiftEmployee").value=expected.manager;
+    $("shiftPin").value=""; $("shiftActionError").textContent="";
+    $("shiftActionModal").classList.remove("hidden");
+    setTimeout(()=>$("shiftPin").focus(),100);
+  }
+  function closeShiftAction(){ $("shiftActionModal").classList.add("hidden"); pendingShiftAction=null; }
+  async function confirmShiftAction(){
+    if(!pendingShiftAction) return;
+    const employee=$("shiftEmployee").value, pin=$("shiftPin").value.trim();
+    if(!/^\\d{4}$/.test(pin)){ $("shiftActionError").textContent="PIN должен быть из 4 цифр"; return; }
+    const btn=$("confirmShiftAction"); btn.disabled=true; btn.textContent="Отправка…"; $("shiftActionError").textContent="";
+    try{
+      const p=pendingShiftAction;
+      const result=await shiftFunction({op:"shift",action:p.action,service:p.service,employee,pin,expectedManager:p.expected?.manager||null,expectedMaster:p.expected?.master||null});
+      closeShiftAction();
+      await loadTodayShifts(false);
+      toast(p.action==="open"?`Смена открыта в ${result.localTime||""}`:`Смена закрыта в ${result.localTime||""}`);
+      if(!$("historyPage").classList.contains("hidden")) loadHistory();
+    }catch(e){ $("shiftActionError").textContent=e.message || "Ошибка"; }
+    finally{ btn.disabled=false; btn.textContent="Подтвердить"; }
+  }
+
+  function renderPinFields(){
+    const root=$("pinFields"); if(!root) return;
+    root.innerHTML=settings.managers.flat().map((n,i)=>`<div class="pin-grid"><div class="field" style="margin:0"><label>${escapeHtml(n)}</label><input class="readonly" value="Менеджер" readonly></div><div class="field" style="margin:0"><label>Новый PIN</label><input id="managerPin${i}" type="password" inputmode="numeric" maxlength="4" placeholder="4 цифры"></div></div>`).join("");
+  }
+
+  async function saveManagerPins(){
+    if(!isAdmin()){ openLoginModal(); return; }
+    const names=settings.managers.flat(); let changed=0;
+    try{
+      for(let i=0;i<names.length;i++){
+        const pin=$(`managerPin${i}`).value.trim(); if(!pin) continue;
+        if(!/^\\d{4}$/.test(pin)) throw new Error(`PIN для ${names[i]} должен быть из 4 цифр`);
+        await shiftFunction({op:"set-pin",employee:names[i],pin},{admin:true});
+        $(`managerPin${i}`).value=""; changed++;
+      }
+      toast(changed?`PIN сохранены: ${changed}`:"Новые PIN не введены");
+    }catch(e){ toast(e.message||"Не удалось сохранить PIN"); }
+  }
+
+  function urlBase64ToUint8Array(base64String){
+    const padding="=".repeat((4-base64String.length%4)%4); const base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");
+    const raw=atob(base64); return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+  }
+  function updatePushState(){
+    const el=$("pushState"), btn=$("enablePushBtn"); if(!el||!btn) return;
+    const standalone=window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true;
+    if(!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)){
+      el.textContent="На этом устройстве Web Push сейчас недоступен. На iPhone сначала добавь сайт на экран «Домой» и открой его оттуда."; btn.disabled=true; return;
+    }
+    if(Notification.permission==="granted") el.textContent="Уведомления разрешены. Нажми кнопку, чтобы проверить/зарегистрировать этот телефон.";
+    else if(Notification.permission==="denied") el.textContent="Уведомления запрещены в настройках браузера/системы.";
+    else el.textContent=standalone?"Уведомления ещё не включены на этом телефоне.":"На iPhone для push добавь сайт на экран «Домой», затем открой приложение и включи уведомления.";
+    btn.disabled=false;
+  }
+  async function registerServiceWorker(){
+    if(!("serviceWorker" in navigator)) return null;
+    try{ serviceWorkerRegistration=await navigator.serviceWorker.register("./sw.js"); return serviceWorkerRegistration; }
+    catch(e){ console.error("SW",e); return null; }
+  }
+  async function enablePush(){
+    if(!isAdmin()){ openLoginModal(); toast("Сначала войди как администратор"); return; }
+    if(!("Notification" in window)){ toast("На iPhone сначала добавь сайт на экран «Домой»"); return; }
+    try{
+      const perm=await Notification.requestPermission(); if(perm!=="granted") throw new Error("Уведомления не разрешены");
+      const reg=serviceWorkerRegistration || await registerServiceWorker(); if(!reg) throw new Error("Service Worker не зарегистрирован");
+      let sub=await reg.pushManager.getSubscription();
+      if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)});
+      await shiftFunction({op:"subscribe",subscription:sub.toJSON()},{admin:true});
+      updatePushState(); toast("Push-уведомления включены на этом телефоне");
+    }catch(e){ console.error(e); toast(e.message||"Не удалось включить push"); }
+  }
+
+  function defaultHistoryDates(){
+    const t=moscowParts().date; $("historyTo").value=t; $("historyFrom").value=addDaysISO(t,-30);
+  }
+  function fillHistoryFilters(){
+    const sv=$("historyService"), emp=$("historyEmployee"); if(!sv||!emp) return;
+    const svv=sv.value, ev=emp.value;
+    sv.innerHTML=`<option value="">Все сервисы</option><option>${escapeHtml(settings.service1)}</option><option>${escapeHtml(settings.service2)}</option>`;
+    emp.innerHTML='<option value="">Все сотрудники</option>'+settings.managers.flat().map(n=>`<option>${escapeHtml(n)}</option>`).join("");
+    if([...sv.options].some(o=>o.value===svv)) sv.value=svv; if([...emp.options].some(o=>o.value===ev)) emp.value=ev;
+  }
+  async function loadHistory(){
+    const root=$("historyList"); if(!isAdmin()){ root.innerHTML='<div class="history-empty">Войди как администратор, чтобы смотреть историю.</div>'; return; }
+    const from=$("historyFrom").value,to=$("historyTo").value,service=$("historyService").value,employee=$("historyEmployee").value,problem=$("historyProblem").value;
+    const token=await getAdminToken(); if(!token){ openLoginModal(); return; }
+    let q=`/rest/v1/${SHIFT_TABLE}?select=*&order=shift_date.desc,service.asc&limit=300`;
+    if(from) q+=`&shift_date=gte.${encodeURIComponent(from)}`; if(to) q+=`&shift_date=lte.${encodeURIComponent(to)}`; if(service) q+=`&service=eq.${encodeURIComponent(service)}`;
+    try{
+      root.innerHTML='<div class="history-empty">Загрузка…</div>';
+      const res=await authFetch(q,{method:"GET",headers:{Authorization:"Bearer "+token}}); if(!res.ok) throw new Error(await res.text());
+      let rows=await res.json();
+      if(employee) rows=rows.filter(r=>r.opened_by===employee||r.closed_by===employee||r.expected_manager===employee);
+      if(problem==="late") rows=rows.filter(r=>(r.open_late_minutes||0)>0);
+      if(problem==="unclosed") rows=rows.filter(r=>r.opened_at&&!r.closed_at);
+      renderHistory(rows);
+    }catch(e){ console.error(e); root.innerHTML='<div class="history-empty">Не удалось загрузить историю.</div>'; }
+  }
+  function renderHistory(rows){
+    const root=$("historyList"); if(!rows.length){ root.innerHTML='<div class="history-empty">За выбранный период записей нет.</div>'; return; }
+    root.innerHTML=rows.map(r=>{
+      const openLate=(r.open_late_minutes||0)>0?`<span class="tag late">+${r.open_late_minutes} мин</span>`:'<span class="tag ok">вовремя</span>';
+      const closeTag=r.closed_at?'<span class="tag ok">закрыта</span>':'<span class="tag bad">не закрыта</span>';
+      const mismatch=r.opened_by&&r.expected_manager&&r.opened_by!==r.expected_manager?`<div class="mismatch">По графику был: ${escapeHtml(r.expected_manager)}</div>`:"";
+      return `<div class="history-item"><div class="history-top"><div><span class="history-service">${escapeHtml(r.service)}</span><span class="history-date"> · ${r.shift_date}</span></div>${isAdmin()?`<button class="edit-shift-btn" data-id="${r.id}">Исправить</button>`:""}</div><div class="history-grid"><div class="history-cell"><b>Открытие ${openLate}</b>${escapeHtml(r.opened_by||"—")} · ${formatMoscowTime(r.opened_at)}${mismatch}</div><div class="history-cell"><b>Закрытие ${closeTag}</b>${escapeHtml(r.closed_by||"—")} · ${formatMoscowTime(r.closed_at)}</div></div></div>`;
+    }).join("");
+    root.querySelectorAll(".edit-shift-btn").forEach(b=>b.onclick=()=>openEditShift(rows.find(r=>String(r.id)===b.dataset.id)));
+  }
+  function openEditShift(row){
+    if(!row) return; editingShiftRow=row; $("editShiftId").value=row.id; $("editShiftInfo").textContent=`${row.service} · ${row.shift_date}`;
+    $("editOpenedBy").value=row.opened_by||""; $("editOpenedTime").value=row.opened_at?formatMoscowTime(row.opened_at):""; $("editClosedBy").value=row.closed_by||""; $("editClosedTime").value=row.closed_at?formatMoscowTime(row.closed_at):"";
+    $("editShiftModal").classList.remove("hidden");
+  }
+  function closeEditShift(){ $("editShiftModal").classList.add("hidden"); editingShiftRow=null; }
+  async function saveEditShift(){
+    if(!editingShiftRow||!isAdmin()) return;
+    const token=await getAdminToken(), date=editingShiftRow.shift_date;
+    const openedTime=$("editOpenedTime").value, closedTime=$("editClosedTime").value;
+    const patch={opened_by:$("editOpenedBy").value.trim()||null,opened_at:openedTime?isoAtMoscow(date,openedTime):null,closed_by:$("editClosedBy").value.trim()||null,closed_at:closedTime?isoAtMoscow(date,closedTime):null,updated_at:new Date().toISOString()};
+    if(!patch.opened_at){ toast("Время открытия нельзя удалить"); return; }
+    if(!patch.opened_by){ toast("Укажи, кто открыл смену"); return; }
+    if(patch.closed_at && !patch.closed_by){ toast("Укажи, кто закрыл смену"); return; }
+    if(patch.closed_at && new Date(patch.closed_at) < new Date(patch.opened_at)){ toast("Закрытие не может быть раньше открытия"); return; }
+    patch.open_late_minutes=Math.max(0,shiftMinutes(openedTime)-shiftMinutes(settings.shiftStart));
+    patch.early_close_minutes=closedTime?Math.max(0,shiftMinutes(settings.shiftEnd)-shiftMinutes(closedTime)):0;
+    try{
+      const res=await authFetch(`/rest/v1/${SHIFT_TABLE}?id=eq.${editingShiftRow.id}`,{method:"PATCH",headers:{Authorization:"Bearer "+token,Prefer:"return=minimal"},body:JSON.stringify(patch)});
+      if(!res.ok) throw new Error(await res.text()); closeEditShift(); toast("История исправлена"); await loadHistory(); await loadTodayShifts(false);
+    }catch(e){ console.error(e); toast("Не удалось сохранить исправление"); }
+  }
+
   function loadSettings(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -613,6 +946,7 @@ button{cursor:pointer}
     root.appendChild(serviceCard(settings.service2,"s2",rows));
     renderSummary(rows);
     highlightEmployee();
+    renderTodayShifts();
   }
 
   function serviceCard(title,key,rows){
@@ -693,6 +1027,7 @@ button{cursor:pointer}
     $("wA1").value=settings.masters[0][0]; $("wA2").value=settings.masters[0][1];
     $("wB1").value=settings.masters[1][0]; $("wB2").value=settings.masters[1][1];
     $("strict22").checked=!!settings.strict22; $("swapServices").checked=!!settings.swapServices; $("rotateMasterPairs").checked=!!settings.rotateMasterPairs;
+    renderPinFields(); fillHistoryFilters(); updatePushState();
   }
 
   function readSettingsFromForm(){
@@ -738,13 +1073,19 @@ button{cursor:pointer}
   }
 
   function switchTab(tab){
-    if(tab==="settings" && cloudConfigured() && !isAdmin()){ openLoginModal(); return; }
-    const sched=tab==="schedule";
+    if((tab==="settings" || tab==="history") && cloudConfigured() && !isAdmin()){
+      openLoginModal();
+      return;
+    }
+    const sched=tab==="schedule", hist=tab==="history", sett=tab==="settings";
     $("schedulePage").classList.toggle("hidden",!sched);
-    $("settingsPage").classList.toggle("hidden",sched);
+    $("historyPage").classList.toggle("hidden",!hist);
+    $("settingsPage").classList.toggle("hidden",!sett);
     $("scheduleControls").classList.toggle("hidden",!sched);
     document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
-    if(!sched){ settingsDirty=false; populateSettings(); updateCloudSettingsState(); }
+    if(sett){ settingsDirty=false; populateSettings(); updateCloudSettingsState(); updatePushState(); }
+    if(hist){ fillHistoryFilters(); if(!$("historyFrom").value) defaultHistoryDates(); loadHistory(); }
+    if(sched) loadTodayShifts(false);
     window.scrollTo({top:0,behavior:"smooth"});
   }
 
@@ -897,6 +1238,7 @@ button{cursor:pointer}
   function switchTabLocalSettings(){
     const sched=false;
     $("schedulePage").classList.toggle("hidden",!sched);
+    $("historyPage").classList.add("hidden");
     $("settingsPage").classList.toggle("hidden",sched);
     $("scheduleControls").classList.toggle("hidden",!sched);
     document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab==="settings"));
@@ -922,7 +1264,11 @@ button{cursor:pointer}
   monthSelect.onchange=()=>{ currentIndex=Number(monthSelect.value); renderMonth(); };
   employeeFilter.onchange=highlightEmployee;
   $("personalBtn").onclick=personalSchedule;
-  $("refreshBtn").onclick=()=>syncFromCloud(true);
+  $("refreshBtn").onclick=async()=>{ await syncFromCloud(true); await loadTodayShifts(false); };
+  $("refreshShiftsBtn").onclick=()=>loadTodayShifts(true);
+  $("loadHistoryBtn").onclick=loadHistory;
+  $("savePinsBtn").onclick=saveManagerPins;
+  $("enablePushBtn").onclick=enablePush;
   $("adminBtn").onclick=()=>{ if(isAdmin()) switchTab("settings"); else openLoginModal(); };
   $("closePersonal").onclick=()=>$("personalModal").classList.add("hidden");
   $("personalModal").addEventListener("click",e=>{ if(e.target===$("personalModal")) $("personalModal").classList.add("hidden"); });
@@ -937,6 +1283,11 @@ button{cursor:pointer}
   $("loginBtn").onclick=handleLogin;
   $("adminPassword").addEventListener("keydown",e=>{ if(e.key==="Enter") handleLogin(); });
   $("loginModal").addEventListener("click",e=>{ if(e.target===$("loginModal")) closeLoginModal(); });
+  $("closeShiftAction").onclick=closeShiftAction; $("cancelShiftAction").onclick=closeShiftAction; $("confirmShiftAction").onclick=confirmShiftAction;
+  $("shiftPin").addEventListener("keydown",e=>{ if(e.key==="Enter") confirmShiftAction(); });
+  $("shiftActionModal").addEventListener("click",e=>{ if(e.target===$("shiftActionModal")) closeShiftAction(); });
+  $("closeEditShift").onclick=closeEditShift; $("cancelEditShift").onclick=closeEditShift; $("saveEditShift").onclick=saveEditShift;
+  $("editShiftModal").addEventListener("click",e=>{ if(e.target===$("editShiftModal")) closeEditShift(); });
   $("exportBtn").onclick=exportSettings;
   $("importBtn").onclick=()=>$("importFile").click();
   $("importFile").onchange=e=>{ if(e.target.files[0]) importSettings(e.target.files[0]); e.target.value=""; };
@@ -952,17 +1303,21 @@ button{cursor:pointer}
     }
   };
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
-  $("settingsPage").addEventListener("input",markDirty);
+  $("settingsPage").addEventListener("input",e=>{ if(!e.target.id.startsWith("managerPin")) markDirty(); });
 
   // Init
   populateSettings();
+  defaultHistoryDates();
   renderMonth();
   updateAuthUI();
+  registerServiceWorker().then(updatePushState);
+  loadTodayShifts(false);
+  shiftPollTimer=setInterval(()=>loadTodayShifts(false),SHIFT_POLL_MS);
   if(cloudConfigured()){
     syncFromCloud(false);
     syncTimer=setInterval(()=>syncFromCloud(false),SYNC_INTERVAL_MS);
-    window.addEventListener("focus",()=>syncFromCloud(false));
-    document.addEventListener("visibilitychange",()=>{ if(!document.hidden) syncFromCloud(false); });
+    window.addEventListener("focus",()=>{ syncFromCloud(false); loadTodayShifts(false); });
+    document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ syncFromCloud(false); loadTodayShifts(false); } });
   }else{
     setCloudStatus("Локально","offline");
     updateCloudStatusLine();
