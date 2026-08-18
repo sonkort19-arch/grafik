@@ -158,6 +158,17 @@ button{cursor:pointer}
 
 
 .badge{min-width:108px;text-align:center;white-space:nowrap}
+
+.device-box{border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px;background:#fff}
+.device-state{margin-top:10px;padding:11px 12px;border-radius:12px;background:#f7f9fc;color:#53627a;line-height:1.4}
+.device-state.ok{background:#ecfdf3;color:#166534}
+.device-state.bad{background:#fff7ed;color:#9a3412}
+.device-list{display:grid;gap:8px;margin-top:10px}
+.device-item{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.device-item small{display:block;color:var(--muted);margin-top:3px}
+.device-revoke{border:1px solid #fecaca;background:#fff;color:#b42318;border-radius:10px;padding:8px 10px;font-weight:800;white-space:nowrap}
+.shift-device-note{margin-top:8px;color:#8a5a00;font-size:13px;font-weight:700}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -254,6 +265,18 @@ button{cursor:pointer}
         <div class="notice">PIN нужен менеджеру только для кнопок «Открыть смену» и «Закрыть смену». PIN не показывается сотрудникам и не хранится в HTML.</div>
         <div id="pinFields" style="margin-top:10px"></div>
         <button class="secondary" id="savePinsBtn" style="width:100%;margin-top:10px">Сохранить новые PIN</button>
+
+        <h3 style="margin-top:20px">Устройство сервиса</h3>
+        <div class="notice">Менеджер сможет открыть или закрыть смену только на зарегистрированном устройстве своей точки. С телефона сотрудника кнопка будет заблокирована. Администратор может управлять сменой с любого устройства.</div>
+        <div class="device-box">
+          <div class="grid2">
+            <div class="field" style="margin:0"><label>Для какой точки это устройство</label><select id="deviceService"></select></div>
+            <div class="field" style="margin:0"><label>Название устройства</label><input id="deviceLabel" placeholder="Например: компьютер Моба"></div>
+          </div>
+          <button class="primary" id="pairDeviceBtn" style="width:100%;margin-top:10px">Разрешить это устройство</button>
+          <div class="device-state" id="currentDeviceState">Проверяем это устройство…</div>
+          <div id="deviceList" class="device-list"></div>
+        </div>
       </div>
 
       <div class="section">
@@ -375,7 +398,8 @@ button{cursor:pointer}
     <div class="sheet-head"><h2 id="shiftActionTitle">Открыть смену</h2><button class="close" id="closeShiftAction">×</button></div>
     <div class="notice" id="shiftActionInfo" style="margin-top:12px"></div>
     <div class="field" style="margin-top:12px"><label>Кто подтверждает</label><select id="shiftEmployee"></select></div>
-    <div class="field"><label>PIN (4 цифры)</label><input id="shiftPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••"></div>
+    <div class="field" id="shiftPinField"><label>PIN (4 цифры)</label><input id="shiftPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••"></div>
+    <div class="notice hidden" id="adminShiftNotice">Ты вошёл как администратор — PIN менеджера не требуется.</div>
     <div class="login-error" id="shiftActionError"></div>
     <div class="login-actions"><button class="secondary" id="cancelShiftAction">Отмена</button><button class="primary" id="confirmShiftAction">Подтвердить</button></div>
   </div>
@@ -411,6 +435,7 @@ button{cursor:pointer}
   const CLOUD_TABLE = "ma_schedule_config";
   const CLOUD_ROW_ID = "main";
   const AUTH_STORAGE_KEY = "ma_schedule_admin_session_v1";
+  const DEVICE_STORAGE_KEY = "ma_shift_device_token_v1";
   const SYNC_INTERVAL_MS = 30000;
   const SHIFT_TABLE = "ma_shifts";
   const SHIFT_FUNCTION_URL = SUPABASE_URL + "/functions/v1/ma-shifts";
@@ -447,6 +472,8 @@ button{cursor:pointer}
   let serviceWorkerRegistration = null;
   let lastShiftSignature = "";
   let lastSettingsSignature = "";
+  let currentDeviceAccess = {allowed:false,device:null};
+  let deviceListCache = [];
 
   const $ = id => document.getElementById(id);
   const monthSelect = $("monthSelect");
@@ -456,6 +483,20 @@ button{cursor:pointer}
 
   function stableJson(value){
     try{ return JSON.stringify(value); }catch(e){ return ""; }
+  }
+
+  function loadShiftDeviceToken(){
+    try{ return localStorage.getItem(DEVICE_STORAGE_KEY) || ""; }catch(e){ return ""; }
+  }
+  function saveShiftDeviceToken(token){
+    try{
+      if(token) localStorage.setItem(DEVICE_STORAGE_KEY,token);
+      else localStorage.removeItem(DEVICE_STORAGE_KEY);
+    }catch(e){}
+  }
+  function canUseShiftService(service){
+    if(isAdmin()) return true;
+    return !!(currentDeviceAccess.allowed && currentDeviceAccess.device && currentDeviceAccess.device.service===service);
   }
 
   function restoreScrollAfterRender(scrollY){
@@ -525,6 +566,8 @@ button{cursor:pointer}
     const btn=$("adminBtn"); if(!btn) return;
     btn.textContent=isAdmin() ? "Админ ✓" : "Администратор";
     updateCloudSettingsState();
+    if($("todayShiftCards")) renderTodayShifts();
+    if($("currentDeviceState")) renderDevicePanel();
   }
 
   async function authFetch(path,options={}){
@@ -669,6 +712,119 @@ button{cursor:pointer}
     return data;
   }
 
+  function fillDeviceServiceSelect(){
+    const sel=$("deviceService"); if(!sel) return;
+    const prev=sel.value;
+    sel.innerHTML=`<option value="${escapeHtml(settings.service1)}">${escapeHtml(settings.service1)}</option><option value="${escapeHtml(settings.service2)}">${escapeHtml(settings.service2)}</option>`;
+    if([...sel.options].some(o=>o.value===prev)) sel.value=prev;
+  }
+
+  async function refreshDeviceAccess(){
+    const token=loadShiftDeviceToken();
+    if(!token){
+      currentDeviceAccess={allowed:false,device:null};
+      renderDevicePanel();
+      renderTodayShifts();
+      return currentDeviceAccess;
+    }
+    try{
+      const data=await shiftFunction({op:"device-status",deviceToken:token});
+      if(data.allowed && data.device){
+        currentDeviceAccess={allowed:true,device:data.device};
+      }else{
+        saveShiftDeviceToken("");
+        currentDeviceAccess={allowed:false,device:null};
+      }
+    }catch(e){
+      console.error("device-status",e);
+      currentDeviceAccess={allowed:false,device:null};
+    }
+    renderDevicePanel();
+    renderTodayShifts();
+    return currentDeviceAccess;
+  }
+
+  async function loadRegisteredDevices(){
+    if(!isAdmin()){ deviceListCache=[]; renderDevicePanel(); return; }
+    try{
+      const data=await shiftFunction({op:"list-devices"},{admin:true});
+      deviceListCache=data.devices||[];
+    }catch(e){
+      console.error("list-devices",e);
+      deviceListCache=[];
+    }
+    renderDevicePanel();
+  }
+
+  function renderDevicePanel(){
+    const state=$("currentDeviceState"), list=$("deviceList"), pairBtn=$("pairDeviceBtn");
+    if(!state || !list || !pairBtn) return;
+    fillDeviceServiceSelect();
+
+    if(currentDeviceAccess.allowed && currentDeviceAccess.device){
+      const d=currentDeviceAccess.device;
+      state.className="device-state ok";
+      state.innerHTML=`<b>Это устройство разрешено.</b><br>${escapeHtml(d.service)} · ${escapeHtml(d.label||"Устройство сервиса")}`;
+    }else{
+      state.className="device-state bad";
+      state.innerHTML='<b>Это устройство не зарегистрировано.</b><br>Сотрудник с этого телефона или компьютера не сможет открыть/закрыть смену.';
+    }
+
+    pairBtn.disabled=!isAdmin();
+    pairBtn.textContent=isAdmin() ? "Разрешить это устройство" : "Только администратор может разрешить устройство";
+
+    if(!isAdmin()){
+      list.innerHTML="";
+      return;
+    }
+
+    const active=deviceListCache.filter(d=>d.active);
+    list.innerHTML=active.length ? active.map(d=>`
+      <div class="device-item">
+        <div><b>${escapeHtml(d.service)}</b> · ${escapeHtml(d.label||"Устройство")}
+          <small>Активно${d.last_seen_at ? ` · было в сети ${formatMoscowDate(d.last_seen_at)} ${formatMoscowTime(d.last_seen_at)}` : ""}</small>
+        </div>
+        <button class="device-revoke" data-device-id="${escapeHtml(d.id)}">Отключить</button>
+      </div>`).join("") : '<div class="device-state">Активных устройств пока нет.</div>';
+
+    list.querySelectorAll(".device-revoke").forEach(btn=>{
+      btn.onclick=()=>revokeRegisteredDevice(btn.dataset.deviceId);
+    });
+  }
+
+  async function pairCurrentDevice(){
+    if(!isAdmin()){ openLoginModal(); return; }
+    const service=$("deviceService").value;
+    const label=$("deviceLabel").value.trim() || `Устройство ${service}`;
+    if(!confirm(`Разрешить это устройство для точки «${service}»?\n\nПредыдущее активное устройство этой точки будет отключено.`)) return;
+    try{
+      const data=await shiftFunction({op:"pair-device",service,label},{admin:true});
+      saveShiftDeviceToken(data.deviceToken);
+      currentDeviceAccess={allowed:true,device:data.device};
+      await loadRegisteredDevices();
+      renderTodayShifts();
+      toast(`${service}: это устройство разрешено`);
+    }catch(e){
+      console.error(e);
+      toast(e.message||"Не удалось разрешить устройство");
+    }
+  }
+
+  async function revokeRegisteredDevice(id){
+    if(!isAdmin() || !id) return;
+    if(!confirm("Отключить это устройство? С него больше нельзя будет открыть или закрыть смену.")) return;
+    try{
+      await shiftFunction({op:"revoke-device",id},{admin:true});
+      if(currentDeviceAccess.device && String(currentDeviceAccess.device.id)===String(id)){
+        saveShiftDeviceToken("");
+        currentDeviceAccess={allowed:false,device:null};
+      }
+      await loadRegisteredDevices();
+      renderTodayShifts();
+      toast("Устройство отключено");
+    }catch(e){ toast(e.message||"Не удалось отключить устройство"); }
+  }
+
   function expectedForDate(dateStr,serviceName){
     try{
       const [y,m,d]=dateStr.split("-").map(Number);
@@ -710,9 +866,12 @@ button{cursor:pointer}
       const card=document.createElement("div"); card.className="shift-card";
       const pairText=exp ? `${escapeHtml(exp.manager)} + ${escapeHtml(exp.master)}` : "График на эту дату не задан";
       const action=(!row || !row.opened_at) ? "open" : (!row.closed_at ? "close" : "done");
-      const btnText=action==="open"?"Открыть смену":action==="close"?"Закрыть смену":"Смена закрыта";
-      card.innerHTML=`<h3>${escapeHtml(service)}</h3><div class="shift-status ${cls}"><span class="dot"></span>${label}</div><div class="shift-pair"><b>По графику:</b> ${pairText}</div><div class="shift-meta">${meta}</div><button class="${action==="open"?"primary":"secondary"} shift-action" ${action==="done"?"disabled":""}>${btnText}</button>${isAdmin() && row ? `<button class="reset-shift-btn">Сбросить смену</button>` : ""}`;
-      if(action!=="done") card.querySelector(".shift-action").onclick=()=>openShiftAction(service,action,exp);
+      const allowed=action!=="done" && canUseShiftService(service);
+      let btnText=action==="open"?"Открыть смену":action==="close"?"Закрыть смену":"Смена закрыта";
+      if(action!=="done" && !allowed) btnText=`Только на устройстве ${service}`;
+      const deviceNote=action!=="done" && !allowed && !isAdmin()?`<div class="shift-device-note">С телефона сотрудника открыть или закрыть смену нельзя.</div>`:"";
+      card.innerHTML=`<h3>${escapeHtml(service)}</h3><div class="shift-status ${cls}"><span class="dot"></span>${label}</div><div class="shift-pair"><b>По графику:</b> ${pairText}</div><div class="shift-meta">${meta}</div>${deviceNote}<button class="${action==="open"?"primary":"secondary"} shift-action" ${(!allowed || action==="done")?"disabled":""}>${btnText}</button>${isAdmin() && row ? `<button class="reset-shift-btn">Сбросить смену</button>` : ""}`;
+      if(allowed) card.querySelector(".shift-action").onclick=()=>openShiftAction(service,action,exp);
       const resetBtn=card.querySelector(".reset-shift-btn");
       if(resetBtn) resetBtn.onclick=()=>resetTodayShift(service,now.date);
       root.appendChild(card);
@@ -768,6 +927,10 @@ button{cursor:pointer}
   }
 
   function openShiftAction(service,action,expected){
+    if(!canUseShiftService(service)){
+      toast(`Открытие смены доступно только на устройстве ${service}`);
+      return;
+    }
     pendingShiftAction={service,action,expected};
     $("shiftActionTitle").textContent=action==="open"?`Открыть смену — ${service}`:`Закрыть смену — ${service}`;
     $("shiftActionInfo").innerHTML=expected?`По графику сегодня: <b>${escapeHtml(expected.manager)} + ${escapeHtml(expected.master)}</b>`:"На эту дату нет строки в годовом графике. Смену всё равно можно открыть вручную.";
@@ -775,18 +938,33 @@ button{cursor:pointer}
     $("shiftEmployee").innerHTML=names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
     if(expected && names.includes(expected.manager)) $("shiftEmployee").value=expected.manager;
     $("shiftPin").value=""; $("shiftActionError").textContent="";
+    $("shiftPinField").classList.toggle("hidden",isAdmin());
+    $("adminShiftNotice").classList.toggle("hidden",!isAdmin());
     $("shiftActionModal").classList.remove("hidden");
-    setTimeout(()=>$("shiftPin").focus(),100);
+    if(!isAdmin()) setTimeout(()=>$("shiftPin").focus(),100);
   }
   function closeShiftAction(){ $("shiftActionModal").classList.add("hidden"); pendingShiftAction=null; }
   async function confirmShiftAction(){
     if(!pendingShiftAction) return;
     const employee=$("shiftEmployee").value, pin=$("shiftPin").value.trim();
-    if(!/^\d{4}$/.test(pin)){ $("shiftActionError").textContent="PIN должен быть из 4 цифр"; return; }
+    const adminMode=isAdmin();
+    if(!adminMode && !/^\d{4}$/.test(pin)){ $("shiftActionError").textContent="PIN должен быть из 4 цифр"; return; }
+
     const btn=$("confirmShiftAction"); btn.disabled=true; btn.textContent="Отправка…"; $("shiftActionError").textContent="";
     try{
       const p=pendingShiftAction;
-      const result=await shiftFunction({op:"shift",action:p.action,service:p.service,employee,pin,expectedManager:p.expected?.manager||null,expectedMaster:p.expected?.master||null});
+      if(!adminMode && !canUseShiftService(p.service)) throw new Error("Это устройство не разрешено для этой точки");
+      const body={
+        op:"shift",
+        action:p.action,
+        service:p.service,
+        employee,
+        pin:adminMode?"":pin,
+        deviceToken:adminMode?"":loadShiftDeviceToken(),
+        expectedManager:p.expected?.manager||null,
+        expectedMaster:p.expected?.master||null
+      };
+      const result=await shiftFunction(body,{admin:adminMode});
       closeShiftAction();
       await loadTodayShifts(false);
       toast(p.action==="open"?`Смена открыта в ${result.localTime||""}`:`Смена закрыта в ${result.localTime||""}`);
@@ -1200,7 +1378,7 @@ button{cursor:pointer}
     $("wA1").value=settings.masters[0][0]; $("wA2").value=settings.masters[0][1];
     $("wB1").value=settings.masters[1][0]; $("wB2").value=settings.masters[1][1];
     $("strict22").checked=!!settings.strict22; $("swapServices").checked=!!settings.swapServices; $("rotateMasterPairs").checked=!!settings.rotateMasterPairs;
-    renderPinFields(); fillHistoryFilters(); updatePushState();
+    renderPinFields(); fillHistoryFilters(); fillDeviceServiceSelect(); updatePushState(); renderDevicePanel();
   }
 
   function readSettingsFromForm(){
@@ -1427,6 +1605,7 @@ button{cursor:pointer}
     $("loginBtn").disabled=true; $("loginBtn").textContent="Вход…"; $("loginError").textContent="";
     try{
       await loginAdmin(email,password);
+      await loadRegisteredDevices();
       closeLoginModal(); toast("Вход выполнен"); switchTab("settings");
     }catch(e){ $("loginError").textContent=e.message || "Не удалось войти"; }
     finally{ $("loginBtn").disabled=false; $("loginBtn").textContent="Войти"; }
@@ -1448,6 +1627,7 @@ button{cursor:pointer}
   $("refreshShiftsBtn").onclick=()=>loadTodayShifts(true);
   $("loadHistoryBtn").onclick=loadHistory;
   $("savePinsBtn").onclick=saveManagerPins;
+  $("pairDeviceBtn").onclick=pairCurrentDevice;
   $("enablePushBtn").onclick=enablePush;
   $("adminBtn").onclick=()=>{ if(isAdmin()) switchTab("settings"); else openLoginModal(); };
   $("closePersonal").onclick=()=>$("personalModal").classList.add("hidden");
@@ -1457,7 +1637,7 @@ button{cursor:pointer}
   $("downloadBtn").onclick=downloadPhoto;
   $("saveSettingsBtn").onclick=saveForm;
   $("forceSyncBtn").onclick=()=>syncFromCloud(true);
-  $("logoutBtn").onclick=()=>{ saveAdminSession(null); settingsDirty=false; switchTab("schedule"); toast("Вы вышли из администратора"); };
+  $("logoutBtn").onclick=()=>{ saveAdminSession(null); settingsDirty=false; renderTodayShifts(); switchTab("schedule"); toast("Вы вышли из администратора"); };
   $("closeLogin").onclick=closeLoginModal;
   $("cancelLogin").onclick=closeLoginModal;
   $("loginBtn").onclick=handleLogin;
@@ -1492,6 +1672,8 @@ button{cursor:pointer}
   renderMonth();
   updateAuthUI();
   registerServiceWorker().then(updatePushState);
+  refreshDeviceAccess();
+  if(isAdmin()) loadRegisteredDevices();
   loadTodayShifts(false);
   shiftPollTimer=setInterval(()=>loadTodayShifts(false),SHIFT_POLL_MS);
   if(cloudConfigured()){
