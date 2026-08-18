@@ -169,6 +169,51 @@ button{cursor:pointer}
 .device-revoke{border:1px solid #fecaca;background:#fff;color:#b42318;border-radius:10px;padding:8px 10px;font-weight:800;white-space:nowrap}
 .shift-device-note{margin-top:8px;color:#8a5a00;font-size:13px;font-weight:700}
 
+
+.employee-hero{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.employee-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.employee-hero h2{margin:0;color:var(--blue);font-size:23px}
+.employee-name{font-size:13px;color:var(--muted);margin-top:4px}
+.employee-main-status{margin-top:14px;border-radius:16px;padding:15px;background:#f7f9fc}
+.employee-main-status.work{background:#ecfdf3;color:#166534}
+.employee-main-status.off{background:#f7f9fc;color:#475569}
+.employee-main-status.unknown{background:#fff7ed;color:#9a3412}
+.employee-main-status b{display:block;font-size:18px;margin-bottom:5px}
+.employee-main-status span{font-size:13px;line-height:1.45}
+.employee-next{margin-top:10px;border:1px solid var(--line);border-radius:14px;padding:12px}
+.employee-next small{display:block;color:var(--muted);margin-bottom:4px}
+.employee-next b{font-size:15px}
+.employee-service-list{display:grid;gap:10px;margin-bottom:14px}
+.employee-service-card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:13px}
+.employee-service-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.employee-service-head h3{margin:0;font-size:17px;color:#24344d}
+.employee-service-pair{font-size:13px;color:#475569;line-height:1.4}
+.employee-my-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.employee-my-head h2{margin:0;color:var(--blue)}
+.employee-shift-list{display:grid;gap:9px}
+.employee-shift-item{background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px;display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:center}
+.employee-shift-date{text-align:center;border-right:1px solid var(--line);padding-right:9px}
+.employee-shift-date b{display:block;font-size:18px;color:#24344d}
+.employee-shift-date span{font-size:11px;color:var(--muted)}
+.employee-shift-info b{display:block;margin-bottom:3px}
+.employee-shift-info span{font-size:12px;color:var(--muted);line-height:1.4}
+.employee-picker-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.employee-picker-btn{min-height:50px;border:1px solid var(--line);background:#fff;border-radius:13px;font-weight:800;color:#24344d}
+.employee-picker-btn:active{transform:scale(.99)}
+.employee-mode-note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:10px}
+.employee-change{border:1px solid var(--line);background:#fff;border-radius:11px;padding:8px 10px;font-weight:700;color:var(--blue);white-space:nowrap}
+.employee-phone-mode #schedulePage .today-board{display:none}
+.employee-phone-mode #monthActions,.employee-phone-mode #monthPhotoNotice{display:none!important}
+.employee-phone-mode .shift-action,.employee-phone-mode .shift-device-note{display:none!important}
+.employee-phone-mode .bottom-inner{grid-template-columns:repeat(3,1fr)!important}
+@media(max-width:760px){
+  .employee-phone-mode #scheduleControls{padding-top:2px}
+  .employee-phone-mode .filters #employeeFilter,
+  .employee-phone-mode .filters #personalBtn{display:none}
+  .employee-phone-mode .filters{grid-template-columns:1fr}
+  .employee-phone-mode .filters #refreshBtn{justify-self:end}
+}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -199,6 +244,38 @@ button{cursor:pointer}
   </header>
 
   <main class="page">
+    <section id="employeeTodayPage" class="hidden">
+      <div class="employee-hero">
+        <div class="employee-hero-top">
+          <div>
+            <h2>Сегодня</h2>
+            <div class="employee-name" id="employeeTodayName">—</div>
+          </div>
+          <button class="employee-change" id="changeEmployeeToday">Сменить</button>
+        </div>
+        <div class="employee-main-status unknown" id="employeeTodayWork">Загрузка…</div>
+        <div class="employee-next" id="employeeNextShift"></div>
+      </div>
+      <div class="section">
+        <div class="today-head">
+          <div><h2 style="font-size:19px">Состояние точек</h2><div class="today-date" id="employeeTodayDate">—</div></div>
+          <button class="iconbtn" id="employeeRefreshBtn" title="Обновить">↻</button>
+        </div>
+        <div class="employee-service-list" id="employeeServiceStatus"></div>
+      </div>
+      <div class="notice">Открытие и закрытие смены выполняется только на зарегистрированном устройстве сервиса.</div>
+    </section>
+
+    <section id="employeeMyPage" class="hidden">
+      <div class="section">
+        <div class="employee-my-head">
+          <div><h2>Мой график</h2><div class="employee-name" id="employeeMyName">—</div></div>
+          <button class="employee-change" id="changeEmployeeMy">Сменить</button>
+        </div>
+        <div class="employee-shift-list" id="employeeShiftList"></div>
+      </div>
+    </section>
+
     <section id="schedulePage">
       <div class="today-board">
         <div class="today-head">
@@ -362,13 +439,27 @@ button{cursor:pointer}
 
 <nav class="bottom">
   <div class="bottom-inner">
-    <button class="tab active" data-tab="schedule">График</button>
-    <button class="tab" data-tab="history">История</button>
-    <button class="tab" data-tab="settings">Настройки</button>
+    <button class="tab active" id="bottomTab1" data-tab="schedule">График</button>
+    <button class="tab" id="bottomTab2" data-tab="history">История</button>
+    <button class="tab" id="bottomTab3" data-tab="settings">Настройки</button>
   </div>
 </nav>
 
 <div class="toast" id="toast"></div>
+
+<div class="modal hidden" id="employeePickerModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div>
+        <h2 style="margin:0">Кто вы?</h2>
+        <div class="employee-mode-note">Выберите себя один раз. Телефон запомнит выбор и будет показывать ваш график.</div>
+      </div>
+    </div>
+    <div class="employee-picker-grid" id="employeePickerGrid"></div>
+    <div class="employee-mode-note">Выбор сотрудника не даёт права открывать смену. Для открытия всё равно нужен компьютер/планшет сервиса и PIN.</div>
+    <button class="secondary" id="employeePickerAdmin" style="width:100%;margin-top:12px">Я администратор</button>
+  </div>
+</div>
 
 <div class="modal hidden" id="personalModal">
   <div class="sheet">
@@ -436,6 +527,7 @@ button{cursor:pointer}
   const CLOUD_ROW_ID = "main";
   const AUTH_STORAGE_KEY = "ma_schedule_admin_session_v1";
   const DEVICE_STORAGE_KEY = "ma_shift_device_token_v1";
+  const EMPLOYEE_STORAGE_KEY = "ma_employee_name_v1";
   const SYNC_INTERVAL_MS = 30000;
   const SHIFT_TABLE = "ma_shifts";
   const SHIFT_FUNCTION_URL = SUPABASE_URL + "/functions/v1/ma-shifts";
@@ -474,6 +566,7 @@ button{cursor:pointer}
   let lastSettingsSignature = "";
   let currentDeviceAccess = {allowed:false,device:null};
   let deviceListCache = [];
+  let employeeMobileView = "employeeToday";
 
   const $ = id => document.getElementById(id);
   const monthSelect = $("monthSelect");
@@ -497,6 +590,77 @@ button{cursor:pointer}
   function canUseShiftService(service){
     if(isAdmin()) return true;
     return !!(currentDeviceAccess.allowed && currentDeviceAccess.device && currentDeviceAccess.device.service===service);
+  }
+
+  function allEmployeeNames(){
+    return [...settings.managers.flat(),...settings.masters.flat()];
+  }
+  function loadEmployeeName(){
+    try{ return localStorage.getItem(EMPLOYEE_STORAGE_KEY)||""; }catch(e){ return ""; }
+  }
+  function saveEmployeeName(name){
+    try{
+      if(name) localStorage.setItem(EMPLOYEE_STORAGE_KEY,name);
+      else localStorage.removeItem(EMPLOYEE_STORAGE_KEY);
+    }catch(e){}
+  }
+  function selectedEmployee(){
+    const name=loadEmployeeName();
+    return allEmployeeNames().includes(name) ? name : "";
+  }
+  function isPhoneLike(){
+    return window.matchMedia("(max-width: 760px)").matches ||
+      /Android|iPhone|iPod|Mobile/i.test(navigator.userAgent||"");
+  }
+  function isEmployeePhoneMode(){
+    return !isAdmin() && !currentDeviceAccess.allowed && isPhoneLike();
+  }
+  function dateKeyLocal(d){
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  }
+  function employeeAssignmentForDate(name,dateStr){
+    for(const service of [settings.service1,settings.service2]){
+      const p=expectedForDate(dateStr,service);
+      if(p && (p.manager===name || p.master===name)) return {service,pair:p};
+    }
+    return null;
+  }
+  function employeeUpcomingShifts(name,{afterToday=false,limit=14}={}){
+    if(!name) return [];
+    const today=moscowParts().date;
+    const list=[];
+    for(let i=0;i<12;i++){
+      const rows=buildMonthRows(i);
+      for(const r of rows){
+        const key=dateKeyLocal(r.date);
+        if(afterToday ? key<=today : key<today) continue;
+        if(r.s1.manager===name || r.s1.master===name){
+          list.push({date:r.date,key,service:settings.service1,pair:r.s1});
+        }
+        if(r.s2.manager===name || r.s2.master===name){
+          list.push({date:r.date,key,service:settings.service2,pair:r.s2});
+        }
+      }
+    }
+    list.sort((a,b)=>a.key.localeCompare(b.key));
+    return list.slice(0,limit);
+  }
+  function openEmployeePicker(){
+    if(!isEmployeePhoneMode()) return;
+    const grid=$("employeePickerGrid");
+    grid.innerHTML=allEmployeeNames().map(n=>`<button class="employee-picker-btn" data-employee="${escapeHtml(n)}">${escapeHtml(n)}</button>`).join("");
+    grid.querySelectorAll(".employee-picker-btn").forEach(btn=>{
+      btn.onclick=()=>{
+        saveEmployeeName(btn.dataset.employee);
+        $("employeePickerModal").classList.add("hidden");
+        renderEmployeePages();
+        switchTab("employeeToday");
+      };
+    });
+    $("employeePickerModal").classList.remove("hidden");
+  }
+  function ensureEmployeeSelected(){
+    if(isEmployeePhoneMode() && !selectedEmployee()) openEmployeePicker();
   }
 
   function restoreScrollAfterRender(scrollY){
@@ -562,12 +726,39 @@ button{cursor:pointer}
     if($("logoutBtn")) $("logoutBtn").disabled=!isAdmin();
   }
 
+  function applyUserMode(){
+    const employeeMode=isEmployeePhoneMode();
+    document.body.classList.toggle("employee-phone-mode",employeeMode);
+
+    const t1=$("bottomTab1"),t2=$("bottomTab2"),t3=$("bottomTab3");
+    if(employeeMode){
+      t1.textContent="Сегодня"; t1.dataset.tab="employeeToday";
+      t2.textContent="Мой график"; t2.dataset.tab="employeeMy";
+      t3.textContent="Весь график"; t3.dataset.tab="schedule";
+      $("adminBtn").textContent="Админ";
+      ensureEmployeeSelected();
+      renderEmployeePages();
+      const visible = !$("employeeTodayPage").classList.contains("hidden") ||
+                      !$("employeeMyPage").classList.contains("hidden") ||
+                      !$("schedulePage").classList.contains("hidden");
+      if(!visible || (!$("historyPage").classList.contains("hidden")) || (!$("settingsPage").classList.contains("hidden"))){
+        switchTab(employeeMobileView || "employeeToday");
+      }
+    }else{
+      t1.textContent="График"; t1.dataset.tab="schedule";
+      t2.textContent="История"; t2.dataset.tab="history";
+      t3.textContent="Настройки"; t3.dataset.tab="settings";
+      $("employeePickerModal").classList.add("hidden");
+    }
+  }
+
   function updateAuthUI(){
     const btn=$("adminBtn"); if(!btn) return;
-    btn.textContent=isAdmin() ? "Админ ✓" : "Администратор";
+    btn.textContent=isAdmin() ? "Админ ✓" : (isEmployeePhoneMode() ? "Админ" : "Администратор");
     updateCloudSettingsState();
     if($("todayShiftCards")) renderTodayShifts();
     if($("currentDeviceState")) renderDevicePanel();
+    applyUserMode();
   }
 
   async function authFetch(path,options={}){
@@ -640,6 +831,7 @@ button{cursor:pointer}
           if(!userSelectedMonth) currentIndex=getCurrentMonthIndex();
           populateSettings();
           renderMonth();
+          if(isEmployeePhoneMode() && !selectedEmployee()) openEmployeePicker();
           restoreScrollAfterRender(y);
         }else{
           lastSettingsSignature=remoteSignature;
@@ -741,6 +933,7 @@ button{cursor:pointer}
     }
     renderDevicePanel();
     renderTodayShifts();
+    applyUserMode();
     return currentDeviceAccess;
   }
 
@@ -869,9 +1062,11 @@ button{cursor:pointer}
       const allowed=action!=="done" && canUseShiftService(service);
       let btnText=action==="open"?"Открыть смену":action==="close"?"Закрыть смену":"Смена закрыта";
       if(action!=="done" && !allowed) btnText=`Только на устройстве ${service}`;
-      const deviceNote=action!=="done" && !allowed && !isAdmin()?`<div class="shift-device-note">С телефона сотрудника открыть или закрыть смену нельзя.</div>`:"";
-      card.innerHTML=`<h3>${escapeHtml(service)}</h3><div class="shift-status ${cls}"><span class="dot"></span>${label}</div><div class="shift-pair"><b>По графику:</b> ${pairText}</div><div class="shift-meta">${meta}</div>${deviceNote}<button class="${action==="open"?"primary":"secondary"} shift-action" ${(!allowed || action==="done")?"disabled":""}>${btnText}</button>${isAdmin() && row ? `<button class="reset-shift-btn">Сбросить смену</button>` : ""}`;
-      if(allowed) card.querySelector(".shift-action").onclick=()=>openShiftAction(service,action,exp);
+      const employeeMode=isEmployeePhoneMode();
+      const deviceNote=action!=="done" && !allowed && !isAdmin() && !employeeMode?`<div class="shift-device-note">С телефона сотрудника открыть или закрыть смену нельзя.</div>`:"";
+      const actionHtml=employeeMode ? "" : `<button class="${action==="open"?"primary":"secondary"} shift-action" ${(!allowed || action==="done")?"disabled":""}>${btnText}</button>`;
+      card.innerHTML=`<h3>${escapeHtml(service)}</h3><div class="shift-status ${cls}"><span class="dot"></span>${label}</div><div class="shift-pair"><b>По графику:</b> ${pairText}</div><div class="shift-meta">${meta}</div>${deviceNote}${actionHtml}${isAdmin() && row ? `<button class="reset-shift-btn">Сбросить смену</button>` : ""}`;
+      if(allowed && !employeeMode) card.querySelector(".shift-action").onclick=()=>openShiftAction(service,action,exp);
       const resetBtn=card.querySelector(".reset-shift-btn");
       if(resetBtn) resetBtn.onclick=()=>resetTodayShift(service,now.date);
       root.appendChild(card);
@@ -900,9 +1095,11 @@ button{cursor:pointer}
         currentShiftRows=newRows;
         const y=window.scrollY;
         renderTodayShifts();
+        renderEmployeePages();
         restoreScrollAfterRender(y);
       }else{
         currentShiftRows=newRows;
+        if(isEmployeePhoneMode()) renderEmployeePages();
       }
 
       if(showToast) toast("Статус смен обновлён");
@@ -1228,6 +1425,87 @@ button{cursor:pointer}
     return rows;
   }
 
+  function employeeServiceState(service){
+    const now=moscowParts();
+    const row=currentShiftRows.find(x=>x.service===service)||null;
+    const exp=expectedForDate(now.date,service);
+    const currentMins=now.hour*60+now.minute, startMins=shiftMinutes(settings.shiftStart);
+    let cls="wait",label="Ожидаем открытия",meta="";
+    if(row && row.opened_at && !row.closed_at){
+      cls=(row.open_late_minutes||0)>0?"late":"open";
+      label=`Открыта ${formatMoscowTime(row.opened_at)}`;
+      meta=`Открыл: ${escapeHtml(row.opened_by||"—")}`;
+    }else if(row && row.closed_at){
+      cls="closed";
+      label=`Закрыта ${formatMoscowTime(row.closed_at)}`;
+      meta=`Закрыл: ${escapeHtml(row.closed_by||"—")} ${formatMoscowTime(row.closed_at)}`;
+    }else if(currentMins>=startMins){
+      cls="missing"; label="Смена не открыта"; meta="Подтверждения пока нет";
+    }else{
+      meta=`Начало в ${settings.shiftStart}`;
+    }
+    return {cls,label,meta,exp};
+  }
+
+  function renderEmployeeToday(){
+    if(!isEmployeePhoneMode()) return;
+    const name=selectedEmployee();
+    if(!name) return;
+    const now=moscowParts();
+    const todayAssignment=employeeAssignmentForDate(name,now.date);
+    $("employeeTodayName").textContent=name;
+    $("employeeTodayDate").textContent=new Intl.DateTimeFormat("ru-RU",{timeZone:SHIFT_TIMEZONE,weekday:"long",day:"numeric",month:"long"}).format(new Date());
+
+    const work=$("employeeTodayWork");
+    const monthIdx=getCurrentMonthIndex();
+    if(!isAnnualScheduleMonth(monthIdx)){
+      work.className="employee-main-status unknown";
+      work.innerHTML=`<b>График на сегодня не задан</b><span>Годовой график начинается с ${escapeHtml(monthInfo(0).name)} ${monthInfo(0).year}.</span>`;
+    }else if(todayAssignment){
+      const partner=todayAssignment.pair.manager===name ? todayAssignment.pair.master : todayAssignment.pair.manager;
+      work.className="employee-main-status work";
+      work.innerHTML=`<b>Сегодня работаю — ${escapeHtml(todayAssignment.service)}</b><span>${settings.shiftStart}–${settings.shiftEnd} · вместе с ${escapeHtml(partner)}</span>`;
+    }else{
+      work.className="employee-main-status off";
+      work.innerHTML=`<b>Сегодня выходной</b><span>По годовому графику смены сегодня нет.</span>`;
+    }
+
+    const next=employeeUpcomingShifts(name,{afterToday:true,limit:1})[0];
+    $("employeeNextShift").innerHTML=next
+      ? `<small>Следующая смена</small><b>${new Intl.DateTimeFormat("ru-RU",{weekday:"short",day:"numeric",month:"long"}).format(next.date)} · ${escapeHtml(next.service)} · ${settings.shiftStart}–${settings.shiftEnd}</b>`
+      : `<small>Следующая смена</small><b>В текущем годовом графике больше смен нет</b>`;
+
+    $("employeeServiceStatus").innerHTML=[settings.service1,settings.service2].map(service=>{
+      const s=employeeServiceState(service);
+      const pair=s.exp?`${escapeHtml(s.exp.manager)} + ${escapeHtml(s.exp.master)}`:"График на эту дату не задан";
+      return `<div class="employee-service-card">
+        <div class="employee-service-head"><h3>${escapeHtml(service)}</h3><div class="shift-status ${s.cls}" style="margin:0"><span class="dot"></span>${s.label}</div></div>
+        <div class="employee-service-pair"><b>По графику:</b> ${pair}<br>${s.meta}</div>
+      </div>`;
+    }).join("");
+  }
+
+  function renderEmployeeMySchedule(){
+    if(!isEmployeePhoneMode()) return;
+    const name=selectedEmployee();
+    if(!name) return;
+    $("employeeMyName").textContent=name;
+    const list=employeeUpcomingShifts(name,{afterToday:false,limit:20});
+    $("employeeShiftList").innerHTML=list.length ? list.map(x=>{
+      const partner=x.pair.manager===name ? x.pair.master : x.pair.manager;
+      return `<div class="employee-shift-item">
+        <div class="employee-shift-date"><b>${x.date.getDate()}</b><span>${MONTHS[x.date.getMonth()].slice(0,3)} · ${WD[x.date.getDay()]}</span></div>
+        <div class="employee-shift-info"><b>${escapeHtml(x.service)} · ${settings.shiftStart}–${settings.shiftEnd}</b><span>Вместе с ${escapeHtml(partner)}</span></div>
+      </div>`;
+    }).join("") : '<div class="notice">В оставшейся части годового графика смен нет.</div>';
+  }
+
+  function renderEmployeePages(){
+    if(!isEmployeePhoneMode()) return;
+    renderEmployeeToday();
+    renderEmployeeMySchedule();
+  }
+
   function renderSelectors(){
     monthSelect.innerHTML="";
     const cur=getCurrentMonthIndex();
@@ -1297,6 +1575,7 @@ button{cursor:pointer}
 
     updateCloudStatusLine();
     renderTodayShifts();
+    renderEmployeePages();
   }
 
   function serviceCard(title,key,rows){
@@ -1424,19 +1703,38 @@ button{cursor:pointer}
   }
 
   function switchTab(tab){
+    const employeeMode=isEmployeePhoneMode();
+
+    if(employeeMode && (tab==="history" || tab==="settings")){
+      tab="employeeToday";
+    }
     if((tab==="settings" || tab==="history") && cloudConfigured() && !isAdmin()){
       openLoginModal();
       return;
     }
+
+    const empToday=tab==="employeeToday";
+    const empMy=tab==="employeeMy";
     const sched=tab==="schedule", hist=tab==="history", sett=tab==="settings";
+
+    $("employeeTodayPage").classList.toggle("hidden",!empToday);
+    $("employeeMyPage").classList.toggle("hidden",!empMy);
     $("schedulePage").classList.toggle("hidden",!sched);
     $("historyPage").classList.toggle("hidden",!hist);
     $("settingsPage").classList.toggle("hidden",!sett);
     $("scheduleControls").classList.toggle("hidden",!sched);
+
     document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+
+    if(employeeMode && (empToday || empMy || sched)){
+      employeeMobileView=tab;
+      ensureEmployeeSelected();
+      renderEmployeePages();
+    }
     if(sett){ settingsDirty=false; populateSettings(); updateCloudSettingsState(); updatePushState(); }
     if(hist){ fillHistoryFilters(); if(!$("historyFrom").value) defaultHistoryDates(); loadHistory(); }
     if(sched) loadTodayShifts(false);
+
     window.scrollTo({top:0,behavior:"smooth"});
   }
 
@@ -1623,6 +1921,10 @@ button{cursor:pointer}
   monthSelect.onchange=()=>{ currentIndex=Number(monthSelect.value); userSelectedMonth=true; renderMonth(); };
   employeeFilter.onchange=highlightEmployee;
   $("personalBtn").onclick=personalSchedule;
+  $("changeEmployeeToday").onclick=openEmployeePicker;
+  $("changeEmployeeMy").onclick=openEmployeePicker;
+  $("employeeRefreshBtn").onclick=async()=>{ await syncFromCloud(false); await loadTodayShifts(true); renderEmployeePages(); };
+  $("employeePickerAdmin").onclick=()=>{ $("employeePickerModal").classList.add("hidden"); openLoginModal(); };
   $("refreshBtn").onclick=async()=>{ await syncFromCloud(true); await loadTodayShifts(false); };
   $("refreshShiftsBtn").onclick=()=>loadTodayShifts(true);
   $("loadHistoryBtn").onclick=loadHistory;
@@ -1637,7 +1939,7 @@ button{cursor:pointer}
   $("downloadBtn").onclick=downloadPhoto;
   $("saveSettingsBtn").onclick=saveForm;
   $("forceSyncBtn").onclick=()=>syncFromCloud(true);
-  $("logoutBtn").onclick=()=>{ saveAdminSession(null); settingsDirty=false; renderTodayShifts(); switchTab("schedule"); toast("Вы вышли из администратора"); };
+  $("logoutBtn").onclick=()=>{ saveAdminSession(null); settingsDirty=false; renderTodayShifts(); applyUserMode(); switchTab(isEmployeePhoneMode()?"employeeToday":"schedule"); toast("Вы вышли из администратора"); };
   $("closeLogin").onclick=closeLoginModal;
   $("cancelLogin").onclick=closeLoginModal;
   $("loginBtn").onclick=handleLogin;
@@ -1663,6 +1965,14 @@ button{cursor:pointer}
     }
   };
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+  window.addEventListener("resize",()=>{
+    const wasEmployee=document.body.classList.contains("employee-phone-mode");
+    const nowEmployee=isEmployeePhoneMode();
+    if(wasEmployee!==nowEmployee){
+      applyUserMode();
+      switchTab(nowEmployee?"employeeToday":"schedule");
+    }
+  });
   $("settingsPage").addEventListener("input",e=>{ if(!e.target.id.startsWith("managerPin")) markDirty(); });
 
   // Init
@@ -1671,6 +1981,8 @@ button{cursor:pointer}
   defaultHistoryDates();
   renderMonth();
   updateAuthUI();
+  applyUserMode();
+  if(isEmployeePhoneMode()) switchTab("employeeToday");
   registerServiceWorker().then(updatePushState);
   refreshDeviceAccess();
   if(isAdmin()) loadRegisteredDevices();
