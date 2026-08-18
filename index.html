@@ -156,6 +156,8 @@ button{cursor:pointer}
 .outside-plan .current-badge{display:inline-block;margin-bottom:8px;padding:6px 10px;border-radius:999px;background:#eaf2ff;color:#0f5bd7;font-size:12px;font-weight:800}
 .navbtn:disabled,.secondary:disabled{opacity:.45;cursor:not-allowed}
 
+
+.badge{min-width:108px;text-align:center;white-space:nowrap}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -409,11 +411,11 @@ button{cursor:pointer}
   const CLOUD_TABLE = "ma_schedule_config";
   const CLOUD_ROW_ID = "main";
   const AUTH_STORAGE_KEY = "ma_schedule_admin_session_v1";
-  const SYNC_INTERVAL_MS = 15000;
+  const SYNC_INTERVAL_MS = 30000;
   const SHIFT_TABLE = "ma_shifts";
   const SHIFT_FUNCTION_URL = SUPABASE_URL + "/functions/v1/ma-shifts";
   const VAPID_PUBLIC_KEY = "BNa-XTPFzPk8s00Rl5j9uTkBPgYHTM-zMaw6aVXP1HQSfoFfKCy_B4sf0Svcs5Tv7h_ue2-OWQBOQk41MepJOik";
-  const SHIFT_POLL_MS = 20000;
+  const SHIFT_POLL_MS = 30000;
   const SHIFT_TIMEZONE = "Europe/Moscow";
 
   const DEFAULTS = {
@@ -443,12 +445,26 @@ button{cursor:pointer}
   let pendingShiftAction = null;
   let editingShiftRow = null;
   let serviceWorkerRegistration = null;
+  let lastShiftSignature = "";
+  let lastSettingsSignature = "";
 
   const $ = id => document.getElementById(id);
   const monthSelect = $("monthSelect");
   const employeeFilter = $("employeeFilter");
 
   function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+  function stableJson(value){
+    try{ return JSON.stringify(value); }catch(e){ return ""; }
+  }
+
+  function restoreScrollAfterRender(scrollY){
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        window.scrollTo({top:scrollY,left:0,behavior:"auto"});
+      });
+    });
+  }
 
   function cloudConfigured(){
     return /^https:\/\/.+\.supabase\.co$/i.test(SUPABASE_URL) && SUPABASE_PUBLISHABLE_KEY && !SUPABASE_PUBLISHABLE_KEY.includes("PASTE_");
@@ -555,23 +571,51 @@ button{cursor:pointer}
     if(settingsDirty && !$("settingsPage").classList.contains("hidden")){
       if(showToast) toast("Есть несохранённые изменения"); return false;
     }
-    setCloudStatus("Синхронизация…","syncing");
+
+    // При тихой фоновой проверке не меняем надпись "Онлайн" на
+    // "Синхронизация…", чтобы верхняя часть страницы не дёргалась.
+    if(showToast) setCloudStatus("Синхронизация…","syncing");
+
     try{
       const res=await authFetch(`/rest/v1/${CLOUD_TABLE}?id=eq.${encodeURIComponent(CLOUD_ROW_ID)}&select=settings,updated_at`,{method:"GET"});
       if(!res.ok) throw new Error(await res.text());
       const rows=await res.json();
+
       if(rows && rows[0] && rows[0].settings && Object.keys(rows[0].settings).length){
-        settings=mergeRemoteSettings(rows[0].settings);
-        localStorage.setItem(STORAGE_KEY,JSON.stringify(settings));
-        lastCloudUpdatedAt=rows[0].updated_at || null;
-        if(!userSelectedMonth) currentIndex=getCurrentMonthIndex();
-        populateSettings(); renderMonth();
+        const remoteSettings=mergeRemoteSettings(rows[0].settings);
+        const remoteSignature=stableJson(remoteSettings);
+        const localSignature=stableJson(settings);
+        const settingsChanged=remoteSignature!==localSignature;
+
+        lastCloudUpdatedAt=rows[0].updated_at || lastCloudUpdatedAt;
+
+        if(settingsChanged){
+          const y=window.scrollY;
+          settings=remoteSettings;
+          localStorage.setItem(STORAGE_KEY,JSON.stringify(settings));
+          lastSettingsSignature=remoteSignature;
+          if(!userSelectedMonth) currentIndex=getCurrentMonthIndex();
+          populateSettings();
+          renderMonth();
+          restoreScrollAfterRender(y);
+        }else{
+          lastSettingsSignature=remoteSignature;
+          // Ничего не перерисовываем: данные те же.
+          updateCloudStatusLine();
+        }
       }
-      setCloudStatus("Онлайн","online"); updateCloudStatusLine(); updateCloudSettingsState();
-      if(showToast) toast("Общий график обновлён"); return true;
+
+      setCloudStatus("Онлайн","online");
+      updateCloudStatusLine();
+      updateCloudSettingsState();
+      if(showToast) toast("Общий график обновлён");
+      return true;
     }catch(e){
-      console.error(e); setCloudStatus("Нет связи","offline"); updateCloudStatusLine();
-      if(showToast) toast("Не удалось загрузить общий график"); return false;
+      console.error(e);
+      setCloudStatus("Нет связи","offline");
+      updateCloudStatusLine();
+      if(showToast) toast("Не удалось загрузить общий график");
+      return false;
     }
   }
 
@@ -677,14 +721,36 @@ button{cursor:pointer}
 
   async function loadTodayShifts(showToast=false){
     if(!cloudConfigured()) return;
-    const date=moscowParts().date;
+    const now=moscowParts();
+    const date=now.date;
     try{
       const res=await authFetch(`/rest/v1/${SHIFT_TABLE}?shift_date=eq.${date}&select=*&order=service.asc`,{method:"GET"});
       if(!res.ok) throw new Error(await res.text());
-      currentShiftRows=await res.json();
-      renderTodayShifts();
+      const newRows=await res.json();
+
+      // Включаем в сигнатуру только моменты, которые реально могут
+      // поменять карточку без изменения БД: до/после начала и конца смены.
+      const mins=now.hour*60+now.minute;
+      const startMins=shiftMinutes(settings.shiftStart);
+      const endMins=shiftMinutes(settings.shiftEnd);
+      const timePhase=mins<startMins ? "before" : (mins<endMins ? "during" : "after");
+      const signature=`${date}|${timePhase}|${stableJson(newRows)}`;
+
+      if(signature!==lastShiftSignature){
+        lastShiftSignature=signature;
+        currentShiftRows=newRows;
+        const y=window.scrollY;
+        renderTodayShifts();
+        restoreScrollAfterRender(y);
+      }else{
+        currentShiftRows=newRows;
+      }
+
       if(showToast) toast("Статус смен обновлён");
-    }catch(e){ console.error(e); if(showToast) toast("Не удалось обновить смены"); }
+    }catch(e){
+      console.error(e);
+      if(showToast) toast("Не удалось обновить смены");
+    }
   }
 
   async function resetTodayShift(service,date){
@@ -1420,6 +1486,7 @@ button{cursor:pointer}
   $("settingsPage").addEventListener("input",e=>{ if(!e.target.id.startsWith("managerPin")) markDirty(); });
 
   // Init
+  lastSettingsSignature=stableJson(settings);
   populateSettings();
   defaultHistoryDates();
   renderMonth();
