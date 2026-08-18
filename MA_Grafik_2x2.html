@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f5bd7">
+<title>MA График 2/2</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230f5bd7'/%3E%3Ctext x='50' y='63' text-anchor='middle' font-size='42' font-family='Arial' font-weight='700' fill='white'%3EMA%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f4f7fb; --card:#fff; --text:#162033; --muted:#64748b;
+  --blue:#0f5bd7; --blue2:#eaf2ff; --line:#dbe5f2; --danger:#c62828;
+  --shadow:0 8px 28px rgba(28,64,120,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+body{min-height:100vh;padding-bottom:92px}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:980px;margin:0 auto}
+.topbar{
+  position:sticky;top:0;z-index:30;background:rgba(244,247,251,.96);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) 14px 10px
+}
+.brandrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{font-size:20px;font-weight:800;color:var(--blue)}
+.badge{font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--line);padding:7px 10px;border-radius:999px}
+.monthnav{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;margin-top:10px}
+.navbtn,.primary,.secondary,.danger,.mini{
+  border:1px solid var(--line);background:#fff;color:var(--text);border-radius:12px;min-height:44px;padding:10px 14px;font-weight:700
+}
+.navbtn{font-size:24px;padding:0}
+.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.secondary{background:#fff}
+.danger{color:var(--danger)}
+.monthselect{width:100%;min-height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 12px;font-weight:700;color:var(--text)}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.filters select{width:100%;min-height:42px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 10px;color:var(--text)}
+.page{padding:14px}
+.month-title{text-align:center;margin:8px 0 14px}
+.month-title h1{font-size:28px;color:var(--blue);margin:0 0 4px}
+.month-title p{margin:0;color:var(--muted);font-size:14px}
+.service-card{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:20px;padding:14px;margin-bottom:14px}
+.service-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.service-head h2{margin:0;color:var(--blue);font-size:24px}
+.service-head .small{font-size:12px;color:var(--muted)}
+.half{margin-top:12px}
+.half h3{margin:0 0 8px;font-size:15px;color:var(--blue)}
+.schedule{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.schedule th,.schedule td{padding:9px 9px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+.schedule th{background:var(--blue2);text-align:left;font-size:12px;color:#31435d}
+.schedule tr:last-child td{border-bottom:0}
+.schedule .date{width:34%;white-space:nowrap;color:#334155}
+.schedule .pair{font-weight:650}
+.highlight{background:#fff7d6!important}
+.today td{box-shadow:inset 3px 0 0 var(--blue)}
+.summary{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:14px}
+.summary h3{margin:0 0 10px;color:var(--blue)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:#f8fafc;border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:12px}
+.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:14px 0}
+.actions button{font-size:13px;padding:10px 8px}
+.section{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.section h2{margin:0 0 12px;color:var(--blue);font-size:22px}
+.section h3{margin:18px 0 8px;font-size:15px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.field label{font-size:12px;color:var(--muted);font-weight:700}
+.field input,.field select{width:100%;min-height:44px;border:1px solid var(--line);border-radius:12px;padding:0 12px;background:#fff;color:var(--text)}
+.pairbox{border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:10px;background:#fbfdff}
+.pairbox strong{display:block;margin-bottom:8px;color:#334155}
+.switchrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.switchrow:last-child{border-bottom:0}
+.switchrow input{width:22px;height:22px}
+.notice{font-size:12px;line-height:1.45;color:var(--muted);background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px}
+.settings-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.bottom{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom))
+}
+.bottom-inner{max-width:980px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tab{border:0;background:transparent;border-radius:12px;padding:10px;font-weight:800;color:var(--muted)}
+.tab.active{background:var(--blue2);color:var(--blue)}
+.hidden{display:none!important}
+.toast{
+ position:fixed;left:50%;bottom:100px;transform:translateX(-50%);z-index:100;background:#172033;color:white;
+ padding:10px 14px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.2s
+}
+.toast.show{opacity:1}
+.modal{position:fixed;inset:0;z-index:90;background:rgba(10,20,35,.45);display:flex;align-items:flex-end;justify-content:center;padding:12px}
+.sheet{width:min(100%,720px);max-height:88vh;overflow:auto;background:#fff;border-radius:22px 22px 16px 16px;padding:16px}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sheet h2{margin:0;color:var(--blue)}
+.close{border:0;background:#eef3f8;border-radius:10px;width:40px;height:40px;font-size:20px}
+.personal-list{display:grid;gap:8px}
+.personal-item{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px;font-size:13px}
+.personal-item b{color:var(--blue)}
+@media(min-width:760px){
+ .page{padding:18px}
+ .halves{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+ .half{margin-top:0}
+ .service-card{padding:18px}
+ .schedule th,.schedule td{font-size:14px}
+ .schedule th{font-size:13px}
+ .month-title h1{font-size:34px}
+}
+@media(max-width:520px){
+ .actions{grid-template-columns:1fr}
+ .grid2{grid-template-columns:1fr}
+ .filters{grid-template-columns:1fr}
+ .schedule th,.schedule td{padding:8px 7px}
+}
+@media print{
+ .topbar,.bottom,.actions,.filters,.summary,.settings-only{display:none!important}
+ body{padding:0;background:#fff}
+ .page{padding:0}
+ .service-card{box-shadow:none;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar" id="topbar">
+    <div class="brandrow">
+      <div class="brand">MA График 2/2</div>
+      <div class="badge" id="saveBadge">Сохранено</div>
+    </div>
+    <div id="scheduleControls">
+      <div class="monthnav">
+        <button class="navbtn" id="prevBtn" aria-label="Предыдущий месяц">‹</button>
+        <select class="monthselect" id="monthSelect"></select>
+        <button class="navbtn" id="nextBtn" aria-label="Следующий месяц">›</button>
+      </div>
+      <div class="filters">
+        <select id="employeeFilter"><option value="">Все сотрудники</option></select>
+        <button class="secondary" id="personalBtn">Личный график</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section id="schedulePage">
+      <div class="month-title">
+        <h1 id="monthTitle"></h1>
+        <p id="monthSubtitle"></p>
+      </div>
+      <div id="servicesRoot"></div>
+      <div class="summary">
+        <h3>Рабочих дней в этом месяце</h3>
+        <div class="chips" id="summaryChips"></div>
+      </div>
+      <div class="actions">
+        <button class="primary" id="copyPhotoBtn">Копировать фото месяца</button>
+        <button class="secondary" id="shareBtn">Поделиться фото</button>
+        <button class="secondary" id="downloadBtn">Скачать PNG</button>
+      </div>
+      <div class="notice">Фото строится прямо внутри приложения, поэтому таблица остаётся чёткой. На iPhone кнопка «Поделиться фото» обычно удобнее всего: можно сразу сохранить в «Фото» или отправить в WhatsApp.</div>
+    </section>
+
+    <section id="settingsPage" class="hidden">
+      <div class="section">
+        <h2>Основные настройки</h2>
+        <div class="grid2">
+          <div class="field"><label>Год начала графика</label><input type="number" id="startYear" min="2020" max="2100"></div>
+          <div class="field"><label>Месяц начала</label><select id="startMonth"></select></div>
+          <div class="field"><label>Название сервиса 1</label><input id="service1"></div>
+          <div class="field"><label>Название сервиса 2</label><input id="service2"></div>
+          <div class="field"><label>Начало смены</label><input type="time" id="shiftStart"></div>
+          <div class="field"><label>Конец смены</label><input type="time" id="shiftEnd"></div>
+          <div class="field"><label>День обмена точками</label><input type="number" id="swapDay" min="2" max="28"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Менеджеры</h2>
+        <div class="pairbox">
+          <strong>Пара менеджеров A</strong>
+          <div class="grid2">
+            <div class="field"><label>Менеджер A1</label><input id="mA1"></div>
+            <div class="field"><label>Менеджер A2</label><input id="mA2"></div>
+          </div>
+        </div>
+        <div class="pairbox">
+          <strong>Пара менеджеров B</strong>
+          <div class="grid2">
+            <div class="field"><label>Менеджер B1</label><input id="mB1"></div>
+            <div class="field"><label>Менеджер B2</label><input id="mB2"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Мастера</h2>
+        <div class="pairbox">
+          <strong>Пара мастеров A</strong>
+          <div class="grid2">
+            <div class="field"><label>Мастер A1</label><input id="wA1"></div>
+            <div class="field"><label>Мастер A2</label><input id="wA2"></div>
+          </div>
+        </div>
+        <div class="pairbox">
+          <strong>Пара мастеров B</strong>
+          <div class="grid2">
+            <div class="field"><label>Мастер B1</label><input id="wB1"></div>
+            <div class="field"><label>Мастер B2</label><input id="wB2"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Логика графика</h2>
+        <div class="switchrow">
+          <div><b>Строгий график 2/2</b><div class="notice" style="margin-top:6px">Цикл не сбрасывается в начале нового месяца.</div></div>
+          <input type="checkbox" id="strict22">
+        </div>
+        <div class="switchrow">
+          <div><b>Менять сервисы в середине месяца</b><div class="notice" style="margin-top:6px">Пары переходят из Мобы в Нову и наоборот.</div></div>
+          <input type="checkbox" id="swapServices">
+        </div>
+        <div class="switchrow">
+          <div><b>Менять связку менеджеры ↔ мастера каждый месяц</b><div class="notice" style="margin-top:6px">Чтобы одни и те же люди не работали постоянно вместе.</div></div>
+          <input type="checkbox" id="rotateMasterPairs">
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Резервная копия</h2>
+        <div class="settings-actions">
+          <button class="secondary" id="exportBtn">Экспорт настроек</button>
+          <button class="secondary" id="importBtn">Импорт настроек</button>
+        </div>
+        <input type="file" id="importFile" accept="application/json" class="hidden">
+        <div class="settings-actions">
+          <button class="primary" id="saveSettingsBtn">Сохранить настройки</button>
+          <button class="danger" id="resetBtn">Сбросить всё</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<nav class="bottom">
+  <div class="bottom-inner">
+    <button class="tab active" data-tab="schedule">График</button>
+    <button class="tab" data-tab="settings">Настройки</button>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal hidden" id="personalModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2 id="personalTitle">Личный график</h2>
+      <button class="close" id="closePersonal">×</button>
+    </div>
+    <div class="personal-list" id="personalList" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const MONTHS = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+  const WD = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
+  const STORAGE_KEY = "ma_schedule_22_v2";
+
+  const DEFAULTS = {
+    startYear: 2026,
+    startMonth: 8,
+    service1: "Моба",
+    service2: "Нова",
+    shiftStart: "08:00",
+    shiftEnd: "22:00",
+    swapDay: 16,
+    strict22: true,
+    swapServices: true,
+    rotateMasterPairs: true,
+    managers: [["Сергей","Арсен"],["Дина","Амалия"]],
+    masters: [["Олег","Асик"],["Ислам","Георгий"]]
+  };
+
+  let settings = loadSettings();
+  let currentIndex = 0;
+
+  const $ = id => document.getElementById(id);
+  const monthSelect = $("monthSelect");
+  const employeeFilter = $("employeeFilter");
+
+  function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+  function loadSettings(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return clone(DEFAULTS);
+      const s = Object.assign(clone(DEFAULTS), JSON.parse(raw));
+      if(!Array.isArray(s.managers) || s.managers.length!==2) s.managers=clone(DEFAULTS.managers);
+      if(!Array.isArray(s.masters) || s.masters.length!==2) s.masters=clone(DEFAULTS.masters);
+      return s;
+    }catch(e){ return clone(DEFAULTS); }
+  }
+
+  function saveSettings(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    $("saveBadge").textContent = "Сохранено";
+  }
+
+  function markDirty(){ $("saveBadge").textContent = "Есть изменения"; }
+
+  function toast(msg){
+    const el=$("toast"); el.textContent=msg; el.classList.add("show");
+    clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove("show"),2200);
+  }
+
+  function addMonths(y,m,delta){
+    const d = new Date(y, m+delta, 1);
+    return {year:d.getFullYear(), month:d.getMonth()};
+  }
+
+  function monthInfo(index){
+    const x=addMonths(Number(settings.startYear), Number(settings.startMonth), index);
+    return {index, year:x.year, month:x.month, name:MONTHS[x.month], days:new Date(x.year,x.month+1,0).getDate()};
+  }
+
+  function scheduleStartDate(){
+    return new Date(Number(settings.startYear), Number(settings.startMonth), 1);
+  }
+
+  function globalDayIndex(date){
+    const start=scheduleStartDate();
+    const a=Date.UTC(start.getFullYear(),start.getMonth(),start.getDate());
+    const b=Date.UTC(date.getFullYear(),date.getMonth(),date.getDate());
+    return Math.floor((b-a)/86400000);
+  }
+
+  function activeFromPair(pair, date, pairOffset=0){
+    if(!settings.strict22){
+      const d=date.getDate()-1;
+      return pair[Math.floor(d/2)%2];
+    }
+    const idx=globalDayIndex(date)+pairOffset;
+    const phase=((idx%4)+4)%4;
+    return pair[phase<2?0:1];
+  }
+
+  function groupAssignments(monthIndex, day){
+    const firstHalf = day < Number(settings.swapDay);
+    const swap = settings.swapServices && !firstHalf;
+
+    // Managers: A in service1 first half, B in service2; swap in second half.
+    let managerGroup1 = swap ? 1 : 0;
+    let managerGroup2 = swap ? 0 : 1;
+
+    // Masters rotate monthly so manager teams do not always meet the same master team.
+    const monthlyRotate = settings.rotateMasterPairs && (monthIndex % 2 === 1);
+    let masterGroup1 = monthlyRotate ? 1 : 0;
+    let masterGroup2 = monthlyRotate ? 0 : 1;
+    if(swap){
+      masterGroup1 = monthlyRotate ? 0 : 1;
+      masterGroup2 = monthlyRotate ? 1 : 0;
+    }
+    return {
+      s1:{mg:managerGroup1,wg:masterGroup1},
+      s2:{mg:managerGroup2,wg:masterGroup2}
+    };
+  }
+
+  function daySchedule(monthIndex, day){
+    const info=monthInfo(monthIndex);
+    const date=new Date(info.year,info.month,day);
+    const groups=groupAssignments(monthIndex,day);
+
+    // Pair offsets keep opposite 2/2 phases between pair members and vary which master aligns with which manager.
+    const mgrOffsets=[0,2];
+    const masterOffsets=[0,2];
+
+    function one(g){
+      return {
+        manager: activeFromPair(settings.managers[g.mg],date,mgrOffsets[g.mg]),
+        master: activeFromPair(settings.masters[g.wg],date,masterOffsets[g.wg]),
+      };
+    }
+    return {date, s1:one(groups.s1), s2:one(groups.s2)};
+  }
+
+  function buildMonthRows(monthIndex){
+    const info=monthInfo(monthIndex), rows=[];
+    for(let d=1;d<=info.days;d++) rows.push(daySchedule(monthIndex,d));
+    return rows;
+  }
+
+  function renderSelectors(){
+    monthSelect.innerHTML="";
+    for(let i=0;i<12;i++){
+      const mi=monthInfo(i);
+      const o=document.createElement("option");
+      o.value=i; o.textContent=`${mi.name} ${mi.year}`;
+      monthSelect.appendChild(o);
+    }
+    monthSelect.value=currentIndex;
+
+    const names=[...settings.managers.flat(),...settings.masters.flat()];
+    const prev=employeeFilter.value;
+    employeeFilter.innerHTML='<option value="">Все сотрудники</option>';
+    names.forEach(n=>{
+      const o=document.createElement("option");o.value=n;o.textContent=n;employeeFilter.appendChild(o);
+    });
+    if(names.includes(prev)) employeeFilter.value=prev;
+  }
+
+  function renderMonth(){
+    renderSelectors();
+    const info=monthInfo(currentIndex), rows=buildMonthRows(currentIndex);
+    $("monthTitle").textContent=`${info.name} ${info.year}`;
+    $("monthSubtitle").textContent=`Смена ${settings.shiftStart}–${settings.shiftEnd} • оба сервиса работают каждый день`;
+    const root=$("servicesRoot"); root.innerHTML="";
+    root.appendChild(serviceCard(settings.service1,"s1",rows));
+    root.appendChild(serviceCard(settings.service2,"s2",rows));
+    renderSummary(rows);
+    highlightEmployee();
+  }
+
+  function serviceCard(title,key,rows){
+    const card=document.createElement("section"); card.className="service-card";
+    const head=document.createElement("div"); head.className="service-head";
+    head.innerHTML=`<h2>${escapeHtml(title)}</h2><div class="small">1 менеджер + 1 мастер</div>`;
+    card.appendChild(head);
+    const halves=document.createElement("div"); halves.className="halves";
+
+    const swap=Number(settings.swapDay);
+    const first=rows.filter(r=>r.date.getDate()<swap);
+    const second=rows.filter(r=>r.date.getDate()>=swap);
+    halves.appendChild(halfTable(`1–${swap-1} число`,key,first));
+    halves.appendChild(halfTable(`${swap}–${rows.length} число`,key,second));
+    card.appendChild(halves);
+    return card;
+  }
+
+  function halfTable(label,key,rows){
+    const wrap=document.createElement("div"); wrap.className="half";
+    const h=document.createElement("h3"); h.textContent=label; wrap.appendChild(h);
+    const t=document.createElement("table"); t.className="schedule";
+    t.innerHTML="<thead><tr><th>Дата / день</th><th>Менеджер + мастер</th></tr></thead>";
+    const tb=document.createElement("tbody");
+    rows.forEach(r=>{
+      const d=r.date.getDate(), pair=r[key];
+      const tr=document.createElement("tr");
+      tr.dataset.manager=pair.manager; tr.dataset.master=pair.master;
+      const today=new Date();
+      if(today.getFullYear()===r.date.getFullYear() && today.getMonth()===r.date.getMonth() && today.getDate()===d) tr.classList.add("today");
+      tr.innerHTML=`<td class="date">${d} ${WD[r.date.getDay()]}</td><td class="pair">${escapeHtml(pair.manager)} + ${escapeHtml(pair.master)}</td>`;
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb); wrap.appendChild(t); return wrap;
+  }
+
+  function renderSummary(rows){
+    const counts={};
+    [...settings.managers.flat(),...settings.masters.flat()].forEach(n=>counts[n]=0);
+    rows.forEach(r=>{
+      [r.s1.manager,r.s1.master,r.s2.manager,r.s2.master].forEach(n=>{ if(counts[n]!=null) counts[n]++; });
+    });
+    $("summaryChips").innerHTML=Object.entries(counts).map(([n,c])=>`<span class="chip"><b>${escapeHtml(n)}</b>: ${c}</span>`).join("");
+  }
+
+  function highlightEmployee(){
+    const name=employeeFilter.value;
+    document.querySelectorAll(".schedule tbody tr").forEach(tr=>{
+      tr.classList.toggle("highlight", !!name && (tr.dataset.manager===name || tr.dataset.master===name));
+    });
+  }
+
+  function personalSchedule(){
+    const name=employeeFilter.value || settings.managers[0][0];
+    if(!employeeFilter.value){ employeeFilter.value=name; highlightEmployee(); }
+    const rows=buildMonthRows(currentIndex), info=monthInfo(currentIndex), list=[];
+    rows.forEach(r=>{
+      if(r.s1.manager===name || r.s1.master===name) list.push({d:r.date,svc:settings.service1,p:r.s1});
+      if(r.s2.manager===name || r.s2.master===name) list.push({d:r.date,svc:settings.service2,p:r.s2});
+    });
+    $("personalTitle").textContent=`${name} — ${info.name} ${info.year}`;
+    $("personalList").innerHTML=list.length ? list.map(x=>`<div class="personal-item"><span><b>${x.d.getDate()} ${WD[x.d.getDay()]}</b> · ${escapeHtml(x.svc)}</span><span>${escapeHtml(x.p.manager)} + ${escapeHtml(x.p.master)}</span></div>`).join("") : '<div class="notice">В этом месяце смен нет.</div>';
+    $("personalModal").classList.remove("hidden");
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+  }
+
+  function populateSettings(){
+    $("startYear").value=settings.startYear;
+    $("startMonth").innerHTML=MONTHS.map((m,i)=>`<option value="${i}">${m}</option>`).join("");
+    $("startMonth").value=settings.startMonth;
+    $("service1").value=settings.service1; $("service2").value=settings.service2;
+    $("shiftStart").value=settings.shiftStart; $("shiftEnd").value=settings.shiftEnd; $("swapDay").value=settings.swapDay;
+    $("mA1").value=settings.managers[0][0]; $("mA2").value=settings.managers[0][1];
+    $("mB1").value=settings.managers[1][0]; $("mB2").value=settings.managers[1][1];
+    $("wA1").value=settings.masters[0][0]; $("wA2").value=settings.masters[0][1];
+    $("wB1").value=settings.masters[1][0]; $("wB2").value=settings.masters[1][1];
+    $("strict22").checked=!!settings.strict22; $("swapServices").checked=!!settings.swapServices; $("rotateMasterPairs").checked=!!settings.rotateMasterPairs;
+  }
+
+  function readSettingsFromForm(){
+    return {
+      startYear:Number($("startYear").value)||2026,
+      startMonth:Number($("startMonth").value)||0,
+      service1:$("service1").value.trim()||"Моба",
+      service2:$("service2").value.trim()||"Нова",
+      shiftStart:$("shiftStart").value||"08:00",
+      shiftEnd:$("shiftEnd").value||"22:00",
+      swapDay:Math.max(2,Math.min(28,Number($("swapDay").value)||16)),
+      strict22:$("strict22").checked,
+      swapServices:$("swapServices").checked,
+      rotateMasterPairs:$("rotateMasterPairs").checked,
+      managers:[
+        [$("mA1").value.trim()||"Менеджер 1",$("mA2").value.trim()||"Менеджер 2"],
+        [$("mB1").value.trim()||"Менеджер 3",$("mB2").value.trim()||"Менеджер 4"]
+      ],
+      masters:[
+        [$("wA1").value.trim()||"Мастер 1",$("wA2").value.trim()||"Мастер 2"],
+        [$("wB1").value.trim()||"Мастер 3",$("wB2").value.trim()||"Мастер 4"]
+      ]
+    };
+  }
+
+  function validateNames(s){
+    const all=[...s.managers.flat(),...s.masters.flat()].map(x=>x.toLowerCase());
+    return new Set(all).size===all.length;
+  }
+
+  function saveForm(){
+    const s=readSettingsFromForm();
+    if(!validateNames(s)){ toast("Имена сотрудников должны отличаться"); return; }
+    settings=s; currentIndex=0; saveSettings(); renderMonth(); toast("Настройки сохранены"); switchTab("schedule");
+  }
+
+  function switchTab(tab){
+    const sched=tab==="schedule";
+    $("schedulePage").classList.toggle("hidden",!sched);
+    $("settingsPage").classList.toggle("hidden",sched);
+    $("scheduleControls").classList.toggle("hidden",!sched);
+    document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+    if(!sched) populateSettings();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+
+  function exportSettings(){
+    const blob=new Blob([JSON.stringify(settings,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=url;a.download="MA_Grafik_backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+
+  function importSettings(file){
+    const r=new FileReader();
+    r.onload=()=>{
+      try{
+        const s=Object.assign(clone(DEFAULTS),JSON.parse(r.result));
+        settings=s; saveSettings(); currentIndex=0; populateSettings(); renderMonth(); toast("Резервная копия загружена");
+      }catch(e){ toast("Не удалось открыть файл"); }
+    };
+    r.readAsText(file);
+  }
+
+  // ---------- PNG poster ----------
+  function canvasRoundRect(ctx,x,y,w,h,r,fill,stroke){
+    const rr=Math.min(r,w/2,h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);
+    if(fill){ctx.fillStyle=fill;ctx.fill();}
+    if(stroke){ctx.strokeStyle=stroke;ctx.stroke();}
+  }
+
+  function fitText(ctx,text,maxWidth,startSize,minSize=20,weight=600){
+    let size=startSize;
+    do{
+      ctx.font=`${weight} ${size}px -apple-system,BlinkMacSystemFont,Segoe UI,Arial`;
+      if(ctx.measureText(text).width<=maxWidth) return size;
+      size-=1;
+    }while(size>=minSize);
+    return minSize;
+  }
+
+  function drawText(ctx,text,x,y,size,weight=500,color="#162033",align="left"){
+    ctx.font=`${weight} ${size}px -apple-system,BlinkMacSystemFont,Segoe UI,Arial`;
+    ctx.fillStyle=color;ctx.textAlign=align;ctx.textBaseline="middle";ctx.fillText(text,x,y);
+  }
+
+  function renderMonthCanvas(){
+    const info=monthInfo(currentIndex), rows=buildMonthRows(currentIndex);
+    const W=1400, H=1900, pad=44, cardW=W-pad*2;
+    const canvas=document.createElement("canvas"); canvas.width=W; canvas.height=H;
+    const ctx=canvas.getContext("2d");
+    ctx.fillStyle="#f4f7fb";ctx.fillRect(0,0,W,H);
+    drawText(ctx,`${info.name} ${info.year}`,W/2,72,54,800,"#0f5bd7","center");
+    drawText(ctx,`Смена ${settings.shiftStart}–${settings.shiftEnd} • 1 менеджер + 1 мастер • график 2/2`,W/2,122,25,500,"#64748b","center");
+
+    const firstEnd=Number(settings.swapDay)-1;
+    const serviceTop=[160,1010];
+    const serviceKeys=["s1","s2"];
+    const serviceNames=[settings.service1,settings.service2];
+    for(let s=0;s<2;s++){
+      const y=serviceTop[s], cardH=790;
+      ctx.shadowColor="rgba(28,64,120,.10)";ctx.shadowBlur=22;ctx.shadowOffsetY=8;
+      canvasRoundRect(ctx,pad,y,cardW,cardH,26,"#ffffff");
+      ctx.shadowColor="transparent";
+      drawText(ctx,serviceNames[s],pad+28,y+45,38,800,"#0f5bd7");
+      const colGap=22,colW=(cardW-56-colGap)/2;
+      const colX=[pad+28,pad+28+colW+colGap];
+      const ranges=[[1,firstEnd],[Number(settings.swapDay),info.days]];
+      for(let c=0;c<2;c++){
+        const [a,b]=ranges[c];
+        drawText(ctx,`${a}–${b} число`,colX[c],y+92,24,800,"#0f5bd7");
+        const tx=colX[c], ty=y+120, tableW=colW, rowH=38, headH=42;
+        canvasRoundRect(ctx,tx,ty,tableW,headH+(b-a+1)*rowH,14,"#ffffff","#dbe5f2");
+        ctx.fillStyle="#eaf2ff";ctx.fillRect(tx,ty,tableW,headH);
+        drawText(ctx,"Дата / день",tx+18,ty+headH/2,18,700,"#31435d");
+        drawText(ctx,"Менеджер + мастер",tx+tableW*0.40,ty+headH/2,18,700,"#31435d");
+        ctx.strokeStyle="#dbe5f2";ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(tx+tableW*0.34,ty);ctx.lineTo(tx+tableW*0.34,ty+headH+(b-a+1)*rowH);ctx.stroke();
+        let ri=0;
+        for(let d=a;d<=b;d++,ri++){
+          const r=rows[d-1], pair=r[serviceKeys[s]], ry=ty+headH+ri*rowH;
+          if(ri>0){ctx.beginPath();ctx.moveTo(tx,ry);ctx.lineTo(tx+tableW,ry);ctx.stroke();}
+          drawText(ctx,`${d} ${WD[r.date.getDay()]}`,tx+18,ry+rowH/2,18,500,"#334155");
+          const txt=`${pair.manager} + ${pair.master}`;
+          const fs=fitText(ctx,txt,tableW*0.62-22,19,15,650);
+          drawText(ctx,txt,tx+tableW*0.40,ry+rowH/2,fs,650,"#162033");
+        }
+      }
+    }
+    drawText(ctx,"И менеджеры, и мастера работают 2/2",W/2,H-42,23,600,"#64748b","center");
+    return canvas;
+  }
+
+  async function canvasBlob(){
+    const c=renderMonthCanvas();
+    return await new Promise(res=>c.toBlob(res,"image/png",1));
+  }
+
+  async function copyPhoto(){
+    try{
+      const blob=await canvasBlob();
+      if(navigator.clipboard && window.ClipboardItem){
+        await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);
+        toast("Фото месяца скопировано");
+      }else{
+        downloadBlob(blob);
+        toast("Копирование не поддерживается — PNG сохранён");
+      }
+    }catch(e){
+      try{ const blob=await canvasBlob(); downloadBlob(blob); }catch(_){}
+      toast("Не удалось скопировать — PNG сохранён");
+    }
+  }
+
+  async function sharePhoto(){
+    const blob=await canvasBlob(), info=monthInfo(currentIndex);
+    const file=new File([blob],`График_${info.name}_${info.year}.png`,{type:"image/png"});
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file],title:`График ${info.name} ${info.year}`}); }
+      catch(e){ if(e.name!=="AbortError") toast("Не удалось поделиться"); }
+    }else{
+      downloadBlob(blob); toast("Поделиться не поддерживается — PNG сохранён");
+    }
+  }
+
+  async function downloadPhoto(){
+    const blob=await canvasBlob(); downloadBlob(blob); toast("PNG сохранён");
+  }
+
+  function downloadBlob(blob){
+    const info=monthInfo(currentIndex),url=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=url;a.download=`График_${info.name}_${info.year}.png`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }
+
+  // ---------- Events ----------
+  $("prevBtn").onclick=()=>{ currentIndex=(currentIndex+11)%12; renderMonth(); };
+  $("nextBtn").onclick=()=>{ currentIndex=(currentIndex+1)%12; renderMonth(); };
+  monthSelect.onchange=()=>{ currentIndex=Number(monthSelect.value); renderMonth(); };
+  employeeFilter.onchange=highlightEmployee;
+  $("personalBtn").onclick=personalSchedule;
+  $("closePersonal").onclick=()=>$("personalModal").classList.add("hidden");
+  $("personalModal").addEventListener("click",e=>{ if(e.target===$("personalModal")) $("personalModal").classList.add("hidden"); });
+  $("copyPhotoBtn").onclick=copyPhoto;
+  $("shareBtn").onclick=sharePhoto;
+  $("downloadBtn").onclick=downloadPhoto;
+  $("saveSettingsBtn").onclick=saveForm;
+  $("exportBtn").onclick=exportSettings;
+  $("importBtn").onclick=()=>$("importFile").click();
+  $("importFile").onchange=e=>{ if(e.target.files[0]) importSettings(e.target.files[0]); e.target.value=""; };
+  $("resetBtn").onclick=()=>{
+    if(confirm("Сбросить все настройки и вернуть стандартный график?")){
+      settings=clone(DEFAULTS); saveSettings(); currentIndex=0; populateSettings(); renderMonth(); toast("Настройки сброшены");
+    }
+  };
+  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+  $("settingsPage").addEventListener("input",markDirty);
+
+  // Init
+  populateSettings();
+  renderMonth();
+})();
+</script>
+</body>
+</html>
