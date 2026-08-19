@@ -208,6 +208,13 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 .attention-item.bad{background:#fef2f2;color:#991b1b}
 .annul-shift-btn{width:100%;margin-top:8px;border:1px solid #fecaca;background:#fff;color:#b42318;border-radius:12px;min-height:40px;padding:8px 10px;font-weight:800}
 
+/* Календарь: цвета точек */
+.calendar-legend{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 10px}
+.calendar-legend-item{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 9px;font-size:11px;font-weight:800;background:#fff}
+.calendar-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.calendar-dot.service-s1{background:#22c55e}
+.calendar-dot.service-s2{background:#3b82f6}
+
 /* Сотрудник: личный календарь */
 .employee-calendar-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
 .employee-calendar-head h2{margin:0;color:var(--blue)}
@@ -219,17 +226,48 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 .employee-calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .employee-cal-cell{position:relative;min-height:66px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px 4px;text-align:left}
 .employee-cal-cell.blank{border-color:transparent;background:transparent}
-.employee-cal-cell.work{background:#ecfdf3;border-color:#bbf7d0}
+.employee-cal-cell.work.service-s1{background:#ecfdf3;border-color:#86efac}
+.employee-cal-cell.work.service-s2{background:#eff6ff;border-color:#93c5fd}
 .employee-cal-cell.off{background:#f8fafc}
 .employee-cal-cell.out{background:#fff7ed;border-color:#fed7aa}
 .employee-cal-cell.today{outline:2px solid var(--blue);outline-offset:-2px}
 .employee-cal-cell b{display:block;font-size:14px;color:#24344d}
 .employee-cal-cell span{display:block;margin-top:7px;font-size:8px;line-height:1.15;color:#64748b;overflow:hidden}
-.employee-cal-cell.work span{color:#166534;font-weight:800}
+.employee-cal-cell.work.service-s1 span{color:#166534;font-weight:800}
+.employee-cal-cell.work.service-s2 span{color:#1d4ed8;font-weight:800}
 .employee-cal-cell.out span{color:#9a3412}
 .employee-calendar-detail{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+.employee-calendar-detail.service-s1{background:#ecfdf3;border-color:#86efac}
+.employee-calendar-detail.service-s2{background:#eff6ff;border-color:#93c5fd}
 .employee-calendar-detail b{display:block;margin-bottom:5px;font-size:16px}
 .employee-calendar-detail span{font-size:13px;color:var(--muted);line-height:1.45}
+.employee-calendar-detail.service-s1 span{color:#166534}
+.employee-calendar-detail.service-s2 span{color:#1d4ed8}
+
+/* Компьютер: календарь общего графика */
+.desktop-calendar-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.desktop-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:6px;min-width:820px}
+.desktop-cal-cell{min-height:118px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:8px;text-align:left;vertical-align:top}
+.desktop-cal-cell.blank{background:transparent;border-color:transparent}
+.desktop-cal-cell.today{outline:2px solid var(--blue);outline-offset:-2px}
+.desktop-cal-cell.selected{box-shadow:0 0 0 2px rgba(15,91,215,.18)}
+.desktop-cal-day{font-size:15px;font-weight:900;color:#24344d;margin-bottom:7px}
+.desktop-cal-services{display:grid;gap:5px}
+.desktop-service-chip{display:block;border-radius:9px;padding:6px 7px;border:1px solid transparent}
+.desktop-service-chip.service-s1{background:#ecfdf3;border-color:#86efac;color:#166534}
+.desktop-service-chip.service-s2{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.desktop-service-chip strong{display:block;font-size:10px;line-height:1.15}
+.desktop-service-chip small{display:block;margin-top:3px;font-size:9px;line-height:1.2;font-weight:700}
+.desktop-calendar-detail{margin-top:12px;display:grid;gap:8px}
+.desktop-calendar-detail-card{border:1px solid var(--line);border-radius:13px;padding:11px 12px;background:#fff}
+.desktop-calendar-detail-card.service-s1{background:#ecfdf3;border-color:#86efac;color:#166534}
+.desktop-calendar-detail-card.service-s2{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.desktop-calendar-detail-card b{display:block;font-size:14px;margin-bottom:4px}
+.desktop-calendar-detail-card span{font-size:12px;line-height:1.45;font-weight:700}
+.bottom-inner.admin-five{grid-template-columns:repeat(5,1fr)!important}
+@media(max-width:760px){
+  .desktop-calendar-grid{min-width:760px}
+}
 
 /* Навигация: 4 вкладки для рабочего/админ режима, 3 для телефона сотрудника */
 .bottom-inner.employee-three{grid-template-columns:repeat(3,1fr)!important}
@@ -767,11 +805,42 @@ body{min-height:100dvh}
           <div class="employee-calendar-label" id="employeeCalLabel">—</div>
           <button id="employeeCalNext" aria-label="Следующий месяц">›</button>
         </div>
+        <div class="calendar-legend" id="employeeCalendarLegend">
+          <span class="calendar-legend-item"><i class="calendar-dot service-s1"></i><span id="employeeLegendS1">Мобильный Ангел</span></span>
+          <span class="calendar-legend-item"><i class="calendar-dot service-s2"></i><span id="employeeLegendS2">Нова</span></span>
+        </div>
         <div class="employee-calendar-week">
           <div>ПН</div><div>ВТ</div><div>СР</div><div>ЧТ</div><div>ПТ</div><div>СБ</div><div>ВС</div>
         </div>
         <div class="employee-calendar-grid" id="employeeCalendarGrid"></div>
         <div class="employee-calendar-detail" id="employeeCalendarDetail"></div>
+      </div>
+    </section>
+
+    <section id="desktopCalendarPage" class="hidden">
+      <div class="section">
+        <div class="employee-calendar-head">
+          <div>
+            <h2>Календарь</h2>
+            <div class="today-date" id="desktopCalendarModeLabel">Общий график</div>
+          </div>
+        </div>
+        <div class="employee-calendar-nav">
+          <button id="desktopCalPrev" aria-label="Предыдущий месяц">‹</button>
+          <div class="employee-calendar-label" id="desktopCalLabel">—</div>
+          <button id="desktopCalNext" aria-label="Следующий месяц">›</button>
+        </div>
+        <div class="calendar-legend">
+          <span class="calendar-legend-item"><i class="calendar-dot service-s1"></i><span id="desktopLegendS1">Мобильный Ангел</span></span>
+          <span class="calendar-legend-item"><i class="calendar-dot service-s2"></i><span id="desktopLegendS2">Нова</span></span>
+        </div>
+        <div class="employee-calendar-week" style="min-width:820px">
+          <div>ПН</div><div>ВТ</div><div>СР</div><div>ЧТ</div><div>ПТ</div><div>СБ</div><div>ВС</div>
+        </div>
+        <div class="desktop-calendar-wrap">
+          <div class="desktop-calendar-grid" id="desktopCalendarGrid"></div>
+        </div>
+        <div class="desktop-calendar-detail" id="desktopCalendarDetail"></div>
       </div>
     </section>
 
@@ -951,11 +1020,12 @@ body{min-height:100dvh}
 </div>
 
 <nav class="bottom">
-  <div class="bottom-inner admin-four" id="bottomInner">
+  <div class="bottom-inner admin-five" id="bottomInner">
     <button class="tab active" id="bottomTab1" data-tab="adminToday">Сегодня</button>
     <button class="tab" id="bottomTab2" data-tab="schedule">График</button>
-    <button class="tab" id="bottomTab3" data-tab="history">История</button>
-    <button class="tab" id="bottomTab4" data-tab="settings">Настройки</button>
+    <button class="tab" id="bottomTab3" data-tab="desktopCalendar">Календарь</button>
+    <button class="tab" id="bottomTab4" data-tab="history">История</button>
+    <button class="tab" id="bottomTab5" data-tab="settings">Настройки</button>
   </div>
 </nav>
 
@@ -1231,6 +1301,8 @@ body{min-height:100dvh}
   let employeeMobileView = "employeeToday";
   let employeeCalendarIndex = getCurrentMonthIndex();
   let employeeCalendarSelectedDate = moscowParts().date;
+  let desktopCalendarIndex = getCurrentMonthIndex();
+  let desktopCalendarSelectedDate = moscowParts().date;
   let serviceScheduleSelectedDate = moscowParts().date;
 
   const $ = id => document.getElementById(id);
@@ -1621,18 +1693,19 @@ body{min-height:100dvh}
     document.body.classList.toggle("service-device-mode",serviceMode);
 
     const inner=$("bottomInner");
-    const t1=$("bottomTab1"),t2=$("bottomTab2"),t3=$("bottomTab3"),t4=$("bottomTab4");
+    const t1=$("bottomTab1"),t2=$("bottomTab2"),t3=$("bottomTab3"),t4=$("bottomTab4"),t5=$("bottomTab5");
     const brand=document.querySelector(".brand");
 
     if(employeeMode){
       if(brand) brand.textContent="MA График";
-      inner.classList.remove("admin-four");
+      inner.classList.remove("admin-four","admin-five");
       inner.classList.add("employee-three");
 
       t1.textContent="Сегодня"; t1.dataset.tab="employeeToday"; t1.classList.remove("hidden");
       t2.textContent="Мой график"; t2.dataset.tab="employeeMy"; t2.classList.remove("hidden");
       t3.textContent="Календарь"; t3.dataset.tab="employeeCalendar"; t3.classList.remove("hidden");
       t4.classList.add("hidden");
+      t5.classList.add("hidden");
 
       $("adminBtn").textContent="Админ";
       ensureEmployeeSelected();
@@ -1646,6 +1719,7 @@ body{min-height:100dvh}
       if(!visible ||
          !$("adminTodayPage").classList.contains("hidden") ||
          !$("schedulePage").classList.contains("hidden") ||
+         !$("desktopCalendarPage").classList.contains("hidden") ||
          !$("historyPage").classList.contains("hidden") ||
          !$("settingsPage").classList.contains("hidden")){
         switchTab(employeeMobileView || "employeeToday");
@@ -1656,12 +1730,14 @@ body{min-height:100dvh}
     if(serviceMode){
       const service=serviceDeviceName();
       if(brand) brand.textContent=`${service} · Смена`;
-      inner.classList.remove("admin-four","employee-three");
+      inner.classList.remove("admin-four","admin-five");
+      inner.classList.add("employee-three");
 
       t1.textContent="Сегодня"; t1.dataset.tab="adminToday"; t1.classList.remove("hidden");
       t2.textContent="График"; t2.dataset.tab="schedule"; t2.classList.remove("hidden");
-      t3.classList.add("hidden");
+      t3.textContent="Календарь"; t3.dataset.tab="desktopCalendar"; t3.classList.remove("hidden");
       t4.classList.add("hidden");
+      t5.classList.add("hidden");
 
       $("adminBtn").textContent="Админ";
       if($("attentionTitle")) $("attentionTitle").textContent="Контроль смены";
@@ -1681,19 +1757,21 @@ body{min-height:100dvh}
 
     if(brand) brand.textContent="MA График";
     if($("attentionTitle")) $("attentionTitle").textContent="Требует внимания";
-    inner.classList.remove("employee-three");
-    inner.classList.add("admin-four");
+    inner.classList.remove("employee-three","admin-four");
+    inner.classList.add("admin-five");
 
     t1.textContent="Сегодня"; t1.dataset.tab="adminToday"; t1.classList.remove("hidden");
     t2.textContent="График"; t2.dataset.tab="schedule"; t2.classList.remove("hidden");
-    t3.textContent="История"; t3.dataset.tab="history"; t3.classList.remove("hidden");
-    t4.textContent="Настройки"; t4.dataset.tab="settings"; t4.classList.remove("hidden");
+    t3.textContent="Календарь"; t3.dataset.tab="desktopCalendar"; t3.classList.remove("hidden");
+    t4.textContent="История"; t4.dataset.tab="history"; t4.classList.remove("hidden");
+    t5.textContent="Настройки"; t5.dataset.tab="settings"; t5.classList.remove("hidden");
 
     $("employeePickerModal").classList.add("hidden");
 
     const anyVisible =
       !$("adminTodayPage").classList.contains("hidden") ||
       !$("schedulePage").classList.contains("hidden") ||
+      !$("desktopCalendarPage").classList.contains("hidden") ||
       !$("historyPage").classList.contains("hidden") ||
       !$("settingsPage").classList.contains("hidden");
 
@@ -3828,9 +3906,13 @@ body{min-height:100dvh}
 
     const assignment=employeeAssignmentForDate(name,dateStr);
     if(!assignment){
+      root.className="employee-calendar-detail";
       root.innerHTML=`<b>${escapeHtml(title)} — выходной</b><span>По графику смены нет.</span>`;
       return;
     }
+
+    const serviceKey=serviceKeyForName(assignment.service);
+    root.className=`employee-calendar-detail ${serviceKey?`service-${serviceKey}`:""}`.trim();
 
     const partner=assignment.pair.manager===name ? assignment.pair.master : assignment.pair.manager;
     const solo=isNoManagerValue(partner);
@@ -3848,6 +3930,8 @@ body{min-height:100dvh}
       info=monthInfo(employeeCalendarIndex);
     }
     $("employeeCalLabel").textContent=`${info.name} ${info.year}`;
+    $("employeeLegendS1").textContent=settings.service1;
+    $("employeeLegendS2").textContent=settings.service2;
     $("employeeCalPrev").disabled=info.year<=2020 && info.month===0;
     $("employeeCalNext").disabled=info.year>=2100 && info.month===11;
     const firstDow=(new Date(info.year,info.month,1).getDay()+6)%7;
@@ -3864,7 +3948,8 @@ body{min-height:100dvh}
 
       const assignment=employeeAssignmentForDate(name,dateStr);
       if(assignment){
-        cls="work";
+        const serviceKey=serviceKeyForName(assignment.service);
+        cls=`work ${serviceKey?`service-${serviceKey}`:""}`.trim();
         status=assignment.service;
       }
 
@@ -3886,6 +3971,127 @@ body{min-height:100dvh}
       employeeCalendarSelectedDate=`${info.year}-${String(info.month+1).padStart(2,"0")}-01`;
     }
     renderEmployeeCalendarDetail(employeeCalendarSelectedDate);
+  }
+
+
+  function setDesktopCalendarMonth(index){
+    const info=monthInfo(index);
+    if(info.year<2020 || info.year>2100) return;
+    desktopCalendarIndex=index;
+
+    const today=moscowParts().date;
+    const [ty,tm]=today.split("-").map(Number);
+    if(info.year===ty && info.month===tm-1){
+      desktopCalendarSelectedDate=today;
+    }else{
+      desktopCalendarSelectedDate=`${info.year}-${String(info.month+1).padStart(2,"0")}-01`;
+    }
+    renderDesktopCalendar();
+  }
+
+  function desktopCalendarServices(){
+    if(isServiceDeviceMode()){
+      const service=serviceDeviceName();
+      return service ? [service] : [];
+    }
+    return [settings.service1,settings.service2];
+  }
+
+  function calendarPairText(pair){
+    if(!pair) return "Нет графика";
+    if(isNoManagerValue(pair.manager)) return `Только ${pair.master}`;
+    return `${pair.manager} + ${pair.master}`;
+  }
+
+  function renderDesktopCalendarDetail(dateStr){
+    const root=$("desktopCalendarDetail");
+    if(!root) return;
+
+    const [y,m,d]=dateStr.split("-").map(Number);
+    const date=new Date(y,m-1,d);
+    const title=new Intl.DateTimeFormat("ru-RU",{
+      weekday:"long",day:"numeric",month:"long",year:"numeric"
+    }).format(date);
+
+    const services=desktopCalendarServices();
+    if(!services.length){
+      root.innerHTML=`<div class="notice">Сервис не определён.</div>`;
+      return;
+    }
+
+    root.innerHTML=`
+      <div style="font-weight:900;color:#24344d;margin:2px 0 1px">${escapeHtml(title)}</div>
+      ${services.map(service=>{
+        const pair=expectedForDate(dateStr,service);
+        const key=serviceKeyForName(service);
+        return `<div class="desktop-calendar-detail-card ${key?`service-${key}`:""}">
+          <b>${escapeHtml(service)}</b>
+          <span>${escapeHtml(calendarPairText(pair))}<br>${escapeHtml(settings.shiftStart)}–${escapeHtml(settings.shiftEnd)}</span>
+        </div>`;
+      }).join("")}
+    `;
+  }
+
+  function renderDesktopCalendar(){
+    if(isEmployeePhoneMode()) return;
+
+    let info=monthInfo(desktopCalendarIndex);
+    if(info.year<2020 || info.year>2100){
+      desktopCalendarIndex=getCurrentMonthIndex();
+      info=monthInfo(desktopCalendarIndex);
+    }
+
+    $("desktopCalLabel").textContent=`${info.name} ${info.year}`;
+    $("desktopLegendS1").textContent=settings.service1;
+    $("desktopLegendS2").textContent=settings.service2;
+    $("desktopCalPrev").disabled=info.year<=2020 && info.month===0;
+    $("desktopCalNext").disabled=info.year>=2100 && info.month===11;
+    $("desktopCalendarModeLabel").textContent=isServiceDeviceMode()
+      ? `Календарь точки: ${serviceDeviceName()}`
+      : "Общий календарь двух сервисов";
+
+    const firstDow=(new Date(info.year,info.month,1).getDay()+6)%7;
+    const today=moscowParts().date;
+    const services=desktopCalendarServices();
+    const cells=[];
+
+    for(let i=0;i<firstDow;i++){
+      cells.push('<div class="desktop-cal-cell blank"></div>');
+    }
+
+    for(let day=1;day<=info.days;day++){
+      const dateStr=`${info.year}-${String(info.month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+      const todayClass=dateStr===today?" today":"";
+      const selectedClass=dateStr===desktopCalendarSelectedDate?" selected":"";
+
+      const chips=services.map(service=>{
+        const pair=expectedForDate(dateStr,service);
+        const key=serviceKeyForName(service);
+        return `<span class="desktop-service-chip ${key?`service-${key}`:""}">
+          <strong>${escapeHtml(service)}</strong>
+          <small>${escapeHtml(calendarPairText(pair))}</small>
+        </span>`;
+      }).join("");
+
+      cells.push(`<button class="desktop-cal-cell${todayClass}${selectedClass}" data-desktop-date="${dateStr}">
+        <div class="desktop-cal-day">${day}</div>
+        <div class="desktop-cal-services">${chips}</div>
+      </button>`);
+    }
+
+    $("desktopCalendarGrid").innerHTML=cells.join("");
+    $("desktopCalendarGrid").querySelectorAll("[data-desktop-date]").forEach(btn=>{
+      btn.onclick=()=>{
+        desktopCalendarSelectedDate=btn.dataset.desktopDate;
+        renderDesktopCalendar();
+      };
+    });
+
+    const selectedPrefix=`${info.year}-${String(info.month+1).padStart(2,"0")}-`;
+    if(!desktopCalendarSelectedDate || !desktopCalendarSelectedDate.startsWith(selectedPrefix)){
+      desktopCalendarSelectedDate=`${info.year}-${String(info.month+1).padStart(2,"0")}-01`;
+    }
+    renderDesktopCalendarDetail(desktopCalendarSelectedDate);
   }
 
   function renderEmployeeIdentity(){
@@ -5357,11 +5563,11 @@ body{min-height:100dvh}
     const employeeMode=isEmployeePhoneMode();
     const serviceMode=isServiceDeviceMode();
 
-    if(employeeMode && ["adminToday","schedule","history","settings"].includes(tab)){
+    if(employeeMode && ["adminToday","schedule","desktopCalendar","history","settings"].includes(tab)){
       tab="employeeToday";
     }
 
-    if(serviceMode && !["adminToday","schedule"].includes(tab)){
+    if(serviceMode && !["adminToday","schedule","desktopCalendar"].includes(tab)){
       tab="adminToday";
     }
 
@@ -5379,12 +5585,14 @@ body{min-height:100dvh}
     const empCal=tab==="employeeCalendar";
     const adminToday=tab==="adminToday";
     const sched=tab==="schedule";
+    const desktopCal=tab==="desktopCalendar";
     const hist=tab==="history";
     const sett=tab==="settings";
 
     $("employeeTodayPage").classList.toggle("hidden",!empToday);
     $("employeeMyPage").classList.toggle("hidden",!empMy);
     $("employeeCalendarPage").classList.toggle("hidden",!empCal);
+    $("desktopCalendarPage").classList.toggle("hidden",!desktopCal);
     $("adminTodayPage").classList.toggle("hidden",!adminToday);
     $("schedulePage").classList.toggle("hidden",!sched);
     $("historyPage").classList.toggle("hidden",!hist);
@@ -5419,6 +5627,9 @@ body{min-height:100dvh}
     }
     if(sched){
       renderMonth();
+    }
+    if(desktopCal){
+      renderDesktopCalendar();
     }
 
     window.scrollTo({top:0,behavior:"smooth"});
@@ -5601,6 +5812,7 @@ body{min-height:100dvh}
   function switchTabLocalSettings(){
     const sched=false;
     $("schedulePage").classList.toggle("hidden",!sched);
+    $("desktopCalendarPage").classList.add("hidden");
     $("historyPage").classList.add("hidden");
     $("settingsPage").classList.toggle("hidden",sched);
     $("scheduleControls").classList.toggle("hidden",!sched);
@@ -5645,6 +5857,8 @@ body{min-height:100dvh}
   $("changeEmployeeGlobal").onclick=openEmployeePicker;
   $("employeeCalPrev").onclick=()=>setEmployeeCalendarMonth(employeeCalendarIndex-1);
   $("employeeCalNext").onclick=()=>setEmployeeCalendarMonth(employeeCalendarIndex+1);
+  $("desktopCalPrev").onclick=()=>setDesktopCalendarMonth(desktopCalendarIndex-1);
+  $("desktopCalNext").onclick=()=>setDesktopCalendarMonth(desktopCalendarIndex+1);
   $("refreshBtn").onclick=async()=>{ await syncFromCloud(true); await loadTodayShifts(false); };
   $("loadHistoryBtn").onclick=loadHistory;
   document.querySelectorAll("#historyQuick [data-range]").forEach(btn=>{
