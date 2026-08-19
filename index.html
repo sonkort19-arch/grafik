@@ -338,7 +338,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 .monthnav{grid-template-columns:44px minmax(120px,1fr) 110px 44px}
 .yearselect{width:100%;min-height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 10px;font-weight:800;color:var(--text)}
 .change-form{display:grid;grid-template-columns:150px 1fr 1fr auto;gap:8px;align-items:end}
-.override-form{display:grid;grid-template-columns:145px 130px 1fr 1fr auto;gap:8px;align-items:end}
 .change-list{display:grid;gap:8px;margin-top:10px}
 .change-item{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 11px;background:#fff}
 .change-item b{color:#24344d}
@@ -347,8 +346,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 .infinite-note{margin-top:9px;padding:10px 12px;border-radius:12px;background:#ecfdf3;color:#166534;font-size:12px;line-height:1.45}
 @media(max-width:760px){
   .monthnav{grid-template-columns:42px 1fr 92px 42px}
-  .change-form,.override-form{grid-template-columns:1fr 1fr}
-  .change-form button,.override-form button{grid-column:1/-1}
+  .change-form,  .change-form button{grid-column:1/-1}
 }
 
 .service-day-row.selected{outline:2px solid #0f5bd7;outline-offset:-2px;background:#f2f7ff}
@@ -438,7 +436,7 @@ body.startup-shift-mode .toast{z-index:300}
 
 /* Установка приложений */
 .install-quick-btn{border:1px solid var(--line);background:#fff;border-radius:999px;min-height:34px;padding:0 11px;font-size:12px;font-weight:800;color:var(--blue)}
-.install-app-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.install-app-grid{display:grid;grid-template-columns:1fr;gap:10px}
 .install-app-card{border:1px solid var(--line);border-radius:15px;padding:12px;background:#f8fafc}
 .install-app-card b{display:block;color:#24344d;margin-bottom:5px}
 .install-app-card p{margin:0 0 10px;color:var(--muted);font-size:12px;line-height:1.45}
@@ -467,6 +465,13 @@ body.startup-shift-mode .toast{z-index:300}
 }
 .app-boot-title{font-size:18px;font-weight:900;color:#24344d}
 .app-boot-text{margin-top:5px;font-size:12px;color:var(--muted)}
+
+
+.quick-replace-btn{min-height:38px;padding:8px 12px;white-space:nowrap}
+.quick-replace-summary{margin:14px 0 12px;padding:11px 12px;border:1px solid var(--line);border-radius:13px;background:#f8fafc;font-size:13px;line-height:1.5;color:#42526a}
+.quick-replace-existing{margin:2px 0 12px;padding:10px 12px;border-radius:12px;background:#fff7ed;color:#9a3412;font-size:12px;font-weight:750;line-height:1.45}
+.quick-replace-grid{margin-top:2px}
+@media(max-width:560px){.today-head{align-items:center}.quick-replace-btn{font-size:12px;padding:7px 9px}}
 
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -592,6 +597,7 @@ body.startup-shift-mode .toast{z-index:300}
       <div class="today-board">
         <div class="today-head">
           <div><h2>Состояние смен</h2><div class="today-date" id="todayDateLabel">—</div></div>
+          <button class="secondary quick-replace-btn hidden" id="quickReplaceBtn">Замена сотрудника</button>
         </div>
         <div class="shift-cards" id="todayShiftCards"></div>
       </div>
@@ -652,13 +658,8 @@ body.startup-shift-mode .toast{z-index:300}
         <div class="install-app-grid">
           <div class="install-app-card">
             <b>MA График</b>
-            <p>Обычное приложение для графика, календаря, истории и уведомлений сотрудников.</p>
+            <p>Установить программу на этот компьютер или телефон.</p>
             <button class="primary" id="installGrafikBtn">Установить MA График</button>
-          </div>
-          <div class="install-app-card">
-            <b>MA Смена</b>
-            <p>Отдельное маленькое приложение для рабочего компьютера: открыть или закрыть смену.</p>
-            <button class="secondary" id="installSmenaBtn">Установить MA Смена</button>
           </div>
         </div>
         <div class="install-app-state" id="installAppState">Проверяем возможность установки…</div>
@@ -748,19 +749,6 @@ body.startup-shift-mode .toast{z-index:300}
           <button class="primary" id="addStaffChangeBtn">Добавить</button>
         </div>
         <div class="change-list" id="staffChangesList"></div>
-      </div>
-
-      <div class="section">
-        <h2>Разовая подмена</h2>
-        <div class="notice">Для одного конкретного дня. Остальные даты графика не меняются.</div>
-        <div class="override-form" style="margin-top:10px">
-          <div class="field"><label>Дата</label><input type="date" id="overrideDate"></div>
-          <div class="field"><label>Точка</label><select id="overrideService"></select></div>
-          <div class="field"><label>Менеджер</label><input id="overrideManager" placeholder="Имя"></div>
-          <div class="field"><label>Мастер</label><input id="overrideMaster" placeholder="Имя"></div>
-          <button class="primary" id="addDayOverrideBtn">Добавить</button>
-        </div>
-        <div class="change-list" id="dayOverridesList"></div>
       </div>
 
       <div class="section">
@@ -857,6 +845,36 @@ body.startup-shift-mode .toast{z-index:300}
     <div class="field"><label>Пароль</label><input type="password" id="adminPassword" autocomplete="current-password" placeholder="Пароль"></div>
     <div class="login-error" id="loginError"></div>
     <div class="login-actions"><button class="secondary" id="cancelLogin">Отмена</button><button class="primary" id="loginBtn">Войти</button></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="quickReplaceModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2>Замена сотрудника</h2>
+      <button class="close" id="closeQuickReplace">×</button>
+    </div>
+    <div class="quick-replace-summary" id="quickReplaceSummary"></div>
+    <div class="grid2 quick-replace-grid">
+      <div class="field"><label>Дата</label><input type="date" id="quickReplaceDate"></div>
+      <div class="field"><label>Точка</label><select id="quickReplaceService"></select></div>
+      <div class="field"><label>Кто не выйдет</label><select id="quickReplaceRole"></select></div>
+      <div class="field">
+        <label>Причина</label>
+        <select id="quickReplaceReason">
+          <option value="Болезнь">Болезнь</option>
+          <option value="Личное">Личное</option>
+          <option value="Отпуск">Отпуск</option>
+          <option value="Другое">Другое</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Кто выйдет вместо него</label><select id="quickReplaceWith"></select></div>
+    <div class="quick-replace-existing hidden" id="quickReplaceExisting"></div>
+    <div class="login-actions">
+      <button class="secondary hidden" id="removeQuickReplace">Вернуть по графику</button>
+      <button class="primary" id="saveQuickReplace">Сохранить замену</button>
+    </div>
   </div>
 </div>
 
@@ -1332,6 +1350,7 @@ body.startup-shift-mode .toast{z-index:300}
   function updateAuthUI(){
     const btn=$("adminBtn"); if(!btn) return;
     btn.textContent=isAdmin() ? "Админ ✓" : ((isEmployeePhoneMode() || isServiceDeviceMode()) ? "Админ" : "Администратор");
+    if($("quickReplaceBtn")) $("quickReplaceBtn").classList.toggle("hidden",!isAdmin());
     updateCloudSettingsState();
     if(!document.body.classList.contains("app-booting") && $("todayShiftCards")) renderTodayShifts();
     if($("currentDeviceState")) renderDevicePanel();
@@ -1392,7 +1411,13 @@ body.startup-shift-mode .toast{z-index:300}
 
     merged.dayOverrides=merged.dayOverrides
       .filter(x=>x && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date||"")) && x.service && x.manager && x.master)
-      .map(x=>({id:x.id||(`chg-${Date.now()}-${Math.random().toString(36).slice(2)}`),date:String(x.date),service:String(x.service),manager:String(x.manager),master:String(x.master)}))
+      .map(x=>({
+        id:x.id||(`chg-${Date.now()}-${Math.random().toString(36).slice(2)}`),
+        date:String(x.date),service:String(x.service),manager:String(x.manager),master:String(x.master),
+        reason:x.reason?String(x.reason):"",
+        replacedRole:x.replacedRole==="master"?"master":(x.replacedRole==="manager"?"manager":""),
+        replacedName:x.replacedName?String(x.replacedName):""
+      }))
       .sort((a,b)=>a.date.localeCompare(b.date));
 
     return merged;
@@ -2190,6 +2215,9 @@ body.startup-shift-mode .toast{z-index:300}
       grafik.disabled=installed;
     }
 
+    const installSection=$("installAppsSection");
+    if(installSection) installSection.classList.toggle("hidden",installed);
+
     if(state){
       if(installed){
         state.textContent="MA График уже открыт как установленное приложение.";
@@ -2234,9 +2262,6 @@ body.startup-shift-mode .toast{z-index:300}
     alert("Chrome пока не показал системную установку.\n\nОткрой меню Chrome ⋮ и выбери «Установить MA График» или «Установить приложение».");
   }
 
-  function openSmenaInstallPage(){
-    window.open("./smena-install.html","_blank","noopener");
-  }
 
   function urlBase64ToUint8Array(base64String){
     const padding="=".repeat((4-base64String.length%4)%4); const base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");
@@ -3233,13 +3258,6 @@ body.startup-shift-mode .toast{z-index:300}
       if([...changeOld.options].some(o=>o.value===previous)) changeOld.value=previous;
     }
 
-    const serviceSel=$("overrideService");
-    if(serviceSel){
-      const prev=serviceSel.value;
-      serviceSel.innerHTML=`<option value="${escapeHtml(settings.service1)}">${escapeHtml(settings.service1)}</option><option value="${escapeHtml(settings.service2)}">${escapeHtml(settings.service2)}</option>`;
-      if([...serviceSel.options].some(o=>o.value===prev)) serviceSel.value=prev;
-    }
-
     const changesRoot=$("staffChangesList");
     if(changesRoot){
       const changes=(settings.staffChanges||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
@@ -3258,23 +3276,6 @@ body.startup-shift-mode .toast{z-index:300}
       });
     }
 
-    const overridesRoot=$("dayOverridesList");
-    if(overridesRoot){
-      const list=(settings.dayOverrides||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
-      overridesRoot.innerHTML=list.length ? list.map(x=>`
-        <div class="change-item">
-          <div><b>${escapeHtml(x.date)} · ${escapeHtml(x.service)}</b><small>${escapeHtml(x.manager)} + ${escapeHtml(x.master)}</small></div>
-          <button class="change-delete" data-override-id="${escapeHtml(x.id)}">Удалить</button>
-        </div>`).join("") : '<div class="notice">Разовых исключений пока нет.</div>';
-      overridesRoot.querySelectorAll("[data-override-id]").forEach(btn=>{
-        btn.onclick=()=>{
-          settings.dayOverrides=(settings.dayOverrides||[]).filter(x=>String(x.id)!==String(btn.dataset.overrideId));
-          markDirty();
-          renderScheduleEditLists();
-          renderMonth();
-        };
-      });
-    }
   }
 
   function populateSettings(){
@@ -3288,7 +3289,6 @@ body.startup-shift-mode .toast{z-index:300}
     $("wB1").value=settings.masters[1][0]; $("wB2").value=settings.masters[1][1];
 
     if(!$("changeDate").value) $("changeDate").value=moscowParts().date;
-    if(!$("overrideDate").value) $("overrideDate").value=moscowParts().date;
 
     renderPinFields();
     fillHistoryFilters();
@@ -3296,7 +3296,6 @@ body.startup-shift-mode .toast{z-index:300}
     updatePushState();
     renderDevicePanel();
     renderScheduleEditLists();
-    if(!$("overrideManager").value && !$("overrideMaster").value) prefillDayOverride();
   }
 
   function readSettingsFromForm(){
@@ -3357,44 +3356,185 @@ body.startup-shift-mode .toast{z-index:300}
     toast("Изменение добавлено. Не забудь сохранить настройки.");
   }
 
-  function addDayOverride(){
-    if(!isAdmin()){ openLoginModal(); return; }
-    const date=$("overrideDate").value;
-    const service=$("overrideService").value;
-    const manager=$("overrideManager").value.trim();
-    const master=$("overrideMaster").value.trim();
 
-    if(!date || !service || !manager || !master){
-      toast("Заполни дату, точку, менеджера и мастера");
+
+  function baseExpectedForDate(dateStr,serviceName){
+    try{
+      const [y,m,d]=dateStr.split("-").map(Number);
+      if(y<2020 || y>2100) return null;
+      const date=new Date(y,m-1,d);
+      const teams=teamsForDate(date);
+      const groups=groupAssignments(date);
+      const g=serviceName===settings.service1 ? groups.s1 : serviceName===settings.service2 ? groups.s2 : null;
+      if(!g) return null;
+      const mgrOffsets=[0,2], masterOffsets=[0,2];
+      return {
+        manager:activeFromPair(teams.managers[g.mg],date,mgrOffsets[g.mg]),
+        master:activeFromPair(teams.masters[g.wg],date,masterOffsets[g.wg]+g.masterFlip)
+      };
+    }catch(e){ return null; }
+  }
+
+  function quickReplacementRecord(date,service){
+    return (settings.dayOverrides||[]).find(x=>x.date===date && x.service===service)||null;
+  }
+
+  function quickReplacementCandidates(date,role){
+    try{
+      const [y,m,d]=date.split("-").map(Number);
+      const teams=teamsForDate(new Date(y,m-1,d));
+      const list=role==="manager" ? teams.managers.flat() : teams.masters.flat();
+      return [...new Set(list.filter(Boolean))];
+    }catch(e){ return []; }
+  }
+
+  function inferQuickReplaceRole(base,existing){
+    if(existing?.replacedRole) return existing.replacedRole;
+    if(existing && base){
+      if(existing.manager!==base.manager && existing.master===base.master) return "manager";
+      if(existing.master!==base.master && existing.manager===base.manager) return "master";
+    }
+    return "manager";
+  }
+
+  function refreshQuickReplaceForm(){
+    const date=$("quickReplaceDate").value||moscowParts().date;
+    const service=$("quickReplaceService").value||settings.service1;
+    const base=baseExpectedForDate(date,service);
+    const existing=quickReplacementRecord(date,service);
+    if(!base) return;
+
+    const roleSel=$("quickReplaceRole");
+    const previousRole=roleSel.value || inferQuickReplaceRole(base,existing);
+    roleSel.innerHTML=`
+      <option value="manager">Менеджер — ${escapeHtml(base.manager)}</option>
+      <option value="master">Мастер — ${escapeHtml(base.master)}</option>`;
+    roleSel.value=["manager","master"].includes(previousRole)?previousRole:"manager";
+
+    const role=roleSel.value;
+    const absent=role==="manager"?base.manager:base.master;
+    const candidates=quickReplacementCandidates(date,role).filter(n=>n!==absent);
+    const currentReplacement=existing ? (role==="manager"?existing.manager:existing.master) : "";
+
+    const replaceSel=$("quickReplaceWith");
+    replaceSel.innerHTML=candidates.length
+      ? candidates.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("")
+      : '<option value="">Нет доступных сотрудников</option>';
+    if(currentReplacement && candidates.includes(currentReplacement)) replaceSel.value=currentReplacement;
+
+    $("quickReplaceSummary").innerHTML=
+      `<b>${escapeHtml(service)} · ${escapeHtml(russianDateLong(date))}</b><br>`+
+      `По графику: ${escapeHtml(base.manager)} + ${escapeHtml(base.master)}`;
+
+    const box=$("quickReplaceExisting");
+    const removeBtn=$("removeQuickReplace");
+    if(existing){
+      const changedRole=inferQuickReplaceRole(base,existing);
+      const original=existing.replacedName || (changedRole==="manager"?base.manager:base.master);
+      const replacement=changedRole==="manager"?existing.manager:existing.master;
+      const reason=existing.reason?` · ${escapeHtml(existing.reason)}`:"";
+      box.innerHTML=`Уже есть замена: <b>${escapeHtml(original)} → ${escapeHtml(replacement)}</b>${reason}`;
+      box.classList.remove("hidden");
+      removeBtn.classList.remove("hidden");
+      if(existing.reason && [...$("quickReplaceReason").options].some(o=>o.value===existing.reason)){
+        $("quickReplaceReason").value=existing.reason;
+      }
+    }else{
+      box.classList.add("hidden");
+      box.innerHTML="";
+      removeBtn.classList.add("hidden");
+      $("quickReplaceReason").value="Болезнь";
+    }
+  }
+
+  function openQuickReplace(){
+    if(!isAdmin()){ openLoginModal(); return; }
+    $("quickReplaceDate").value=moscowParts().date;
+    $("quickReplaceService").innerHTML=`
+      <option value="${escapeHtml(settings.service1)}">${escapeHtml(settings.service1)}</option>
+      <option value="${escapeHtml(settings.service2)}">${escapeHtml(settings.service2)}</option>`;
+    $("quickReplaceService").value=settings.service1;
+    $("quickReplaceRole").innerHTML='<option value="manager">Менеджер</option><option value="master">Мастер</option>';
+    $("quickReplaceRole").value="manager";
+    refreshQuickReplaceForm();
+    $("quickReplaceModal").classList.remove("hidden");
+  }
+
+  function closeQuickReplace(){ $("quickReplaceModal").classList.add("hidden"); }
+
+  async function persistQuickReplacement(previousSettings,successText){
+    try{
+      settings=normalizeScheduleSettings(settings);
+      saveSettings();
+      if(cloudConfigured()) await saveToCloud(settings);
+      settingsDirty=false;
+      lastSettingsSignature=stableJson(settings);
+      populateSettings();
+      renderMonth();
+      closeQuickReplace();
+      toast(successText);
+    }catch(e){
+      console.error(e);
+      settings=previousSettings;
+      saveSettings();
+      populateSettings();
+      renderMonth();
+      setCloudStatus("Ошибка","offline");
+      toast(e.message||"Не удалось сохранить замену");
+    }
+  }
+
+  async function saveQuickReplacement(){
+    if(!isAdmin()){ openLoginModal(); return; }
+
+    const date=$("quickReplaceDate").value;
+    const service=$("quickReplaceService").value;
+    const role=$("quickReplaceRole").value;
+    const replacement=$("quickReplaceWith").value;
+    const reason=$("quickReplaceReason").value;
+    const base=baseExpectedForDate(date,service);
+
+    if(!date || !service || !base || !replacement){
+      toast("Выбери сотрудника на замену");
       return;
     }
 
-    settings.dayOverrides=settings.dayOverrides||[];
-    settings.dayOverrides=settings.dayOverrides.filter(x=>!(x.date===date && x.service===service));
+    const absent=role==="manager"?base.manager:base.master;
+    if(replacement===absent){
+      toast("Выбери другого сотрудника");
+      return;
+    }
+
+    const previousSettings=clone(settings);
+    const existing=quickReplacementRecord(date,service);
+    const current=existing
+      ? {manager:existing.manager,master:existing.master}
+      : {manager:base.manager,master:base.master};
+
+    current[role]=replacement;
+
+    settings.dayOverrides=(settings.dayOverrides||[]).filter(x=>!(x.date===date && x.service===service));
     settings.dayOverrides.push({
-      id:`override-${Date.now()}-${(settings.dayOverrides||[]).length}-${Math.random().toString(36).slice(2)}`,
-      date,
-      service,
-      manager,
-      master
+      id:`override-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      date,service,manager:current.manager,master:current.master,
+      reason,replacedRole:role,replacedName:absent
     });
     settings.dayOverrides.sort((a,b)=>a.date.localeCompare(b.date));
 
-    markDirty();
-    renderScheduleEditLists();
-    renderMonth();
-    toast("Подмена добавлена. Не забудь сохранить настройки.");
+    await persistQuickReplacement(previousSettings,`Замена сохранена: ${absent} → ${replacement}`);
   }
 
-  function prefillDayOverride(){
-    const date=$("overrideDate").value;
-    const service=$("overrideService").value;
-    if(!date || !service) return;
-    const p=expectedForDate(date,service);
-    if(p){
-      $("overrideManager").value=p.manager;
-      $("overrideMaster").value=p.master;
+  async function removeQuickReplacement(){
+    if(!isAdmin()) return;
+    const date=$("quickReplaceDate").value;
+    const service=$("quickReplaceService").value;
+    if(!quickReplacementRecord(date,service)){
+      toast("На эту дату замены нет");
+      return;
     }
+    const previousSettings=clone(settings);
+    settings.dayOverrides=(settings.dayOverrides||[]).filter(x=>!(x.date===date && x.service===service));
+    await persistQuickReplacement(previousSettings,"Вернули обычный график");
   }
 
   async function saveForm(){
@@ -3674,6 +3814,14 @@ body.startup-shift-mode .toast{z-index:300}
   ["historyService","historyEmployee","historyProblem"].forEach(id=>{
     $(id).onchange=()=>loadHistory();
   });
+  $("quickReplaceBtn").onclick=openQuickReplace;
+  $("closeQuickReplace").onclick=closeQuickReplace;
+  $("quickReplaceModal").addEventListener("click",e=>{ if(e.target===$("quickReplaceModal")) closeQuickReplace(); });
+  $("quickReplaceDate").onchange=refreshQuickReplaceForm;
+  $("quickReplaceService").onchange=refreshQuickReplaceForm;
+  $("quickReplaceRole").onchange=refreshQuickReplaceForm;
+  $("saveQuickReplace").onclick=saveQuickReplacement;
+  $("removeQuickReplace").onclick=removeQuickReplacement;
   $("savePinsBtn").onclick=saveManagerPins;
   $("pairDeviceBtn").onclick=pairCurrentDevice;
   $("enablePushBtn").onclick=enablePush;
@@ -3687,9 +3835,6 @@ body.startup-shift-mode .toast{z-index:300}
   $("shareBtn").onclick=sharePhoto;
   $("downloadBtn").onclick=downloadPhoto;
   $("addStaffChangeBtn").onclick=addStaffChange;
-  $("addDayOverrideBtn").onclick=addDayOverride;
-  $("overrideDate").onchange=prefillDayOverride;
-  $("overrideService").onchange=prefillDayOverride;
   $("saveSettingsBtn").onclick=saveForm;
   $("forceSyncBtn").onclick=()=>syncFromCloud(true);
   $("logoutBtn").onclick=()=>{ saveAdminSession(null); settingsDirty=false; renderTodayShifts(); applyUserMode(); switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday"); toast("Вы вышли из администратора"); };
@@ -3727,7 +3872,6 @@ body.startup-shift-mode .toast{z-index:300}
 
   $("installQuickBtn").onclick=installGrafikApp;
   $("installGrafikBtn").onclick=installGrafikApp;
-  $("installSmenaBtn").onclick=openSmenaInstallPage;
 
   window.addEventListener("beforeinstallprompt",(event)=>{
     event.preventDefault();
