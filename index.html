@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f5bd7">
 <title>MA График — Смены онлайн</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230f5bd7'/%3E%3Ctext x='50' y='63' text-anchor='middle' font-size='42' font-family='Arial' font-weight='700' fill='white'%3EMA%3C/text%3E%3C/svg%3E">
@@ -212,6 +212,15 @@ button{cursor:pointer}
   .employee-phone-mode .filters #personalBtn{display:none}
   .employee-phone-mode .filters{grid-template-columns:1fr}
   .employee-phone-mode .filters #refreshBtn{justify-self:end}
+}
+
+
+/* Телефон: убираем случайное увеличение при тапах, но не запрещаем pinch-zoom */
+html{touch-action:manipulation}
+button,a,input,select,textarea,label{touch-action:manipulation}
+@media(max-width:760px){
+  input,select,textarea,button{font-size:16px!important}
+  body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 }
 
 </style>
@@ -1965,6 +1974,16 @@ button{cursor:pointer}
     }
   };
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+  let lastTouchEndForZoom=0;
+  document.addEventListener("touchend",(e)=>{
+    if(e.touches && e.touches.length>0) return;
+    const now=Date.now();
+    if(now-lastTouchEndForZoom<280){
+      e.preventDefault();
+    }
+    lastTouchEndForZoom=now;
+  },{passive:false});
+
   window.addEventListener("resize",()=>{
     const wasEmployee=document.body.classList.contains("employee-phone-mode");
     const nowEmployee=isEmployeePhoneMode();
