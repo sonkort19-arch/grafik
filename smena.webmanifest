@@ -1,0 +1,23 @@
+{
+  "name": "MA Смена — рабочий компьютер",
+  "short_name": "MA Смена",
+  "id": "./ma-smena",
+  "start_url": "./?startup=1&from=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#0f5bd7",
+  "description": "Открытие и закрытие смены на рабочем компьютере",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
