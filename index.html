@@ -346,7 +346,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 .infinite-note{margin-top:9px;padding:10px 12px;border-radius:12px;background:#ecfdf3;color:#166534;font-size:12px;line-height:1.45}
 @media(max-width:760px){
   .monthnav{grid-template-columns:42px 1fr 92px 42px}
-  .change-form,  .change-form button{grid-column:1/-1}
+  .change-form{grid-template-columns:1fr 1fr}
+  .change-form button{grid-column:1/-1}
 }
 
 .service-day-row.selected{outline:2px solid #0f5bd7;outline-offset:-2px;background:#f2f7ff}
@@ -472,6 +473,148 @@ body.startup-shift-mode .toast{z-index:300}
 .quick-replace-existing{margin:2px 0 12px;padding:10px 12px;border-radius:12px;background:#fff7ed;color:#9a3412;font-size:12px;font-weight:750;line-height:1.45}
 .quick-replace-grid{margin-top:2px}
 @media(max-width:560px){.today-head{align-items:center}.quick-replace-btn{font-size:12px;padding:7px 9px}}
+
+
+/* Телефон — фиксированная геометрия без бокового «резинового» растягивания */
+html,body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  overscroll-behavior-x:none;
+}
+body{min-height:100dvh}
+.app{width:100%;max-width:980px;min-width:0;overflow-x:hidden}
+
+@supports (overflow:clip){
+  html,body,.app{overflow-x:clip}
+}
+
+@media(max-width:760px){
+  html,body{
+    width:100%;
+    max-width:100%;
+    overscroll-behavior:none;
+    touch-action:pan-y pinch-zoom;
+    -webkit-text-size-adjust:100%;
+    text-size-adjust:100%;
+  }
+
+  body{
+    margin:0;
+    padding-bottom:calc(76px + env(safe-area-inset-bottom));
+  }
+
+  .app,
+  .topbar,
+  .page,
+  .section,
+  .today-board,
+  .service-card,
+  .employee-hero,
+  .employee-calendar-detail,
+  .service-point-schedule,
+  .connection-banner{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+
+  .topbar{padding-left:10px;padding-right:10px}
+  .page{padding:10px}
+
+  .brandrow,
+  .monthnav,
+  .filters,
+  .grid2,
+  .shift-cards,
+  .history-grid,
+  .history-filters-clean,
+  .history-custom-range,
+  .settings-actions,
+  .login-actions,
+  .employee-picker-grid,
+  .employee-calendar-nav,
+  .employee-calendar-week,
+  .employee-calendar-grid{
+    min-width:0;
+    max-width:100%;
+  }
+
+  .brandrow>*,
+  .monthnav>*,
+  .filters>*,
+  .grid2>*,
+  .shift-cards>*,
+  .history-grid>*,
+  .history-filters-clean>*,
+  .history-custom-range>*,
+  .settings-actions>*,
+  .login-actions>*,
+  .employee-picker-grid>*{
+    min-width:0;
+    max-width:100%;
+  }
+
+  button,input,select,textarea{
+    max-width:100%;
+    min-width:0;
+  }
+
+  img,svg,canvas{max-width:100%;height:auto}
+
+  .schedule{
+    width:100%;
+    max-width:100%;
+    table-layout:fixed;
+  }
+  .schedule th,.schedule td{
+    overflow-wrap:anywhere;
+    word-break:normal;
+  }
+
+  .bottom{
+    width:100%;
+    max-width:100%;
+    padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+  }
+  .bottom-inner{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    gap:4px;
+  }
+  .tab{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    padding:10px 4px;
+  }
+
+  .modal{
+    width:100%;
+    max-width:100%;
+    padding:8px;
+    overflow-x:hidden;
+  }
+  .sheet{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+
+  .history-quick,
+  .service-schedule-scroll{
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .employee-phone-mode .employee-hero,
+  .employee-phone-mode .section{
+    margin-left:0;
+    margin-right:0;
+  }
+}
 
 </style>
 <link rel="manifest" href="manifest.webmanifest">
