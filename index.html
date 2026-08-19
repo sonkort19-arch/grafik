@@ -788,13 +788,14 @@ body{min-height:100dvh}
       </div>
 
       <div class="section">
-        <h2>Постоянная замена с даты</h2>
-        <div class="notice">Например, сотрудник уволился. Выбираешь дату и нового человека — прошлые дни не меняются.</div>
+        <h2>Постоянные изменения</h2>
+        <div class="notice">Если новый сотрудник уже есть — укажи его имя и нажми «Заменить». Если пока никого нет — выбери сотрудника и нажми «Сотрудник ушёл».</div>
         <div class="change-form" style="margin-top:10px">
           <div class="field"><label>С какой даты</label><input type="date" id="changeDate"></div>
-          <div class="field"><label>Кого заменить</label><select id="changeOld"></select></div>
-          <div class="field"><label>Новый сотрудник</label><input id="changeNew" placeholder="Имя"></div>
-          <button class="primary" id="addStaffChangeBtn">Добавить</button>
+          <div class="field"><label>Сотрудник</label><select id="changeOld"></select></div>
+          <div class="field"><label>Новый сотрудник</label><input id="changeNew" placeholder="Имя нового сотрудника"></div>
+          <button class="primary" id="addStaffChangeBtn">Заменить</button>
+          <button class="danger" id="markStaffLeftBtn" type="button">Сотрудник ушёл</button>
         </div>
         <div class="change-list" id="staffChangesList"></div>
       </div>
@@ -1338,7 +1339,10 @@ body{min-height:100dvh}
 
   function allEmployeeNames(){
     const names=(settings.employeeSchedules||[]).map(x=>x.name);
-    (settings.staffChanges||[]).forEach(x=>{ names.push(x.oldName,x.newName); });
+    (settings.staffChanges||[]).forEach(x=>{
+      names.push(x.oldName);
+      if(x.type!=="left" && x.newName) names.push(x.newName);
+    });
     (settings.dayOverrides||[]).forEach(x=>{ names.push(x.manager,x.master); });
     return [...new Set(names.filter(Boolean))];
   }
@@ -1346,7 +1350,7 @@ body{min-height:100dvh}
   function allManagerNames(){
     const names=(settings.employeeSchedules||[]).filter(x=>x.role==="manager").map(x=>x.name);
     (settings.staffChanges||[]).forEach(ch=>{
-      if(names.includes(ch.oldName) && ch.newName) names.push(ch.newName);
+      if(ch.type!=="left" && names.includes(ch.oldName) && ch.newName) names.push(ch.newName);
     });
     return [...new Set(names.filter(Boolean))];
   }
@@ -1757,8 +1761,20 @@ body{min-height:100dvh}
     syncLegacyTeamsFromEmployees(merged);
 
     merged.staffChanges=merged.staffChanges
-      .filter(x=>x && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date||"")) && x.oldName && x.newName)
-      .map(x=>({id:x.id||(`chg-${Date.now()}-${Math.random().toString(36).slice(2)}`),date:String(x.date),oldName:String(x.oldName),newName:String(x.newName)}))
+      .filter(x=>x && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date||"")) && x.oldName)
+      .map(x=>{
+        const rawNew=String(x.newName||"").trim();
+        const leftText=/^(сотрудник\s+)?уш[её]л$/i.test(rawNew) || /уволил(ся|ась)$/i.test(rawNew);
+        const isLeft=x.type==="left" || leftText;
+        return {
+          id:x.id||(`chg-${Date.now()}-${Math.random().toString(36).slice(2)}`),
+          date:String(x.date),
+          oldName:String(x.oldName),
+          newName:isLeft?"":rawNew,
+          type:isLeft?"left":"replace"
+        };
+      })
+      .filter(x=>x.type==="left" || x.newName)
       .sort((a,b)=>a.date.localeCompare(b.date));
 
     merged.dayOverrides=merged.dayOverrides
@@ -3130,7 +3146,13 @@ body{min-height:100dvh}
 
     changes.forEach(ch=>{
       list.forEach(emp=>{
-        if(emp.name===ch.oldName) emp.name=ch.newName;
+        if(emp.name!==ch.oldName) return;
+        if(ch.type==="left"){
+          emp.inactive=true;
+        }else if(ch.newName){
+          emp.name=ch.newName;
+          emp.inactive=false;
+        }
       });
     });
 
@@ -3155,8 +3177,9 @@ body{min-height:100dvh}
     const key=dateKeyFromDate(date);
     const changes=(settings.staffChanges||[]).filter(x=>x.date<=key).sort((a,b)=>a.date.localeCompare(b.date));
     changes.forEach(ch=>{
-      teams.managers=teams.managers.map(pair=>pair.map(n=>n===ch.oldName?ch.newName:n));
-      teams.masters=teams.masters.map(pair=>pair.map(n=>n===ch.oldName?ch.newName:n));
+      const replacement=ch.type==="left"?null:ch.newName;
+      teams.managers=teams.managers.map(pair=>pair.map(n=>n===ch.oldName?replacement:n));
+      teams.masters=teams.masters.map(pair=>pair.map(n=>n===ch.oldName?replacement:n));
     });
     return teams;
   }
@@ -3172,23 +3195,27 @@ body{min-height:100dvh}
 
     function active(pair,offset){
       const phase=mod(days+offset,4);
-      return pair[phase<2?0:1];
+      return pair[phase<2?0:1] || "Не назначен";
     }
 
     const g1=flip===0?0:1;
     const g2=flip===0?1:0;
     const s1={
       manager:active(teams.managers[g1],g1===1?2:0),
-      master:active(teams.masters[g1],(g1===1?2:0)+masterFlip),
-      managerCount:1,masterCount:1
+      master:active(teams.masters[g1],(g1===1?2:0)+masterFlip)
     };
     const s2={
       manager:active(teams.managers[g2],g2===1?2:0),
-      master:active(teams.masters[g2],(g2===1?2:0)+masterFlip),
-      managerCount:1,masterCount:1
+      master:active(teams.masters[g2],(g2===1?2:0)+masterFlip)
     };
-    s1.managerNames=[s1.manager]; s1.masterNames=[s1.master];
-    s2.managerNames=[s2.manager]; s2.masterNames=[s2.master];
+    s1.managerCount=s1.manager==="Не назначен"?0:1;
+    s1.masterCount=s1.master==="Не назначен"?0:1;
+    s2.managerCount=s2.manager==="Не назначен"?0:1;
+    s2.masterCount=s2.master==="Не назначен"?0:1;
+    s1.managerNames=s1.managerCount?[s1.manager]:[];
+    s1.masterNames=s1.masterCount?[s1.master]:[];
+    s2.managerNames=s2.managerCount?[s2.manager]:[];
+    s2.masterNames=s2.masterCount?[s2.master]:[];
     return {date,s1,s2};
   }
 
@@ -3202,6 +3229,7 @@ body{min-height:100dvh}
     function pairForService(service){
       function choose(role){
         return employees.filter(emp=>
+          !emp.inactive &&
           emp.role===role &&
           employeeServiceForDate(emp,date)===service &&
           employeeWorksOnDate(emp,date)
@@ -3783,6 +3811,10 @@ body{min-height:100dvh}
     });
 
     root.innerHTML=employees.map(emp=>{
+      const leftChange=(settings.staffChanges||[])
+        .filter(x=>x.type==="left" && x.oldName===emp.name && x.date<=today)
+        .sort((a,b)=>a.date.localeCompare(b.date))
+        .slice(-1)[0]||null;
       let works=false,service="";
       for(const item of [
         {service:settings.service1,pair:todayBase.s1},
@@ -3797,7 +3829,7 @@ body{min-height:100dvh}
         <div>
           <b>${escapeHtml(emp.name)}</b>
           <span>${roleLabel(emp.role)} · график ${emp.workDays}/${emp.offDays}</span>
-          <span>${works?`Сегодня работает · ${escapeHtml(service)}`:"Сегодня выходной"} · точки меняются каждые ${settings.serviceBlockDays} дней</span>
+          <span>${leftChange?`Больше не работает с ${escapeHtml(leftChange.date)}`:(works?`Сегодня работает · ${escapeHtml(service)}`:"Сегодня выходной")} · точки меняются каждые ${settings.serviceBlockDays} дней</span>
         </div>
         <button class="secondary" data-edit-employee="${escapeHtml(emp.id)}">Изменить</button>
       </div>`;
@@ -3966,7 +3998,9 @@ body{min-height:100dvh}
       const changes=(settings.staffChanges||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
       changesRoot.innerHTML=changes.length ? changes.map(x=>`
         <div class="change-item">
-          <div><b>${escapeHtml(x.date)}</b><small>${escapeHtml(x.oldName)} → ${escapeHtml(x.newName)}</small></div>
+          <div><b>${escapeHtml(x.date)}</b><small>${x.type==="left"
+            ? `${escapeHtml(x.oldName)} → больше не работает`
+            : `${escapeHtml(x.oldName)} → ${escapeHtml(x.newName)}`}</small></div>
           <button class="change-delete" data-change-id="${escapeHtml(x.id)}">Удалить</button>
         </div>`).join("") : '<div class="notice">Постоянных изменений пока нет.</div>';
       changesRoot.querySelectorAll("[data-change-id]").forEach(btn=>{
@@ -4041,7 +4075,8 @@ body{min-height:100dvh}
       id:`change-${Date.now()}-${(settings.staffChanges||[]).length}-${Math.random().toString(36).slice(2)}`,
       date,
       oldName,
-      newName
+      newName,
+      type:"replace"
     });
     settings.staffChanges.sort((a,b)=>a.date.localeCompare(b.date));
     $("changeNew").value="";
@@ -4049,6 +4084,43 @@ body{min-height:100dvh}
     renderScheduleEditLists();
     renderMonth();
     toast("Изменение добавлено. Не забудь сохранить настройки.");
+  }
+
+  function markStaffLeft(){
+    if(!isAdmin()){ openLoginModal(); return; }
+    const date=$("changeDate").value;
+    const oldName=$("changeOld").value;
+
+    if(!date || !oldName){
+      toast("Выбери дату и сотрудника");
+      return;
+    }
+
+    settings.staffChanges=settings.staffChanges||[];
+    const already=settings.staffChanges.some(x=>
+      x.type==="left" &&
+      x.date===date &&
+      x.oldName===oldName
+    );
+    if(already){
+      toast("Этот уход уже добавлен");
+      return;
+    }
+
+    settings.staffChanges.push({
+      id:`left-${Date.now()}-${settings.staffChanges.length}-${Math.random().toString(36).slice(2)}`,
+      date,
+      oldName,
+      newName:"",
+      type:"left"
+    });
+    settings.staffChanges.sort((a,b)=>a.date.localeCompare(b.date));
+    $("changeNew").value="";
+    markDirty();
+    renderScheduleEditLists();
+    renderMonth();
+    renderEmployeesPage();
+    toast(`${oldName}: больше не работает с ${date}. Сохрани настройки.`);
   }
 
 
@@ -4536,6 +4608,7 @@ body{min-height:100dvh}
   $("shareBtn").onclick=sharePhoto;
   $("downloadBtn").onclick=downloadPhoto;
   $("addStaffChangeBtn").onclick=addStaffChange;
+  $("markStaffLeftBtn").onclick=markStaffLeft;
   $("saveSettingsBtn").onclick=saveForm;
   $("forceSyncBtn").onclick=()=>syncFromCloud(true);
   $("logoutBtn").onclick=()=>{ saveAdminSession(null); settingsDirty=false; renderTodayShifts(); applyUserMode(); switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday"); toast("Вы вышли из администратора"); };
