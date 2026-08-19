@@ -902,6 +902,8 @@ body.startup-shift-mode .toast{z-index:300}
   let pendingShiftAction = null;
   let editingShiftRow = null;
   let serviceWorkerRegistration = null;
+  let startupDeviceRetryTimer=null;
+  let startupDeviceRetryCount=0;
   let lastShiftSignature = "";
   let lastSettingsSignature = "";
   let currentDeviceAccess = {allowed:false,device:null};
@@ -1480,22 +1482,27 @@ body.startup-shift-mode .toast{z-index:300}
 
   async function refreshDeviceAccess(){
     const token=loadShiftDeviceToken();
+
     if(!token){
       currentDeviceAccess={allowed:false,device:null};
       renderDevicePanel();
       renderTodayShifts();
+      if(isStartupShiftMode()) renderStartupShiftWindow();
       return currentDeviceAccess;
     }
 
     try{
       const keyRecord=await loadDeviceKeyRecord();
+
+      // ВАЖНО: ничего не удаляем автоматически.
+      // При запуске Windows Chrome/IndexedDB/интернет могут быть ещё не готовы.
+      // Раньше временный сбой мог стереть локальную привязку устройства.
       if(!keyRecord?.privateKey){
-        saveShiftDeviceToken("");
-        await clearDeviceKeyRecord();
         currentDeviceAccess={allowed:false,device:null};
         renderDevicePanel();
         renderTodayShifts();
         applyUserMode();
+        if(isStartupShiftMode()) renderStartupShiftWindow();
         return currentDeviceAccess;
       }
 
@@ -1509,12 +1516,13 @@ body.startup-shift-mode .toast{z-index:300}
       if(data.allowed && data.device){
         currentDeviceAccess={allowed:true,device:data.device};
       }else{
-        saveShiftDeviceToken("");
-        await clearDeviceKeyRecord();
+        // Сервер не подтвердил устройство, но локальную регистрацию
+        // не уничтожаем. Администратор сам может перепривязать/отключить.
         currentDeviceAccess={allowed:false,device:null};
       }
     }catch(e){
       console.error("device-status",e);
+      // Временная ошибка сети/Chrome не должна сбрасывать привязку.
       currentDeviceAccess={allowed:false,device:null};
     }
 
@@ -1672,6 +1680,31 @@ body.startup-shift-mode .toast{z-index:300}
     },250);
   }
 
+  function scheduleStartupDeviceRetry(){
+    if(!isStartupShiftMode()) return;
+    if(currentDeviceAccess.allowed) return;
+    if(!loadShiftDeviceToken()) return;
+    if(startupDeviceRetryTimer) return;
+    if(startupDeviceRetryCount>=6) return;
+
+    startupDeviceRetryCount++;
+    startupDeviceRetryTimer=setTimeout(async()=>{
+      startupDeviceRetryTimer=null;
+      try{
+        await refreshDeviceAccess();
+        if(currentDeviceAccess.allowed){
+          startupDeviceRetryCount=0;
+          await loadTodayShifts(false);
+          renderStartupShiftWindow();
+          return;
+        }
+      }catch(e){
+        console.error("startup device retry",e);
+      }
+      scheduleStartupDeviceRetry();
+    },3000);
+  }
+
   function renderStartupShiftWindow(){
     if(!isStartupShiftMode()) return;
     const root=$("startupShiftContent");
@@ -1683,14 +1716,24 @@ body.startup-shift-mode .toast{z-index:300}
     }
 
     if(!currentDeviceAccess.allowed || !currentDeviceAccess.device){
-      root.innerHTML=`
-        <div class="startup-shift-status warn">
-          Этот браузер пока не зарегистрирован как рабочий компьютер точки.
+      const hasLocalRegistration=!!loadShiftDeviceToken();
+      root.innerHTML=hasLocalRegistration ? `
+        <div class="startup-shift-status info">
+          Проверяем привязку рабочего компьютера…
         </div>
         <div class="startup-shift-loading" style="padding:10px 0">
-          Открой обычный MA График → Админ → Настройки → Рабочее устройство точки и зарегистрируй этот компьютер.
+          После включения Windows интернет и хранилище Chrome могут загрузиться не сразу. Повторяем проверку автоматически.
+        </div>
+        <button class="startup-shift-close" id="startupRetryDevice">Проверить сейчас</button>`
+      : `
+        <div class="startup-shift-status warn">
+          В этом профиле Chrome нет регистрации рабочего компьютера.
+        </div>
+        <div class="startup-shift-loading" style="padding:10px 0">
+          Открой обычный MA График в этом же профиле Chrome → Админ → Настройки → Рабочее устройство точки и зарегистрируй компьютер.
         </div>
         <button class="startup-shift-close" id="startupRetryDevice">Проверить ещё раз</button>`;
+
       const retry=$("startupRetryDevice");
       if(retry) retry.onclick=async()=>{
         root.innerHTML='<div class="startup-shift-loading">Проверяем устройство…</div>';
@@ -1698,7 +1741,15 @@ body.startup-shift-mode .toast{z-index:300}
         await loadTodayShifts(false);
         renderStartupShiftWindow();
       };
+
+      if(hasLocalRegistration) scheduleStartupDeviceRetry();
       return;
+    }
+
+    startupDeviceRetryCount=0;
+    if(startupDeviceRetryTimer){
+      clearTimeout(startupDeviceRetryTimer);
+      startupDeviceRetryTimer=null;
     }
 
     const now=moscowParts();
