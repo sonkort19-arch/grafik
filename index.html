@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f5bd7">
+<meta name="theme-color" content="#ffffff">
 <title>MA График</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230f5bd7'/%3E%3Ctext x='50' y='63' text-anchor='middle' font-size='42' font-family='Arial' font-weight='700' fill='white'%3EMA%3C/text%3E%3C/svg%3E">
 <style>
@@ -303,8 +303,120 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 .history-status-line.warn{color:#9a3412}
 .history-status-line.bad{color:#991b1b}
 
+/* История 2.0 — компактный контроль дисциплины */
+.history-page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.history-page-head h2{margin:0;color:#24344d}
+.history-page-sub{margin-top:4px;font-size:12px;color:var(--muted)}
+.history-legend{display:flex;flex-wrap:wrap;gap:7px;margin:2px 0 10px}
+.history-legend span{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:11px;color:#42526a}
+.history-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.history-dot.service-s1{background:#22c55e}
+.history-dot.service-s2{background:#3b82f6}
+
+.history-list{display:grid;gap:8px}
+.history-item{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;padding:0}
+.history-item.service-s1{border-left:5px solid #22c55e}
+.history-item.service-s2{border-left:5px solid #3b82f6}
+.history-item[open]{box-shadow:0 7px 20px rgba(28,64,120,.07)}
+.history-summary{list-style:none;cursor:pointer;padding:11px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.history-summary::-webkit-details-marker{display:none}
+.history-summary-main{min-width:0}
+.history-summary-top{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:4px}
+.history-summary-service{font-size:13px;font-weight:900}
+.history-item.service-s1 .history-summary-service{color:#166534}
+.history-item.service-s2 .history-summary-service{color:#1d4ed8}
+.history-summary-date{font-size:11px;color:var(--muted)}
+.history-summary-line{font-size:12px;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-summary-status{text-align:right;font-size:11px;font-weight:900;padding:6px 8px;border-radius:999px;white-space:nowrap}
+.history-summary-status.ok{background:#ecfdf3;color:#166534}
+.history-summary-status.warn{background:#fff7ed;color:#9a3412}
+.history-summary-status.bad{background:#fef2f2;color:#991b1b}
+.history-summary-status.voided{background:#f3f4f6;color:#4b5563}
+.history-details{border-top:1px solid var(--line);padding:11px 12px;background:#fbfdff}
+.history-details-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.history-detail-card{border:1px solid var(--line);border-radius:11px;background:#fff;padding:9px 10px;font-size:12px;line-height:1.45}
+.history-detail-card b{display:block;margin-bottom:4px;color:#334155}
+.history-detail-meta{margin-top:5px;font-size:11px;color:#64748b}
+.history-detail-actions{display:flex;justify-content:flex-end;margin-top:9px}
+.history-detail-actions button{min-height:38px;padding:8px 11px}
+.history-mismatch{margin-top:6px;padding:6px 8px;border-radius:8px;background:#fff7ed;color:#9a3412;font-size:11px;font-weight:800}
+
+.history-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.history-stat.alert b{color:#b42318}
+.history-stat.good b{color:#166534}
+
+.discipline-title{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:900;color:#24344d;margin:14px 0 7px}
+.discipline-title span{font-size:11px;color:var(--muted);font-weight:700}
+.discipline-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.discipline-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.discipline-table th,.discipline-table td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:center;font-size:11px}
+.discipline-table th{background:#f8fafc;color:#64748b}
+.discipline-table th:first-child,.discipline-table td:first-child{text-align:left}
+.discipline-table tr:last-child td{border-bottom:0}
+.discipline-table td:first-child{font-weight:850;color:#24344d}
+.discipline-bad{color:#b42318;font-weight:900}
+.discipline-good{color:#166534;font-weight:900}
+
+.history-loading-note{font-size:11px;color:var(--muted);text-align:center;margin-top:8px}
+
+/* Настройки 2.0 */
+.settings-main-section{box-shadow:none;border:1px solid var(--line)}
+.settings-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.settings-title-row h2{margin:0;color:#24344d}
+.settings-subtitle{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.35}
+
+.system-health-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.system-health-row{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:#fff;border-radius:13px;padding:10px 11px;min-height:62px}
+.system-health-row div{min-width:0}
+.system-health-row b{display:block;font-size:13px;color:#24344d}
+.system-health-row small{display:block;font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.system-health-icon{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:0;flex:0 0 24px;background:#e2e8f0}
+.system-health-icon::after{content:"";width:9px;height:9px;border-radius:50%;background:#94a3b8}
+.system-health-icon.ok{background:#dcfce7}
+.system-health-icon.ok::after{background:#22c55e}
+.system-health-icon.warn{background:#ffedd5}
+.system-health-icon.warn::after{background:#f97316}
+.system-health-icon.bad{background:#fee2e2}
+.system-health-icon.bad::after{background:#ef4444}
+
+.settings-account-row{margin-top:10px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.settings-account-status{font-size:12px;color:#475569;border:1px solid var(--line);background:#f8fafc;border-radius:11px;padding:9px 10px}
+.settings-account-status b{color:#24344d}
+.compact-settings-btn{min-height:40px;padding:8px 12px}
+
+.settings-inline-details{margin-top:10px;border-top:1px solid var(--line);padding-top:9px}
+.settings-inline-details>summary{cursor:pointer;font-size:12px;font-weight:850;color:#334155}
+.settings-inline-details>summary::marker{color:#94a3b8}
+
+.current-schedule-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.current-schedule-card{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+.current-schedule-card.service-s1{background:#ecfdf3;border-color:#86efac}
+.current-schedule-card.service-s2{background:#eff6ff;border-color:#93c5fd}
+.current-schedule-card h3{margin:0 0 7px;font-size:15px}
+.current-schedule-card.service-s1 h3{color:#166534}
+.current-schedule-card.service-s2 h3{color:#1d4ed8}
+.current-schedule-row{font-size:12px;line-height:1.5;color:#475569;margin-top:4px}
+.current-schedule-row b{color:#24344d}
+
+.settings-device-box{margin-top:0}
+.device-tech-note{margin-top:10px}
+.settings-extra>summary{font-size:16px;font-weight:900;color:#24344d}
+.nested-settings-details{border:1px solid var(--line);border-radius:13px;padding:11px 12px;background:#fff}
+.nested-settings-details>summary{cursor:pointer;font-weight:850;color:#334155}
+.nested-settings-details.danger-zone>summary{color:#b42318}
+
+#settingsPage .advanced-block h3{margin-top:0}
+#settingsPage .install-app-card{box-shadow:none}
+#settingsPage .cloud-ok,#settingsPage .cloud-warning{margin:0}
+
 @media(max-width:620px){
+  .system-health-grid,.current-schedule-summary{grid-template-columns:1fr}
+  .settings-account-row{grid-template-columns:1fr}
+
   .history-stats-grid{grid-template-columns:repeat(2,1fr)}
+  .history-details-grid{grid-template-columns:1fr}
+  .history-summary{grid-template-columns:1fr}
+  .history-summary-status{justify-self:start}
 }
 
 /* Рабочий компьютер точки: только самое нужное */
@@ -489,10 +601,35 @@ body.startup-shift-mode .toast{z-index:300}
 
 
 .quick-replace-btn{min-height:38px;padding:8px 12px;white-space:nowrap}
-.quick-replace-summary{margin:14px 0 12px;padding:11px 12px;border:1px solid var(--line);border-radius:13px;background:#f8fafc;font-size:13px;line-height:1.5;color:#42526a}
-.quick-replace-existing{margin:2px 0 12px;padding:10px 12px;border-radius:12px;background:#fff7ed;color:#9a3412;font-size:12px;font-weight:750;line-height:1.45}
-.quick-replace-grid{margin-top:2px}
-@media(max-width:560px){.today-head{align-items:center}.quick-replace-btn{font-size:12px;padding:7px 9px}}
+.quick-replace-sheet{width:min(100%,520px)}
+.quick-replace-summary{
+  margin:14px 0 12px;padding:13px 14px;border:1px solid var(--line);border-radius:14px;
+  background:#f8fafc;font-size:13px;line-height:1.5;color:#42526a
+}
+.quick-replace-summary.service-s1{background:#ecfdf3;border-color:#86efac;color:#166534}
+.quick-replace-summary.service-s2{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.quick-replace-summary .replace-place{font-size:12px;font-weight:850}
+.quick-replace-summary .replace-date{font-weight:700;opacity:.8}
+.quick-replace-summary .replace-person{margin-top:8px;font-size:16px;font-weight:900;color:#24344d}
+.quick-replace-summary .replace-role{font-size:11px;font-weight:800;opacity:.75;margin-top:2px}
+.quick-replace-existing{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#fff7ed;color:#9a3412;font-size:12px;font-weight:750;line-height:1.45}
+.quick-replace-context{margin-top:2px}
+.quick-replace-main-field{margin-top:12px}
+.quick-replace-main-field label{display:block;margin-bottom:7px;font-size:14px;font-weight:900;color:#24344d}
+.quick-replace-main-field select{width:100%;min-height:52px;border:2px solid #cbd5e1;border-radius:13px;background:#fff;padding:0 12px;font-size:16px;font-weight:800;color:#24344d}
+.quick-replace-main-field select:focus{outline:none;border-color:var(--blue)}
+.quick-replace-reason{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.quick-replace-reason>summary{cursor:pointer;font-size:12px;font-weight:800;color:#64748b}
+.quick-replace-reason .field{margin-top:9px;margin-bottom:0}
+.quick-replace-actions{display:grid;grid-template-columns:auto 1fr;gap:8px;margin-top:14px}
+.quick-replace-actions #saveQuickReplace{grid-column:2;grid-row:1;min-height:48px}
+.quick-replace-actions #cancelQuickReplace{grid-column:1;grid-row:1;min-height:48px}
+.quick-replace-actions #removeQuickReplace{grid-column:1 / -1;grid-row:2;min-height:42px;color:#b42318;border-color:#fecaca}
+@media(max-width:560px){
+  .today-head{align-items:center}
+  .quick-replace-btn{font-size:12px;padding:7px 9px}
+  .quick-replace-actions{grid-template-columns:1fr 1.4fr}
+}
 
 
 /* Телефон — фиксированная геометрия без бокового «резинового» растягивания */
@@ -700,6 +837,496 @@ body{min-height:100dvh}
   .schedule-add-employee{width:100%}
   .schedule-problem-row{align-items:flex-start}
 }
+/* График 3.0 — один день, сразу две точки */
+.schedule-month-title{display:none}
+.simple-monthnav{grid-template-columns:44px minmax(0,1fr) 44px!important}
+.simple-monthnav .monthselect{text-align:center;font-weight:850}
+.simple-schedule-filters{grid-template-columns:minmax(0,1fr) auto!important}
+.simple-schedule-filters .schedule-add-employee{white-space:nowrap}
+#refreshBtn{display:none!important}
+
+.unified-schedule-card{
+  background:#fff;border:1px solid var(--line);border-radius:18px;
+  overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px
+}
+.unified-schedule-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 12px;border-bottom:1px solid var(--line);background:#fff
+}
+.unified-schedule-legend{display:flex;flex-wrap:wrap;gap:7px}
+.unified-legend-item{
+  display:inline-flex;align-items:center;gap:6px;border-radius:999px;
+  padding:6px 9px;font-size:11px;font-weight:850;border:1px solid var(--line)
+}
+.unified-legend-item.service-s1{background:#ecfdf3;border-color:#86efac;color:#166534}
+.unified-legend-item.service-s2{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.unified-schedule-hint{font-size:11px;color:var(--muted);text-align:right}
+.unified-schedule-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.unified-schedule-table{
+  width:100%;border-collapse:separate;border-spacing:0;background:#fff
+}
+.unified-schedule-table th,.unified-schedule-table td{
+  border-bottom:1px solid var(--line);padding:0;vertical-align:stretch
+}
+.unified-schedule-table th{
+  padding:9px 10px;font-size:11px;text-align:left;color:#52627a;background:#f8fafc
+}
+.unified-schedule-table th.service-s1{background:#ecfdf3;color:#166534}
+.unified-schedule-table th.service-s2{background:#eff6ff;color:#1d4ed8}
+.unified-schedule-table tr:last-child td{border-bottom:0}
+.unified-date-cell{
+  width:92px;padding:10px!important;background:#fff;color:#334155;
+  font-size:12px;font-weight:850;white-space:nowrap
+}
+.unified-date-cell small{display:block;margin-top:3px;font-size:10px;color:#7b8799;font-weight:700}
+.unified-schedule-row.weekend .unified-date-cell{background:#f8fafc}
+.unified-schedule-row.today .unified-date-cell{box-shadow:inset 4px 0 0 var(--blue)}
+.unified-schedule-row.today{outline:2px solid rgba(15,91,215,.22);outline-offset:-2px}
+
+.unified-shift-cell{
+  width:100%;min-height:58px;border:0;border-radius:0;padding:9px 10px;
+  text-align:left;display:block;background:#fff;color:#24344d
+}
+.unified-shift-cell.service-s1{background:#f0fdf4}
+.unified-shift-cell.service-s2{background:#eff6ff}
+.unified-shift-cell.manageable{cursor:pointer}
+.unified-shift-cell.manageable:hover{filter:brightness(.975)}
+.unified-shift-cell.has-problem{box-shadow:inset 0 0 0 2px #f59e0b}
+.unified-shift-cell.highlight{box-shadow:inset 0 0 0 3px #facc15!important}
+.unified-pair{font-size:12px;font-weight:850;line-height:1.3}
+.unified-pair span{font-weight:700;color:#64748b}
+.unified-shift-cell.service-s1 .unified-pair span{color:#287044}
+.unified-shift-cell.service-s2 .unified-pair span{color:#3d65a5}
+.unified-service-name{display:none;font-size:10px;font-weight:900;margin-bottom:4px}
+.unified-shift-cell.service-s1 .unified-service-name{color:#166534}
+.unified-shift-cell.service-s2 .unified-service-name{color:#1d4ed8}
+.schedule-change-tag{
+  display:inline-block;margin-left:6px;padding:2px 5px;border-radius:999px;
+  background:#fff7ed;color:#9a3412;font-size:8px;font-weight:900;vertical-align:1px
+}
+
+.schedule-admin-tools{margin:0 0 10px}
+.schedule-problem-card{
+  padding:9px 11px!important;border-radius:12px!important
+}
+.schedule-problem-card b{font-size:12px!important}
+.schedule-problem-card span{font-size:10px!important}
+.schedule-workload-card{box-shadow:none!important;margin-top:12px!important}
+.schedule-workload-card>summary{cursor:pointer;list-style:none;margin-bottom:0!important}
+.schedule-workload-card>summary::-webkit-details-marker{display:none}
+.schedule-workload-card>summary:after{content:"›";font-size:22px;color:#94a3b8;transform:rotate(90deg)}
+.schedule-workload-card[open]>summary:after{transform:rotate(-90deg)}
+.schedule-workload-card[open] .schedule-workload-scroll{margin-top:10px}
+#monthActions{margin-top:10px}
+#monthActions button{width:100%}
+
+@media(max-width:650px){
+  .simple-schedule-filters{grid-template-columns:1fr auto!important}
+  .unified-schedule-head{align-items:flex-start;flex-direction:column}
+  .unified-schedule-hint{display:none}
+  .unified-schedule-scroll{overflow:visible}
+  .unified-schedule-table,.unified-schedule-table tbody{display:block}
+  .unified-schedule-table thead{display:none}
+  .unified-schedule-table tr{
+    display:grid;grid-template-columns:64px minmax(0,1fr);
+    border-bottom:1px solid var(--line)
+  }
+  .unified-schedule-table tr:last-child{border-bottom:0}
+  .unified-schedule-table td{border-bottom:0}
+  .unified-date-cell{
+    width:auto!important;grid-column:1;grid-row:1 / span 2;
+    display:flex;flex-direction:column;justify-content:center
+  }
+  .unified-shift-cell{min-height:54px}
+  .unified-service-name{display:block}
+}
+
+
+/* ============================================================
+   MA DESIGN SYSTEM — единый рабочий интерфейс
+   ============================================================ */
+:root{
+  --bg:#f6f7f9;
+  --card:#ffffff;
+  --text:#18212f;
+  --muted:#697586;
+  --line:#e2e7ee;
+  --blue:#1d4ed8;
+  --blue2:#eff4ff;
+  --danger:#c62828;
+  --shadow:none;
+
+  --s1:#16803d;
+  --s1-soft:#effaf3;
+  --s1-line:#b9e6c9;
+
+  --s2:#2563eb;
+  --s2-soft:#eff6ff;
+  --s2-line:#bfd7ff;
+
+  --warning:#a16207;
+  --warning-soft:#fff8e7;
+}
+
+/* База */
+html,body{background:var(--bg);color:var(--text)}
+body{padding-bottom:88px}
+.app{max-width:1180px}
+.page{padding:16px}
+.topbar{
+  background:#fff;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  border-bottom:1px solid var(--line);
+  box-shadow:none;
+}
+.brand{color:var(--text);font-weight:900;letter-spacing:-.2px}
+.badge{
+  background:#f8fafc;
+  border-color:var(--line);
+  color:#536174;
+  border-radius:9px;
+}
+.authbtn{
+  color:#243247;
+  border-color:var(--line);
+  background:#fff;
+  border-radius:10px;
+}
+.connection-banner{border-radius:0}
+
+/* Заголовки — нейтральные. Цвет сервиса используется только для сервиса. */
+.section h2,
+.section h3,
+.today-board h2,
+.employee-hero h2,
+.employee-my-head h2,
+.employee-calendar-head h2,
+.service-point-head h2,
+.sheet h2,
+.outside-plan h3{
+  color:var(--text)!important;
+}
+.month-title h1{color:var(--text)}
+
+/* Меньше карточек и меньше декоративности */
+.section,
+.today-board,
+.employee-hero,
+.service-point-schedule,
+.unified-schedule-card,
+.schedule-workload-card,
+.outside-plan{
+  border-color:var(--line);
+  border-radius:14px;
+  box-shadow:none!important;
+}
+.section{padding:16px;margin-bottom:12px}
+.today-board{padding:16px;margin-bottom:12px}
+.employee-hero{border-radius:14px}
+.device-box{border-radius:12px}
+.notice{border-radius:10px;background:#f8fafc}
+.push-box{border-radius:11px;background:#fbfcfd}
+
+/* Поля */
+.field input,.field select,
+.monthselect,.yearselect,.filters select{
+  border-radius:10px;
+  border-color:#d9e0e8;
+  min-height:44px;
+}
+.field input:focus,.field select:focus,
+.monthselect:focus,.filters select:focus{
+  outline:2px solid rgba(29,78,216,.16);
+  outline-offset:1px;
+  border-color:#9fb7eb;
+}
+
+/* Единая система кнопок */
+.navbtn,.primary,.secondary,.danger{
+  border-radius:10px;
+  min-height:44px;
+  font-weight:800;
+  box-shadow:none!important;
+}
+.primary{
+  background:#1e4fbf;
+  border-color:#1e4fbf;
+  color:#fff;
+}
+.primary:hover{background:#1947ad;border-color:#1947ad}
+.secondary{background:#fff;border-color:#d9e0e8;color:#243247}
+.danger{background:#fff;border-color:#f1c3c3;color:#b42318}
+.close{border-radius:9px;background:#f2f4f7;color:#344054}
+
+/* Сегодня: сервис сразу читается цветом */
+.shift-card{
+  box-shadow:none!important;
+  border-radius:13px;
+  padding:14px;
+}
+.shift-card.service-s1{
+  background:var(--s1-soft);
+  border-color:var(--s1-line);
+}
+.shift-card.service-s2{
+  background:var(--s2-soft);
+  border-color:var(--s2-line);
+}
+.shift-card.service-s1 h3{color:var(--s1)!important}
+.shift-card.service-s2 h3{color:var(--s2)!important}
+.shift-pair strong{font-weight:900}
+.shift-meta{color:#667085}
+.shift-status{border-radius:8px;padding:5px 8px}
+
+/* Мобильный экран сотрудника — тот же цвет сервиса */
+.employee-main-status{
+  border-radius:12px;
+  border:1px solid transparent;
+}
+.employee-main-status.work.service-s1{
+  background:var(--s1-soft);
+  border-color:var(--s1-line);
+  color:#166534;
+}
+.employee-main-status.work.service-s2{
+  background:var(--s2-soft);
+  border-color:var(--s2-line);
+  color:#1d4ed8;
+}
+.employee-shift-item{
+  box-shadow:none;
+  border-radius:12px;
+}
+.employee-shift-item.service-s1{
+  background:var(--s1-soft);
+  border-color:var(--s1-line);
+}
+.employee-shift-item.service-s2{
+  background:var(--s2-soft);
+  border-color:var(--s2-line);
+}
+.employee-shift-item.service-s1 .employee-shift-info>b{color:var(--s1)}
+.employee-shift-item.service-s2 .employee-shift-info>b{color:var(--s2)}
+
+/* Календарь / история / график — одна цветовая система */
+.calendar-dot.service-s1,.history-dot.service-s1{background:var(--s1)}
+.calendar-dot.service-s2,.history-dot.service-s2{background:var(--s2)}
+.unified-legend-item.service-s1{
+  background:var(--s1-soft);border-color:var(--s1-line);color:var(--s1)
+}
+.unified-legend-item.service-s2{
+  background:var(--s2-soft);border-color:var(--s2-line);color:var(--s2)
+}
+.unified-schedule-table th.service-s1{
+  background:var(--s1-soft);color:var(--s1)
+}
+.unified-schedule-table th.service-s2{
+  background:var(--s2-soft);color:var(--s2)
+}
+.unified-shift-cell.service-s1{background:var(--s1-soft)}
+.unified-shift-cell.service-s2{background:var(--s2-soft)}
+.current-schedule-card.service-s1{
+  background:var(--s1-soft);border-color:var(--s1-line)
+}
+.current-schedule-card.service-s2{
+  background:var(--s2-soft);border-color:var(--s2-line)
+}
+.current-schedule-card.service-s1 h3{color:var(--s1)!important}
+.current-schedule-card.service-s2 h3{color:var(--s2)!important}
+.desktop-service-chip.service-s1,
+.desktop-calendar-detail-card.service-s1,
+.employee-cal-cell.work.service-s1,
+.employee-calendar-detail.service-s1{
+  background:var(--s1-soft);border-color:var(--s1-line);color:#166534
+}
+.desktop-service-chip.service-s2,
+.desktop-calendar-detail-card.service-s2,
+.employee-cal-cell.work.service-s2,
+.employee-calendar-detail.service-s2{
+  background:var(--s2-soft);border-color:var(--s2-line);color:#1d4ed8
+}
+
+/* Статусы: красный только когда реально нужно вмешаться */
+.attention-item.bad,
+.shift-status.missing{
+  background:#fff1f2;
+  color:#b42318;
+}
+.attention-item.warn,
+.shift-status.late{
+  background:var(--warning-soft);
+  color:var(--warning);
+}
+.attention-item.ok,
+.shift-status.open{
+  background:#edf9f1;
+  color:#13713e;
+}
+
+/* Модальные окна */
+.modal{background:rgba(17,24,39,.46)}
+.sheet{
+  border-radius:18px 18px 14px 14px;
+  box-shadow:0 18px 50px rgba(15,23,42,.16);
+}
+@media(min-width:760px){
+  .modal{align-items:center}
+  .sheet{border-radius:16px}
+}
+
+/* Нижняя навигация — телефон */
+.desktop-nav-brand{display:none}
+.bottom{
+  background:#fff;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  border-top:1px solid var(--line);
+  box-shadow:0 -4px 18px rgba(15,23,42,.035);
+}
+.bottom-inner{gap:2px}
+.tab{
+  color:#7a8595;
+  border-radius:10px;
+  padding:7px 4px 6px;
+  min-height:54px;
+  font-size:11px;
+  font-weight:750;
+}
+.tab::before{
+  display:block;
+  height:22px;
+  margin-bottom:2px;
+  font-size:19px;
+  line-height:22px;
+  font-weight:500;
+  color:#8b95a5;
+}
+.tab[data-tab="adminToday"]::before,
+.tab[data-tab="employeeToday"]::before{content:"●"}
+.tab[data-tab="schedule"]::before,
+.tab[data-tab="employeeMy"]::before{content:"▦"}
+.tab[data-tab="desktopCalendar"]::before,
+.tab[data-tab="employeeCalendar"]::before{content:"□"}
+.tab[data-tab="history"]::before{content:"◷"}
+.tab[data-tab="settings"]::before{content:"⚙"}
+.tab.active{
+  background:#f1f3f6;
+  color:#172033;
+}
+.tab.active::before{color:#172033}
+
+/* Компьютер — обычное левое меню вместо нижней панели */
+@media(min-width:900px){
+  body:not(.startup-shift-mode){
+    padding-left:224px;
+    padding-bottom:0;
+  }
+  body:not(.startup-shift-mode) .app{
+    max-width:none;
+    margin:0;
+  }
+  body:not(.startup-shift-mode) .page{
+    max-width:1220px;
+    margin:0 auto;
+    padding:20px 24px 28px;
+  }
+  body:not(.startup-shift-mode) .topbar{
+    padding-left:24px;
+    padding-right:24px;
+  }
+  body:not(.startup-shift-mode) .topbar .brand{
+    display:none;
+  }
+  body:not(.startup-shift-mode) .topbar .brandrow{
+    justify-content:flex-end;
+  }
+  body:not(.startup-shift-mode) .bottom{
+    left:0;
+    right:auto;
+    top:0;
+    bottom:0;
+    width:224px;
+    padding:20px 12px;
+    border-top:0;
+    border-right:1px solid var(--line);
+    box-shadow:none;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+  }
+  body:not(.startup-shift-mode) .desktop-nav-brand{
+    display:block;
+    padding:4px 10px 20px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:12px;
+  }
+  body:not(.startup-shift-mode) .desktop-nav-brand b{
+    display:block;
+    color:#172033;
+    font-size:19px;
+    font-weight:900;
+  }
+  body:not(.startup-shift-mode) .desktop-nav-brand span{
+    display:block;
+    color:#7a8595;
+    font-size:11px;
+    margin-top:4px;
+  }
+  body:not(.startup-shift-mode) .bottom-inner,
+  body:not(.startup-shift-mode) .bottom-inner.admin-five,
+  body:not(.startup-shift-mode) .bottom-inner.employee-three,
+  body:not(.startup-shift-mode) .bottom-inner.admin-four,
+  body:not(.startup-shift-mode).service-device-mode .bottom-inner{
+    max-width:none;
+    width:100%;
+    margin:0;
+    display:flex!important;
+    flex-direction:column;
+    gap:4px;
+  }
+  body:not(.startup-shift-mode) .tab{
+    width:100%;
+    min-height:46px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:10px;
+    padding:10px 12px;
+    text-align:left;
+    font-size:13px;
+    border-radius:9px;
+  }
+  body:not(.startup-shift-mode) .tab::before{
+    display:inline-block;
+    width:22px;
+    height:auto;
+    margin:0;
+    text-align:center;
+    font-size:18px;
+    line-height:1;
+  }
+  body:not(.startup-shift-mode) .tab.active{
+    background:#f1f3f6;
+    color:#101828;
+  }
+  body:not(.startup-shift-mode) .today-board,
+  body:not(.startup-shift-mode) .section{
+    max-width:none;
+  }
+}
+
+/* На телефоне чуть меньше визуального шума */
+@media(max-width:760px){
+  .page{padding:10px}
+  .section,.today-board,.employee-hero{padding:13px}
+  .section{margin-bottom:10px}
+  .topbar{padding-left:10px;padding-right:10px}
+  .brand{font-size:18px}
+  .badge{min-width:auto;padding:6px 8px;font-size:10px}
+  .authbtn{padding:0 9px;font-size:11px}
+}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -735,16 +1362,17 @@ body{min-height:100dvh}
       </div>
     </div>
     <div id="scheduleControls">
-      <div class="monthnav">
+      <div class="monthnav simple-monthnav">
         <button class="navbtn" id="prevBtn" aria-label="Предыдущий месяц">‹</button>
         <select class="monthselect" id="monthSelect" aria-label="Месяц"></select>
-        <select class="yearselect" id="yearSelect" aria-label="Год"></select>
+        <select class="yearselect hidden" id="yearSelect" aria-label="Год"></select>
         <button class="navbtn" id="nextBtn" aria-label="Следующий месяц">›</button>
       </div>
       <button class="secondary today-month-btn" id="todayMonthBtn">Сегодня</button>
-      <div class="filters">
+      <div class="filters simple-schedule-filters">
         <select id="employeeFilter"><option value="">Все сотрудники</option></select>
-        <button class="iconbtn" id="refreshBtn" title="Обновить общий график" aria-label="Обновить">↻</button>
+        <button class="primary schedule-add-employee hidden" id="addEmployeeBtn" type="button">+ Сотрудник</button>
+        <button class="iconbtn hidden" id="refreshBtn" title="Обновить общий график" aria-label="Обновить">↻</button>
       </div>
     </div>
   </header>
@@ -860,45 +1488,48 @@ body{min-height:100dvh}
     </section>
 
     <section id="schedulePage">
-      <div class="month-title">
+      <div class="month-title schedule-month-title">
         <h1 id="monthTitle"></h1>
         <p id="monthSubtitle"></p>
       </div>
 
       <div class="schedule-admin-tools hidden" id="scheduleAdminTools">
-        <div class="schedule-admin-line">
-          <div class="schedule-problem-summary" id="scheduleProblemSummary"></div>
-          <button class="primary schedule-add-employee" id="addEmployeeBtn" type="button">+ Сотрудник</button>
-        </div>
+        <div class="schedule-problem-summary" id="scheduleProblemSummary"></div>
         <div class="schedule-problem-details hidden" id="scheduleProblemDetails"></div>
       </div>
 
-      <section class="schedule-workload-card hidden" id="scheduleWorkloadCard">
-        <div class="schedule-workload-head">
-          <h3>Нагрузка за месяц</h3>
-          <span id="scheduleWorkloadLabel">—</span>
-        </div>
-        <div class="schedule-workload-scroll" id="scheduleWorkloadTable"></div>
-      </section>
-
       <div id="servicesRoot"></div>
+
+      <details class="schedule-workload-card hidden" id="scheduleWorkloadCard">
+        <summary class="schedule-workload-head">
+          <h3>Нагрузка сотрудников</h3>
+          <span id="scheduleWorkloadLabel">—</span>
+        </summary>
+        <div class="schedule-workload-scroll" id="scheduleWorkloadTable"></div>
+      </details>
+
       <div class="actions" id="monthActions">
-        <button class="primary" id="shareBtn">Поделиться / сохранить фото</button>
+        <button class="secondary" id="shareBtn">Поделиться графиком</button>
       </div>
-      <div class="notice" id="monthPhotoNotice">Фото строится прямо внутри приложения, поэтому таблица остаётся чёткой. На iPhone кнопка «Поделиться фото» обычно удобнее всего: можно сразу сохранить в «Фото» или отправить в WhatsApp.</div>
+      <div class="notice hidden" id="monthPhotoNotice"></div>
     </section>
 
     <section id="historyPage" class="hidden">
       <div class="section">
-        <h2>История смен</h2>
-        <div class="notice" id="historyNotice">История доступна администратору: открытие, закрытие, опоздания, аннулирование и кто подтвердил смену.</div>
+        <div class="history-page-head">
+          <div>
+            <h2>История смен</h2>
+            <div class="history-page-sub">Контроль дисциплины и фактических открытий/закрытий</div>
+          </div>
+        </div>
+
         <div class="history-quick" id="historyQuick">
           <button data-range="today">Сегодня</button>
-          <button data-range="yesterday">Вчера</button>
           <button data-range="7days">7 дней</button>
-          <button data-range="month" class="active">Месяц</button>
+          <button data-range="month" class="active">Этот месяц</button>
           <button class="history-custom-toggle" id="historyCustomBtn">Другой период</button>
         </div>
+
         <div class="history-custom-wrap">
           <div class="history-custom-range hidden" id="historyCustomRange">
             <input type="date" id="historyFrom" aria-label="С даты">
@@ -906,120 +1537,186 @@ body{min-height:100dvh}
             <button class="primary" id="loadHistoryBtn">Показать</button>
           </div>
         </div>
+
         <div class="history-filters-clean">
           <select id="historyService"><option value="">Все сервисы</option></select>
           <select id="historyEmployee"><option value="">Все менеджеры</option></select>
-          <select id="historyProblem"><option value="">Все смены</option><option value="late">Только опоздания</option><option value="unclosed">Только незакрытые</option><option value="voided">Аннулированные</option></select>
+          <select id="historyProblem">
+            <option value="">Все смены</option>
+            <option value="problems">Только нарушения</option>
+            <option value="late">Опоздания</option>
+            <option value="unclosed">Не закрыты</option>
+            <option value="voided">Аннулированные</option>
+          </select>
         </div>
+
+        <div class="history-legend">
+          <span><i class="history-dot service-s1"></i><b id="historyLegendS1">Мобильный Ангел</b></span>
+          <span><i class="history-dot service-s2"></i><b id="historyLegendS2">Нова</b></span>
+        </div>
+
         <div class="history-stats" id="historyStats"></div>
         <div class="history-list" id="historyList"></div>
       </div>
     </section>
 
     <section id="settingsPage" class="hidden">
-      <div class="section">
-        <h2>Администратор</h2>
-        <div id="cloudSettingsState"></div>
-        <div class="settings-actions">
-          <button class="secondary" id="logoutBtn">Выйти из администратора</button>
-        </div>
-      </div>
 
-      <div class="section" id="installAppsSection">
-        <h2>Установить приложение</h2>
-        <div class="install-app-grid">
-          <div class="install-app-card">
-            <b>MA График</b>
-            <p>Установить программу на этот компьютер или телефон.</p>
-            <button class="primary" id="installGrafikBtn">Установить MA График</button>
+      <!-- 1. СИСТЕМА -->
+      <div class="section settings-main-section">
+        <div class="settings-title-row">
+          <div>
+            <h2>Система</h2>
+            <div class="settings-subtitle">Главное состояние программы</div>
           </div>
         </div>
-        <div class="install-app-state" id="installAppState">Проверяем возможность установки…</div>
-      </div>
 
-      <div class="section">
-        <h2>Контроль смен</h2>
-        <div class="push-box">
-          <b>Уведомления на мой телефон</b>
-          <div class="push-state" id="pushState">Проверяем поддержку уведомлений…</div>
-          <button class="primary" id="enablePushBtn">Включить уведомления</button>
+        <div class="system-health-grid">
+          <div class="system-health-row">
+            <span class="system-health-icon" id="systemCloudIcon">•</span>
+            <div><b>Облако</b><small id="systemCloudText">Проверяем…</small></div>
+          </div>
+          <div class="system-health-row">
+            <span class="system-health-icon" id="systemPushIcon">•</span>
+            <div><b>Уведомления</b><small id="systemPushText">Проверяем…</small></div>
+          </div>
+          <div class="system-health-row">
+            <span class="system-health-icon" id="systemS1Icon">•</span>
+            <div><b id="systemS1Name">Мобильный Ангел</b><small id="systemS1Text">Проверяем устройство…</small></div>
+          </div>
+          <div class="system-health-row">
+            <span class="system-health-icon" id="systemS2Icon">•</span>
+            <div><b id="systemS2Name">Нова</b><small id="systemS2Text">Проверяем устройство…</small></div>
+          </div>
         </div>
 
-        <h3>PIN менеджеров</h3>
-        <div class="notice">PIN используется только на рабочем устройстве точки при открытии и закрытии смены.</div>
-        <div id="pinFields" style="margin-top:10px"></div>
-        <button class="secondary" id="savePinsBtn" style="width:100%;margin-top:10px">Сохранить новые PIN</button>
+        <div class="settings-account-row">
+          <div id="cloudSettingsState"></div>
+          <button class="secondary compact-settings-btn" id="logoutBtn">Выйти</button>
+        </div>
 
-        <h3 style="margin-top:20px">Рабочее устройство точки</h3>
-        <div class="notice">Менеджер подтверждает смену только на зарегистрированном устройстве своей точки. Администратор может управлять сменой со своего телефона.</div>
-        <div class="device-box">
+        <details class="settings-inline-details">
+          <summary>Уведомления владельцу</summary>
+          <div class="push-box" style="margin-top:10px">
+            <div class="push-state" id="pushState">Проверяем поддержку уведомлений…</div>
+            <button class="primary" id="enablePushBtn">Включить уведомления</button>
+          </div>
+        </details>
+      </div>
+
+      <!-- 2. ТЕКУЩАЯ СХЕМА -->
+      <div class="section settings-main-section">
+        <div class="settings-title-row">
+          <div>
+            <h2>Текущий график</h2>
+            <div class="settings-subtitle">Коротко: кто и где работает сейчас</div>
+          </div>
+        </div>
+        <div id="currentScheduleSummary" class="current-schedule-summary"></div>
+      </div>
+
+      <!-- 3. PIN -->
+      <div class="section settings-main-section">
+        <div class="settings-title-row">
+          <div>
+            <h2>PIN-коды</h2>
+            <div class="settings-subtitle">Для открытия и закрытия смены на рабочем устройстве</div>
+          </div>
+        </div>
+        <div id="pinFields"></div>
+        <button class="secondary" id="savePinsBtn" style="width:100%;margin-top:10px">Сохранить новые PIN</button>
+      </div>
+
+      <!-- 4. УСТРОЙСТВА -->
+      <div class="section settings-main-section">
+        <div class="settings-title-row">
+          <div>
+            <h2>Устройства сервисов</h2>
+            <div class="settings-subtitle">Какой компьютер или планшет имеет право подтверждать смену</div>
+          </div>
+        </div>
+
+        <div class="device-box settings-device-box">
           <div class="grid2">
-            <div class="field" style="margin:0"><label>Точка</label><select id="deviceService"></select></div>
-            <div class="field" style="margin:0"><label>Название устройства</label><input id="deviceLabel" placeholder="Например: компьютер Моба"></div>
+            <div class="field" style="margin:0">
+              <label>Сервис</label>
+              <select id="deviceService"></select>
+            </div>
+            <div class="field" style="margin:0">
+              <label>Название устройства</label>
+              <input id="deviceLabel" placeholder="Например: компьютер Моба">
+            </div>
           </div>
           <button class="primary" id="pairDeviceBtn" style="width:100%;margin-top:10px">Разрешить это устройство</button>
           <div class="device-state" id="currentDeviceState">Проверяем это устройство…</div>
-          <div class="device-security-note">Защита усилена: разрешение привязывается к закрытому криптографическому ключу этого браузера.</div>
           <div id="deviceList" class="device-list"></div>
+
+          <details class="settings-inline-details device-tech-note">
+            <summary>Как защищено устройство?</summary>
+            <div class="device-security-note">Разрешение привязано к закрытому криптографическому ключу этого браузера. С другого браузера или устройства подтверждение смены не сработает.</div>
+          </details>
         </div>
       </div>
 
-      <div class="section">
-        <h2>График</h2>
-        <div class="grid2">
-          <div class="field"><label>Название точки 1</label><input id="service1"></div>
-          <div class="field"><label>Название точки 2</label><input id="service2"></div>
-          <div class="field"><label>Начало смены</label><input type="time" id="shiftStart"></div>
-          <div class="field"><label>Конец смены</label><input type="time" id="shiftEnd"></div>
-        </div>
-        <div class="infinite-note"><b>График на любую дату.</b> У каждого сотрудника свой цикл работы, а приложение само рассчитывает будущие смены.</div>
-      </div>
-
-      <div class="section">
-        <details class="advanced-settings" id="advancedSettings">
+      <!-- 5. ДОПОЛНИТЕЛЬНО -->
+      <div class="section settings-main-section">
+        <details class="advanced-settings settings-extra" id="advancedSettings">
           <summary>Дополнительно</summary>
           <div class="advanced-inner">
-            <div class="advanced-block">
-              <h3>Служебные параметры графика</h3>
-              <div class="notice">Меняй только если действительно перестраиваешь цикл. Эти значения влияют на будущие даты.</div>
-              <input type="hidden" id="anchorDate">
-              <div class="field" style="margin-top:10px">
-                <label>Закрепление за точкой</label>
-                <input type="text" id="serviceBlockDaysView" value="1–15 / 16–конец месяца" readonly>
-                <input type="hidden" id="serviceBlockDays" value="15">
-              </div>
-              <details class="help-details">
-                <summary>Как считается график?</summary>
-                <div>Менеджеры: Арсен и Дина работают 2/2. Обычно они в Мобе, Сергей — в Нове 5/2. Каждый вторник и четверг Сергей работает в Мобе, а работающий по 2/2 Арсен или Дина в этот день переходит в Нову. Суббота и воскресенье у Сергея выходные. Мастера: в Мобе Олег и Ислам; связки менеджер ↔ мастер меняются примерно каждые 10 дней. В Нове Георгий и Асик остаются 2/2.</div>
-              </details>
-            </div>
 
             <div class="advanced-block">
-              <h3>Облако и резервная копия</h3>
-              <div class="settings-actions">
-                <button class="secondary" id="forceSyncBtn">Загрузить данные заново</button>
-                <button class="secondary" id="exportBtn">Экспорт настроек</button>
-                <button class="secondary" id="importBtn">Импорт настроек</button>
+              <h3>Точки и время работы</h3>
+              <div class="grid2">
+                <div class="field"><label>Название точки 1</label><input id="service1"></div>
+                <div class="field"><label>Название точки 2</label><input id="service2"></div>
+                <div class="field"><label>Начало смены</label><input type="time" id="shiftStart"></div>
+                <div class="field"><label>Конец смены</label><input type="time" id="shiftEnd"></div>
+              </div>
+              <button class="primary" id="saveSettingsBtn" style="width:100%">Сохранить точки и время</button>
+            </div>
+
+            <!-- Служебные поля оставлены скрытыми для совместимости старых данных -->
+            <input type="hidden" id="anchorDate">
+            <input type="hidden" id="serviceBlockDays" value="15">
+
+            <div class="advanced-block" id="installAppsSection">
+              <h3>Установить приложение</h3>
+              <div class="install-app-card">
+                <b>MA График</b>
+                <p>Установить программу на этот компьютер или телефон.</p>
+                <button class="primary" id="installGrafikBtn">Установить MA График</button>
+              </div>
+              <div class="install-app-state" id="installAppState">Проверяем возможность установки…</div>
+            </div>
+
+            <details class="advanced-block nested-settings-details">
+              <summary>Облако и резервная копия</summary>
+              <div class="settings-actions" style="margin-top:10px">
+                <button class="secondary" id="forceSyncBtn">Обновить из облака</button>
+                <button class="secondary" id="exportBtn">Скачать резервную копию</button>
+                <button class="secondary" id="importBtn">Восстановить из копии</button>
               </div>
               <input type="file" id="importFile" accept="application/json" class="hidden">
-            </div>
+            </details>
 
-            <div class="advanced-block danger-zone">
-              <h3>Опасные действия</h3>
-              <div class="notice">Полный сброс перестроит настройки графика. Для подтверждения нужно будет ввести слово СБРОСИТЬ.</div>
+            <details class="advanced-block nested-settings-details danger-zone">
+              <summary>Опасные действия</summary>
+              <div class="notice" style="margin-top:10px">Полный сброс перестроит настройки графика. Для подтверждения потребуется слово СБРОСИТЬ и дополнительное подтверждение.</div>
               <button class="danger" id="resetBtn" style="width:100%;margin-top:8px">Сбросить все настройки</button>
-            </div>
+            </details>
+
           </div>
         </details>
-        <div class="schedule-save-bar">
-          <button class="primary" id="saveSettingsBtn">Сохранить настройки</button>
-        </div>
       </div>
     </section>
   </main>
 </div>
 
 <nav class="bottom">
+  <div class="desktop-nav-brand">
+    <b>MA График</b>
+    <span>Управление сменами</span>
+  </div>
   <div class="bottom-inner admin-five" id="bottomInner">
     <button class="tab active" id="bottomTab1" data-tab="adminToday">Сегодня</button>
     <button class="tab" id="bottomTab2" data-tab="schedule">График</button>
@@ -1172,31 +1869,54 @@ body{min-height:100dvh}
 </div>
 
 <div class="modal hidden" id="quickReplaceModal">
-  <div class="sheet">
+  <div class="sheet quick-replace-sheet">
     <div class="sheet-head">
-      <h2>Замена сотрудника</h2>
+      <div>
+        <h2 id="quickReplaceTitle">Замена на один день</h2>
+        <div class="employee-mode-note">Нужно только выбрать, кто выйдет вместо сотрудника.</div>
+      </div>
       <button class="close" id="closeQuickReplace">×</button>
     </div>
+
+    <input type="hidden" id="quickReplaceDate">
+
     <div class="quick-replace-summary" id="quickReplaceSummary"></div>
-    <div class="grid2 quick-replace-grid">
-      <div class="field"><label>Дата</label><input type="date" id="quickReplaceDate"></div>
-      <div class="field"><label>Точка</label><select id="quickReplaceService"></select></div>
-      <div class="field"><label>Кто не выйдет</label><select id="quickReplaceRole"></select></div>
+
+    <div class="grid2 quick-replace-context hidden" id="quickReplaceContextFields">
       <div class="field">
-        <label>Причина</label>
-        <select id="quickReplaceReason">
+        <label>Где нужна замена?</label>
+        <select id="quickReplaceService"></select>
+      </div>
+      <div class="field">
+        <label>Кого меняем?</label>
+        <select id="quickReplaceRole"></select>
+      </div>
+    </div>
+
+    <div class="quick-replace-main-field">
+      <label id="quickReplaceWithLabel">Кто выйдет вместо сотрудника?</label>
+      <select id="quickReplaceWith"></select>
+    </div>
+
+    <div class="quick-replace-existing hidden" id="quickReplaceExisting"></div>
+
+    <details class="quick-replace-reason">
+      <summary>Указать причину — необязательно</summary>
+      <div class="field">
+        <select id="quickReplaceReason" aria-label="Причина замены">
+          <option value="">Не указывать</option>
           <option value="Болезнь">Болезнь</option>
           <option value="Личное">Личное</option>
           <option value="Отпуск">Отпуск</option>
           <option value="Другое">Другое</option>
         </select>
       </div>
-    </div>
-    <div class="field"><label>Кто выйдет вместо него</label><select id="quickReplaceWith"></select></div>
-    <div class="quick-replace-existing hidden" id="quickReplaceExisting"></div>
-    <div class="login-actions">
+    </details>
+
+    <div class="quick-replace-actions">
+      <button class="secondary" id="cancelQuickReplace">Отмена</button>
       <button class="secondary hidden" id="removeQuickReplace">Вернуть по графику</button>
-      <button class="primary" id="saveQuickReplace">Сохранить замену</button>
+      <button class="primary" id="saveQuickReplace">Заменить</button>
     </div>
   </div>
 </div>
@@ -1219,9 +1939,9 @@ body{min-height:100dvh}
     <div class="notice" id="editShiftInfo" style="margin-top:12px"></div>
     <input type="hidden" id="editShiftId">
     <div class="grid2" style="margin-top:12px">
-      <div class="field"><label>Кто открыл</label><input id="editOpenedBy"></div>
+      <div class="field"><label>Кто открыл</label><select id="editOpenedBy"></select></div>
       <div class="field"><label>Время открытия (МСК)</label><input id="editOpenedTime" type="time"></div>
-      <div class="field"><label>Кто закрыл</label><input id="editClosedBy"></div>
+      <div class="field"><label>Кто закрыл</label><select id="editClosedBy"></select></div>
       <div class="field"><label>Время закрытия (МСК)</label><input id="editClosedTime" type="time"></div>
     </div>
     <div class="modal-note">Пустое время закрытия означает, что смена пока не закрыта. Изменять историю может только администратор.</div>
@@ -1289,6 +2009,7 @@ body{min-height:100dvh}
   let currentShiftRows = [];
   let pendingShiftAction = null;
   let editingShiftRow = null;
+  let quickReplaceFixedContext = false;
   let serviceWorkerRegistration = null;
   let deferredGrafikInstallPrompt=null;
   let grafikAppInstalled=false;
@@ -1674,15 +2395,94 @@ body{min-height:100dvh}
 
   function updateCloudSettingsState(){
     const el=$("cloudSettingsState");
-    if(!el) return;
-    if(!cloudConfigured()){
-      el.innerHTML='<div class="cloud-warning"><b>Supabase ещё не подключён.</b><br>Облачное подключение не настроено.</div>';
-    }else if(isAdmin()){
-      el.innerHTML='<div class="cloud-ok"><b>Облако подключено.</b><br>Ты вошёл как администратор. Сохранение меняет график для всех устройств.</div>';
-    }else{
-      el.innerHTML='<div class="cloud-ok"><b>Облако подключено.</b><br>Сейчас режим просмотра. Для изменения общего графика войди как администратор.</div>';
+    if(el){
+      if(!cloudConfigured()){
+        el.innerHTML='<div class="settings-account-status"><b>Администратор</b> · облако не настроено</div>';
+      }else if(isAdmin()){
+        el.innerHTML='<div class="settings-account-status"><b>Администратор ✓</b> · общий график можно изменять</div>';
+      }else{
+        el.innerHTML='<div class="settings-account-status"><b>Режим просмотра</b> · войдите как администратор для изменений</div>';
+      }
     }
     if($("logoutBtn")) $("logoutBtn").disabled=!isAdmin();
+    updateSettingsSystemStatus();
+  }
+
+  function setSystemHealth(iconId,textId,state,text){
+    const icon=$(iconId), label=$(textId);
+    if(icon){
+      icon.classList.remove("ok","warn","bad");
+      if(state) icon.classList.add(state);
+    }
+    if(label) label.textContent=text;
+  }
+
+  function updateSettingsSystemStatus(){
+    if(!$("systemCloudText")) return;
+
+    if($("systemS1Name")) $("systemS1Name").textContent=settings.service1;
+    if($("systemS2Name")) $("systemS2Name").textContent=settings.service2;
+
+    if(!cloudConfigured()){
+      setSystemHealth("systemCloudIcon","systemCloudText","bad","Не подключено");
+    }else if(navigator.onLine===false){
+      setSystemHealth("systemCloudIcon","systemCloudText","warn","Нет связи");
+    }else{
+      setSystemHealth("systemCloudIcon","systemCloudText","ok","Подключено");
+    }
+
+    if(!("Notification" in window)){
+      setSystemHealth("systemPushIcon","systemPushText","warn","Недоступны");
+    }else if(Notification.permission==="granted"){
+      setSystemHealth("systemPushIcon","systemPushText","ok","Включены");
+    }else if(Notification.permission==="denied"){
+      setSystemHealth("systemPushIcon","systemPushText","bad","Запрещены");
+    }else{
+      setSystemHealth("systemPushIcon","systemPushText","warn","Не включены");
+    }
+
+    const active=(deviceListCache||[]).filter(d=>d.active);
+    const s1Device=active.find(d=>d.service===settings.service1);
+    const s2Device=active.find(d=>d.service===settings.service2);
+
+    if(!isAdmin() && !active.length){
+      setSystemHealth("systemS1Icon","systemS1Text","warn","Нужен вход администратора");
+      setSystemHealth("systemS2Icon","systemS2Text","warn","Нужен вход администратора");
+    }else{
+      setSystemHealth(
+        "systemS1Icon","systemS1Text",
+        s1Device?"ok":"bad",
+        s1Device ? (s1Device.label||"Устройство подключено") : "Нет активного устройства"
+      );
+      setSystemHealth(
+        "systemS2Icon","systemS2Text",
+        s2Device?"ok":"bad",
+        s2Device ? (s2Device.label||"Устройство подключено") : "Нет активного устройства"
+      );
+    }
+  }
+
+  function updateCurrentScheduleSummary(){
+    const root=$("currentScheduleSummary");
+    if(!root) return;
+
+    root.innerHTML=`
+      <div class="current-schedule-card service-s1">
+        <h3>${escapeHtml(settings.service1)}</h3>
+        <div class="current-schedule-row"><b>Менеджеры:</b> Арсен / Дина — 2/2</div>
+        <div class="current-schedule-row"><b>Вт и Чт:</b> Сергей работает здесь, Арсен/Дина переходят в ${escapeHtml(settings.service2)}</div>
+        <div class="current-schedule-row"><b>Мастера:</b> Олег / Ислам</div>
+        <div class="current-schedule-row"><b>Связки:</b> менеджер ↔ мастер меняются примерно каждые 10 дней</div>
+      </div>
+
+      <div class="current-schedule-card service-s2">
+        <h3>${escapeHtml(settings.service2)}</h3>
+        <div class="current-schedule-row"><b>Менеджер:</b> Сергей — Пн / Ср / Пт</div>
+        <div class="current-schedule-row"><b>Вт и Чт:</b> работает Арсен или Дина по своему 2/2</div>
+        <div class="current-schedule-row"><b>Сб и Вс:</b> без менеджера</div>
+        <div class="current-schedule-row"><b>Мастера:</b> Георгий / Асик — 2/2</div>
+      </div>
+    `;
   }
 
   function applyUserMode(){
@@ -2243,6 +3043,7 @@ body{min-height:100dvh}
 
     if(!isAdmin()){
       list.innerHTML="";
+      updateSettingsSystemStatus();
       return;
     }
 
@@ -2258,6 +3059,8 @@ body{min-height:100dvh}
     list.querySelectorAll(".device-revoke").forEach(btn=>{
       btn.onclick=()=>revokeRegisteredDevice(btn.dataset.deviceId);
     });
+
+    updateSettingsSystemStatus();
   }
 
   async function pairCurrentDevice(){
@@ -2633,7 +3436,9 @@ body{min-height:100dvh}
       }else{
         meta=`Начало смены в ${settings.shiftStart}`;
       }
-      const card=document.createElement("div"); card.className="shift-card";
+      const card=document.createElement("div");
+      const todayServiceKey=serviceKeyForName(service);
+      card.className=`shift-card ${todayServiceKey?`service-${todayServiceKey}`:""}`.trim();
       const pairText=exp
         ? (soloMaster
           ? `Только мастер: <strong>${escapeHtml(exp.master)}</strong><br>Без менеджера<br>${settings.shiftStart}–${settings.shiftEnd}`
@@ -2931,12 +3736,13 @@ body{min-height:100dvh}
     const el=$("pushState"), btn=$("enablePushBtn"); if(!el||!btn) return;
     const standalone=window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true;
     if(!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)){
-      el.textContent="На этом устройстве Web Push сейчас недоступен. На iPhone сначала добавь сайт на экран «Домой» и открой его оттуда."; btn.disabled=true; return;
+      el.textContent="На этом устройстве Web Push сейчас недоступен. На iPhone сначала добавь сайт на экран «Домой» и открой его оттуда."; btn.disabled=true; updateSettingsSystemStatus(); return;
     }
     if(Notification.permission==="granted") el.textContent="Уведомления разрешены. Нажми кнопку, чтобы проверить/зарегистрировать этот телефон.";
     else if(Notification.permission==="denied") el.textContent="Уведомления запрещены в настройках браузера/системы.";
     else el.textContent=standalone?"Уведомления ещё не включены на этом телефоне.":"На iPhone для push добавь сайт на экран «Домой», затем открой приложение и включи уведомления.";
     btn.disabled=false;
+    updateSettingsSystemStatus();
   }
   async function registerServiceWorker(){
     if(!("serviceWorker" in navigator)) return null;
@@ -3083,9 +3889,7 @@ body{min-height:100dvh}
     const today=moscowParts().date;
     let from=today,to=today;
 
-    if(range==="yesterday"){
-      from=to=addDaysISO(today,-1);
-    }else if(range==="7days"){
+    if(range==="7days"){
       from=addDaysISO(today,-6);
     }else if(range==="month"){
       from=monthStartISO(today);
@@ -3118,6 +3922,84 @@ body{min-height:100dvh}
     return "";
   }
 
+  function historyServiceClass(service){
+    const key=serviceKeyForName(service);
+    return key ? `service-${key}` : "";
+  }
+
+  function historyDateText(dateStr){
+    if(!dateStr) return "—";
+    const [y,m,d]=String(dateStr).split("-").map(Number);
+    if(!y||!m||!d) return String(dateStr);
+    return new Intl.DateTimeFormat("ru-RU",{day:"numeric",month:"short"}).format(new Date(y,m-1,d));
+  }
+
+  function historyHasMismatch(row){
+    return !!(row.opened_by && row.expected_manager && row.opened_by!==row.expected_manager);
+  }
+
+  function historyIsProblem(row){
+    if(row.voided_at) return true;
+    if((row.open_late_minutes||0)>0) return true;
+    if((row.early_close_minutes||0)>0) return true;
+    if(row.opened_at && !row.closed_at) return true;
+    if(historyHasMismatch(row)) return true;
+    return false;
+  }
+
+  function historyStatus(row){
+    if(row.voided_at) return {text:"Аннулирована",cls:"voided"};
+    if(row.opened_at && !row.closed_at) return {text:"Не закрыта",cls:"bad"};
+    if((row.open_late_minutes||0)>0) return {text:`Опоздание +${row.open_late_minutes} мин`,cls:"warn"};
+    if((row.early_close_minutes||0)>0) return {text:`Раннее закрытие`,cls:"warn"};
+    if(historyHasMismatch(row)) return {text:"Не тот менеджер",cls:"warn"};
+    return {text:"Вовремя",cls:"ok"};
+  }
+
+  function historyCompactLine(row){
+    const who=row.opened_by||row.expected_manager||"—";
+    const open=formatMoscowTime(row.opened_at);
+    const close=row.closed_at?formatMoscowTime(row.closed_at):"—";
+    return `${who} · ${open} → ${close}`;
+  }
+
+  async function fetchAllHistoryRows(baseQuery,token){
+    const pageSize=300;
+    const maxRows=5000;
+    let offset=0;
+    const all=[];
+
+    while(offset<maxRows){
+      const joiner=baseQuery.includes("?")?"&":"?";
+      const url=`${baseQuery}${joiner}limit=${pageSize}&offset=${offset}`;
+      const res=await authFetch(url,{method:"GET",headers:{Authorization:"Bearer "+token}});
+      if(!res.ok) throw new Error(await res.text());
+      const part=await res.json();
+      all.push(...part);
+      if(part.length<pageSize) break;
+      offset+=pageSize;
+    }
+
+    return all;
+  }
+
+  function fillEditManagerSelect(select,rowValue,allowEmpty=false){
+    if(!select) return;
+    const names=[...new Set([
+      ...(allHistoricalManagerNames()||[]),
+      rowValue||""
+    ].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ru"));
+
+    select.innerHTML=(allowEmpty?'<option value="">— Не закрыта —</option>':"")+
+      names.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
+
+    if(rowValue && [...select.options].some(o=>o.value===rowValue)){
+      select.value=rowValue;
+    }else if(allowEmpty && !rowValue){
+      select.value="";
+    }
+  }
+
   function renderHistoryStats(rows){
     const root=$("historyStats");
     if(!root) return;
@@ -3125,33 +4007,57 @@ body{min-height:100dvh}
     const active=rows.filter(r=>!r.voided_at);
     const total=active.length;
     const late=active.filter(r=>(r.open_late_minutes||0)>0).length;
-    const ontime=active.filter(r=>r.opened_at && (r.open_late_minutes||0)===0).length;
-    const early=active.filter(r=>(r.early_close_minutes||0)>0).length;
-    const voided=rows.filter(r=>!!r.voided_at).length;
+    const ontime=active.filter(r=>
+      r.opened_at &&
+      (r.open_late_minutes||0)===0 &&
+      !historyHasMismatch(r)
+    ).length;
+    const unclosed=active.filter(r=>r.opened_at&&!r.closed_at).length;
 
     const byEmployee={};
     active.forEach(r=>{
       const name=r.opened_by||r.expected_manager||"Не указан";
-      if(!byEmployee[name]) byEmployee[name]={total:0,late:0,ontime:0};
+      if(!byEmployee[name]) byEmployee[name]={total:0,late:0,ontime:0,unclosed:0};
       byEmployee[name].total++;
       if((r.open_late_minutes||0)>0) byEmployee[name].late++;
-      else if(r.opened_at) byEmployee[name].ontime++;
+      if(r.opened_at && (r.open_late_minutes||0)===0 && !historyHasMismatch(r)) byEmployee[name].ontime++;
+      if(r.opened_at&&!r.closed_at) byEmployee[name].unclosed++;
     });
 
     const people=Object.entries(byEmployee)
-      .sort((a,b)=>b[1].total-a[1].total)
-      .map(([name,s])=>`<div class="discipline-row"><b>${escapeHtml(name)}</b><span>${s.ontime} вовремя · ${s.late} опозд.</span></div>`)
-      .join("");
+      .sort((a,b)=>b[1].total-a[1].total);
 
     root.innerHTML=`
       <div class="history-stats-grid">
-        <div class="history-stat"><b>${total}</b><span>смен</span></div>
-        <div class="history-stat"><b>${ontime}</b><span>вовремя</span></div>
-        <div class="history-stat"><b>${late}</b><span>опозданий</span></div>
-        <div class="history-stat"><b>${early}</b><span>ранних закрытий</span></div>
+        <div class="history-stat"><b>${total}</b><span>всего смен</span></div>
+        <div class="history-stat good"><b>${ontime}</b><span>вовремя</span></div>
+        <div class="history-stat ${late?"alert":""}"><b>${late}</b><span>опозданий</span></div>
+        <div class="history-stat ${unclosed?"alert":""}"><b>${unclosed}</b><span>не закрыты</span></div>
       </div>
-      ${voided?`<div class="history-status-line warn" style="margin-top:9px">Аннулировано смен: ${voided}</div>`:""}
-      ${people?`<div class="discipline-title">Дисциплина по менеджерам</div><div class="discipline-list">${people}</div>`:""}
+      ${people.length?`
+        <div class="discipline-title">
+          <b>Дисциплина менеджеров</b>
+          <span>за выбранный период</span>
+        </div>
+        <div class="discipline-table-wrap">
+          <table class="discipline-table">
+            <thead>
+              <tr><th>Менеджер</th><th>Смен</th><th>Вовремя</th><th>Опозд.</th><th>Не закрыты</th></tr>
+            </thead>
+            <tbody>
+              ${people.map(([name,s])=>`
+                <tr>
+                  <td>${escapeHtml(name)}</td>
+                  <td>${s.total}</td>
+                  <td class="${s.ontime?"discipline-good":""}">${s.ontime}</td>
+                  <td class="${s.late?"discipline-bad":""}">${s.late}</td>
+                  <td class="${s.unclosed?"discipline-bad":""}">${s.unclosed}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `:""}
     `;
   }
 
@@ -3166,23 +4072,57 @@ body{min-height:100dvh}
     if([...sv.options].some(o=>o.value===svv)) sv.value=svv; if([...emp.options].some(o=>o.value===ev)) emp.value=ev;
   }
   async function loadHistory(){
-    const root=$("historyList"); if(!isAdmin()){ root.innerHTML='<div class="history-empty">Войди как администратор, чтобы смотреть историю.</div>'; if($("historyStats")) $("historyStats").innerHTML=""; return; }
-    const from=$("historyFrom").value,to=$("historyTo").value,service=$("historyService").value,employee=$("historyEmployee").value,problem=$("historyProblem").value;
-    const token=await getAdminToken(); if(!token){ openLoginModal(); return; }
-    let q=`/rest/v1/${SHIFT_TABLE}?select=*&order=shift_date.desc,service.asc&limit=300`;
-    if(from) q+=`&shift_date=gte.${encodeURIComponent(from)}`; if(to) q+=`&shift_date=lte.${encodeURIComponent(to)}`; if(service) q+=`&service=eq.${encodeURIComponent(service)}`;
+    const root=$("historyList");
+    if(!isAdmin()){
+      root.innerHTML='<div class="history-empty">Войди как администратор, чтобы смотреть историю.</div>';
+      if($("historyStats")) $("historyStats").innerHTML="";
+      return;
+    }
+
+    $("historyLegendS1").textContent=settings.service1;
+    $("historyLegendS2").textContent=settings.service2;
+
+    const from=$("historyFrom").value;
+    const to=$("historyTo").value;
+    const service=$("historyService").value;
+    const employee=$("historyEmployee").value;
+    const problem=$("historyProblem").value;
+
+    const token=await getAdminToken();
+    if(!token){ openLoginModal(); return; }
+
+    let q=`/rest/v1/${SHIFT_TABLE}?select=*&order=shift_date.desc,service.asc,id.desc`;
+    if(from) q+=`&shift_date=gte.${encodeURIComponent(from)}`;
+    if(to) q+=`&shift_date=lte.${encodeURIComponent(to)}`;
+    if(service) q+=`&service=eq.${encodeURIComponent(service)}`;
+
     try{
-      root.innerHTML='<div class="history-empty">Загрузка…</div>';
-      const res=await authFetch(q,{method:"GET",headers:{Authorization:"Bearer "+token}}); if(!res.ok) throw new Error(await res.text());
-      let rows=await res.json();
-      if(employee) rows=rows.filter(r=>r.opened_by===employee||r.closed_by===employee||r.expected_manager===employee);
+      root.innerHTML='<div class="history-empty">Загрузка истории…</div>';
+
+      let rows=await fetchAllHistoryRows(q,token);
+
+      if(employee){
+        rows=rows.filter(r=>
+          r.opened_by===employee ||
+          r.closed_by===employee ||
+          r.expected_manager===employee
+        );
+      }
+
+      if(problem==="problems") rows=rows.filter(historyIsProblem);
       if(problem==="late") rows=rows.filter(r=>!r.voided_at && (r.open_late_minutes||0)>0);
       if(problem==="unclosed") rows=rows.filter(r=>!r.voided_at && r.opened_at&&!r.closed_at);
       if(problem==="voided") rows=rows.filter(r=>!!r.voided_at);
+
       renderHistoryStats(rows);
       renderHistory(rows);
-    }catch(e){ console.error(e); root.innerHTML='<div class="history-empty">Не удалось загрузить историю.</div>'; if($("historyStats")) $("historyStats").innerHTML=""; }
+    }catch(e){
+      console.error(e);
+      root.innerHTML='<div class="history-empty">Не удалось загрузить историю.</div>';
+      if($("historyStats")) $("historyStats").innerHTML="";
+    }
   }
+
   function renderHistory(rows){
     const root=$("historyList");
     if(!rows.length){
@@ -3191,86 +4131,110 @@ body{min-height:100dvh}
     }
 
     root.innerHTML=rows.map(r=>{
-      const voided=!!r.voided_at;
+      const status=historyStatus(r);
+      const serviceClass=historyServiceClass(r.service);
+      const openSource=historySourceText(r,"open");
+      const closeSource=historySourceText(r,"close");
+      const mismatch=historyHasMismatch(r);
 
-      if(voided){
-        return `<div class="history-item">
-          <div class="history-top">
-            <div>
-              <span class="history-service">${escapeHtml(r.service)}</span>
-              <span class="history-date"> · ${r.shift_date}</span>
+      if(r.voided_at){
+        return `<details class="history-item ${serviceClass}">
+          <summary class="history-summary">
+            <div class="history-summary-main">
+              <div class="history-summary-top">
+                <span class="history-summary-service">${escapeHtml(r.service)}</span>
+                <span class="history-summary-date">· ${escapeHtml(historyDateText(r.shift_date))}</span>
+              </div>
+              <div class="history-summary-line">${escapeHtml(r.opened_by||r.expected_manager||"—")} · ${formatMoscowTime(r.opened_at)}</div>
+            </div>
+            <span class="history-summary-status voided">Аннулирована</span>
+          </summary>
+          <div class="history-details">
+            <div class="history-details-grid">
+              <div class="history-detail-card">
+                <b>Была открыта</b>
+                ${escapeHtml(r.opened_by||"—")} · ${formatMoscowTime(r.opened_at)}
+                ${openSource?`<div class="history-detail-meta">${escapeHtml(openSource)}</div>`:""}
+              </div>
+              <div class="history-detail-card">
+                <b>Аннулирование</b>
+                ${formatMoscowTime(r.voided_at)}
+                <div class="history-detail-meta">Кем: ${escapeHtml(r.voided_by||"Администратор")}</div>
+                <div class="history-detail-meta">${escapeHtml(r.void_reason||"Причина не указана")}</div>
+              </div>
             </div>
           </div>
-          <div class="history-status-line bad">АННУЛИРОВАНА</div>
-          <div class="history-grid">
-            <div class="history-cell">
-              <b>Была открыта</b>
-              ${escapeHtml(r.opened_by||"—")} · ${formatMoscowTime(r.opened_at)}
-              ${historySourceText(r,"open")?`<div class="history-source">${escapeHtml(historySourceText(r,"open"))}</div>`:""}
-            </div>
-            <div class="history-cell">
-              <b>Аннулирование</b>
-              ${formatMoscowTime(r.voided_at)}
-              <div class="history-source">Кем: ${escapeHtml(r.voided_by||"Администратор")}</div>
-              <div class="history-source">${escapeHtml(r.void_reason||"Причина не указана")}</div>
-            </div>
-          </div>
-        </div>`;
+        </details>`;
       }
 
       const late=(r.open_late_minutes||0)>0;
       const early=(r.early_close_minutes||0)>0;
       const unclosed=r.opened_at&&!r.closed_at;
 
-      let statusText="СМЕНА ЗАКРЫТА";
-      let statusClass="ok";
-      if(unclosed){ statusText="СМЕНА НЕ ЗАКРЫТА"; statusClass="bad"; }
-      else if(late || early){ statusText="ЕСТЬ НАРУШЕНИЕ"; statusClass="warn"; }
-
-      const openLate=late
-        ? `<span class="tag late">опоздание +${r.open_late_minutes} мин</span>`
-        : '<span class="tag ok">вовремя</span>';
-      const closeTag=r.closed_at
-        ? (early ? `<span class="tag late">раньше на ${r.early_close_minutes} мин</span>` : '<span class="tag ok">закрыта</span>')
-        : '<span class="tag bad">не закрыта</span>';
-
-      const mismatch=r.opened_by&&r.expected_manager&&r.opened_by!==r.expected_manager
-        ? `<div class="mismatch">По графику менеджер: ${escapeHtml(r.expected_manager)}</div>`
-        : "";
-
-      const openSource=historySourceText(r,"open");
-      const closeSource=historySourceText(r,"close");
-
-      return `<div class="history-item">
-        <div class="history-top">
-          <div><span class="history-service">${escapeHtml(r.service)}</span><span class="history-date"> · ${r.shift_date}</span></div>
-          ${isAdmin()?`<button class="edit-shift-btn" data-id="${r.id}">Исправить</button>`:""}
-        </div>
-        <div class="history-status-line ${statusClass}">${statusText}</div>
-        <div class="history-grid">
-          <div class="history-cell">
-            <b>Открытие ${openLate}</b>
-            ${escapeHtml(r.opened_by||"—")} · ${formatMoscowTime(r.opened_at)}
-            ${mismatch}
-            ${openSource?`<div class="history-source">${escapeHtml(openSource)}</div>`:""}
+      return `<details class="history-item ${serviceClass}">
+        <summary class="history-summary">
+          <div class="history-summary-main">
+            <div class="history-summary-top">
+              <span class="history-summary-service">${escapeHtml(r.service)}</span>
+              <span class="history-summary-date">· ${escapeHtml(historyDateText(r.shift_date))}</span>
+            </div>
+            <div class="history-summary-line">${escapeHtml(historyCompactLine(r))}</div>
           </div>
-          <div class="history-cell">
-            <b>Закрытие ${closeTag}</b>
-            ${escapeHtml(r.closed_by||"—")} · ${formatMoscowTime(r.closed_at)}
-            ${closeSource?`<div class="history-source">${escapeHtml(closeSource)}</div>`:""}
+          <span class="history-summary-status ${status.cls}">${escapeHtml(status.text)}</span>
+        </summary>
+
+        <div class="history-details">
+          <div class="history-details-grid">
+            <div class="history-detail-card">
+              <b>Открытие</b>
+              ${escapeHtml(r.opened_by||"—")} · ${formatMoscowTime(r.opened_at)}
+              ${late?`<div class="history-status-line warn" style="margin:5px 0 0">Опоздание +${r.open_late_minutes} мин</div>`:`<div class="history-status-line ok" style="margin:5px 0 0">Вовремя</div>`}
+              ${mismatch?`<div class="history-mismatch">По графику: ${escapeHtml(r.expected_manager)}</div>`:""}
+              ${openSource?`<div class="history-detail-meta">${escapeHtml(openSource)}</div>`:""}
+            </div>
+
+            <div class="history-detail-card">
+              <b>Закрытие</b>
+              ${escapeHtml(r.closed_by||"—")} · ${formatMoscowTime(r.closed_at)}
+              ${unclosed
+                ? `<div class="history-status-line bad" style="margin:5px 0 0">Смена не закрыта</div>`
+                : early
+                  ? `<div class="history-status-line warn" style="margin:5px 0 0">Раньше на ${r.early_close_minutes} мин</div>`
+                  : `<div class="history-status-line ok" style="margin:5px 0 0">Закрыта</div>`
+              }
+              ${closeSource?`<div class="history-detail-meta">${escapeHtml(closeSource)}</div>`:""}
+            </div>
           </div>
+
+          ${isAdmin()?`
+            <div class="history-detail-actions">
+              <button class="secondary edit-shift-btn" data-id="${r.id}">Исправить смену</button>
+            </div>
+          `:""}
         </div>
-      </div>`;
+      </details>`;
     }).join("");
 
     root.querySelectorAll(".edit-shift-btn").forEach(b=>{
-      b.onclick=()=>openEditShift(rows.find(r=>String(r.id)===b.dataset.id));
+      b.onclick=e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        openEditShift(rows.find(r=>String(r.id)===b.dataset.id));
+      };
     });
   }
 
   function openEditShift(row){
-    if(!row) return; editingShiftRow=row; $("editShiftId").value=row.id; $("editShiftInfo").textContent=`${row.service} · ${row.shift_date}`;
-    $("editOpenedBy").value=row.opened_by||""; $("editOpenedTime").value=row.opened_at?formatMoscowTime(row.opened_at):""; $("editClosedBy").value=row.closed_by||""; $("editClosedTime").value=row.closed_at?formatMoscowTime(row.closed_at):"";
+    if(!row) return;
+    editingShiftRow=row;
+    $("editShiftId").value=row.id;
+    $("editShiftInfo").textContent=`${row.service} · ${row.shift_date}`;
+
+    fillEditManagerSelect($("editOpenedBy"),row.opened_by||row.expected_manager||"",false);
+    fillEditManagerSelect($("editClosedBy"),row.closed_by||"",true);
+
+    $("editOpenedTime").value=row.opened_at?formatMoscowTime(row.opened_at):"";
+    $("editClosedTime").value=row.closed_at?formatMoscowTime(row.closed_at):"";
     $("editShiftModal").classList.remove("hidden");
   }
   function closeEditShift(){ $("editShiftModal").classList.add("hidden"); editingShiftRow=null; }
@@ -3848,7 +4812,8 @@ body{min-height:100dvh}
         shiftText="Выходной день Новы: менеджер не требуется";
       }
 
-      work.className="employee-main-status work";
+      const employeeServiceKey=serviceKeyForName(todayAssignment.service);
+      work.className=`employee-main-status work ${employeeServiceKey?`service-${employeeServiceKey}`:""}`.trim();
       work.innerHTML=`
         <b>Сегодня работаю</b>
         <span><strong>${escapeHtml(todayAssignment.service)}</strong> · ${settings.shiftStart}–${settings.shiftEnd}<br>${solo?"Работаю один, без менеджера":`Напарник: <strong>${escapeHtml(partner)}</strong>`}</span>
@@ -3873,7 +4838,8 @@ body{min-height:100dvh}
     $("employeeShiftList").innerHTML=list.length ? list.map(x=>{
       const partner=x.pair.manager===name ? x.pair.master : x.pair.manager;
       const solo=isNoManagerValue(partner);
-      return `<div class="employee-shift-item">
+      const serviceKey=serviceKeyForName(x.service);
+      return `<div class="employee-shift-item ${serviceKey?`service-${serviceKey}`:""}">
         <div class="employee-shift-date"><b>${x.date.getDate()}</b><span>${MONTHS[x.date.getMonth()].slice(0,3)} · ${WD[x.date.getDay()]}</span></div>
         <div class="employee-shift-info"><b>${escapeHtml(x.service)} · ${settings.shiftStart}–${settings.shiftEnd}</b><span>${solo?"Работаю один, без менеджера":`Вместе с ${escapeHtml(partner)}`}</span></div>
       </div>`;
@@ -4158,7 +5124,7 @@ body{min-height:100dvh}
   function renderSelectors(){
     const info=monthInfo(currentIndex);
 
-    monthSelect.innerHTML=MONTHS.map((m,i)=>`<option value="${i}">${m}</option>`).join("");
+    monthSelect.innerHTML=MONTHS.map((m,i)=>`<option value="${i}">${m} ${info.year}</option>`).join("");
     monthSelect.value=String(info.month);
 
     yearSelect.innerHTML="";
@@ -4172,7 +5138,7 @@ body{min-height:100dvh}
 
     $("prevBtn").disabled=info.year<=2020 && info.month===0;
     $("nextBtn").disabled=info.year>=2100 && info.month===11;
-    $("todayMonthBtn").textContent=`Сегодня • ${todayMonthLabel()}`;
+    $("todayMonthBtn").textContent="Сегодня";
 
     const names=employeeNamesInMonth(currentIndex);
     const hasUnassigned=monthHasUnassigned(currentIndex);
@@ -4341,6 +5307,109 @@ body{min-height:100dvh}
     return wrap;
   }
 
+  function scheduleHasDayOverride(dateStr,serviceName){
+    const serviceKey=serviceKeyForName(serviceName);
+    return (settings.dayOverrides||[]).some(o=>{
+      if(o.date!==dateStr) return false;
+      const key=o.serviceKey || serviceKeyForName(o.service);
+      return key===serviceKey || o.service===serviceName;
+    });
+  }
+
+  function scheduleCellHasProblem(pair){
+    if(!pair) return true;
+    const managerBad=!isNoManagerValue(pair.manager) && scheduleValueCount(pair.manager)!==1;
+    const masterBad=scheduleValueCount(pair.master)!==1;
+    return managerBad || masterBad;
+  }
+
+  function unifiedPairHtml(pair){
+    if(!pair) return '<div class="unified-pair">Не назначено</div>';
+    if(isNoManagerValue(pair.manager)){
+      return `<div class="unified-pair">Только <b>${escapeHtml(pair.master)}</b></div>`;
+    }
+    return `<div class="unified-pair"><b>${escapeHtml(pair.manager)}</b> <span>+ ${escapeHtml(pair.master)}</span></div>`;
+  }
+
+  function renderUnifiedSchedule(rows){
+    const today=moscowParts().date;
+    const card=document.createElement("section");
+    card.className="unified-schedule-card";
+
+    const adminCanEdit=isAdmin() && !isServiceDeviceMode();
+    card.innerHTML=`
+      <div class="unified-schedule-head">
+        <div class="unified-schedule-legend">
+          <span class="unified-legend-item service-s1">● ${escapeHtml(settings.service1)}</span>
+          <span class="unified-legend-item service-s2">● ${escapeHtml(settings.service2)}</span>
+        </div>
+        <div class="unified-schedule-hint">${adminCanEdit?"Нажмите на смену, чтобы изменить":"Весь месяц в одной таблице"}</div>
+      </div>
+      <div class="unified-schedule-scroll">
+        <table class="unified-schedule-table">
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th class="service-s1">${escapeHtml(settings.service1)}</th>
+              <th class="service-s2">${escapeHtml(settings.service2)}</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    `;
+
+    const tbody=card.querySelector("tbody");
+
+    rows.forEach(r=>{
+      const dateStr=dateKeyFromDate(r.date);
+      const isToday=dateStr===today;
+      const weekend=r.date.getDay()===0 || r.date.getDay()===6;
+
+      const tr=document.createElement("tr");
+      tr.className=`unified-schedule-row${isToday?" today":""}${weekend?" weekend":""}`;
+
+      const dateTd=document.createElement("td");
+      dateTd.className="unified-date-cell";
+      dateTd.innerHTML=`${r.date.getDate()} ${WD[r.date.getDay()]}${isToday?'<small>Сегодня</small>':""}`;
+      tr.appendChild(dateTd);
+
+      [
+        {key:"s1",service:settings.service1,pair:r.s1},
+        {key:"s2",service:settings.service2,pair:r.s2}
+      ].forEach(item=>{
+        const td=document.createElement("td");
+        const btn=document.createElement("button");
+        const changed=scheduleHasDayOverride(dateStr,item.service);
+        const problem=scheduleCellHasProblem(item.pair);
+
+        btn.type="button";
+        btn.className=`unified-shift-cell service-${item.key}${adminCanEdit?" manageable":""}${problem?" has-problem":""}`;
+        btn.dataset.manager=item.pair?.manager||"";
+        btn.dataset.master=item.pair?.master||"";
+        btn.dataset.scheduleDate=dateStr;
+        btn.dataset.scheduleService=item.service;
+        btn.innerHTML=`
+          <div class="unified-service-name">${escapeHtml(item.service)}</div>
+          ${unifiedPairHtml(item.pair)}
+          ${changed?'<span class="schedule-change-tag">Замена</span>':""}
+        `;
+
+        if(adminCanEdit){
+          btn.onclick=()=>openScheduleManage(dateStr,item.service);
+          btn.title="Нажмите, чтобы изменить смену";
+        }
+
+        td.appendChild(btn);
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+    return card;
+  }
+
   function renderMonth(){
     renderSelectors();
     const info=monthInfo(currentIndex);
@@ -4358,11 +5427,10 @@ body{min-height:100dvh}
         $("monthActions").classList.add("hidden");
         $("monthPhotoNotice").classList.add("hidden");
       }else{
-        $("monthSubtitle").textContent=`Смена ${settings.shiftStart}–${settings.shiftEnd} • вт/чт Сергей ↔ Арсен/Дина меняются сервисами`;
-        root.appendChild(serviceCard(settings.service1,"s1",rows));
-        root.appendChild(serviceCard(settings.service2,"s2",rows));
+        $("monthSubtitle").textContent="";
+        root.appendChild(renderUnifiedSchedule(rows));
         $("monthActions").classList.remove("hidden");
-        $("monthPhotoNotice").classList.remove("hidden");
+        $("monthPhotoNotice").classList.add("hidden");
         highlightEmployee();
       }
     }else{
@@ -4563,41 +5631,33 @@ body{min-height:100dvh}
     const tools=$("scheduleAdminTools");
     const summary=$("scheduleProblemSummary");
     const details=$("scheduleProblemDetails");
+    const addBtn=$("addEmployeeBtn");
     if(!tools || !summary || !details) return;
 
-    const show=isAdmin() && !isServiceDeviceMode() && !isEmployeePhoneMode();
-    tools.classList.toggle("hidden",!show);
-    if(!show) return;
+    const adminView=isAdmin() && !isServiceDeviceMode() && !isEmployeePhoneMode();
+    if(addBtn) addBtn.classList.toggle("hidden",!adminView);
 
-    const problems=monthScheduleProblems(currentIndex);
-    const affected=new Set(problems.map(p=>`${p.date}|${p.service}`)).size;
-
-    const info=monthInfo(currentIndex);
-    const sampleDate=new Date(info.year,info.month,Math.min(20,info.days));
-    const balanced=balancedRosterState(sampleDate);
-    const balancedNote=balanced
-      ? `<div style="margin-top:7px;font-size:11px;color:var(--muted)">
-          Менеджеры: <b>вт/чт Сергей работает в ${escapeHtml(settings.service1)}</b>, 
-          а Арсен/Дина по своему 2/2 в этот день работают в <b>${escapeHtml(settings.service2)}</b>.
-          В остальные будни Сергей — в ${escapeHtml(settings.service2)}; сб/вс у него выходной.
-          По субботам и воскресеньям в <b>${escapeHtml(settings.service2)}</b> работает только <b>Георгий или Асик</b>, без менеджера.
-          Мастера: <b>Моба — Олег/Ислам, связки меняются ~каждые 10 дней</b>; <b>Нова — Георгий/Асик 2/2</b>.
-        </div>`
-      : "";
-
-    const missing=problems.filter(p=>p.count===0).length;
-    const overlaps=problems.filter(p=>p.count>1).length;
-
-    if(!problems.length){
-      summary.innerHTML=`
-        <div class="schedule-problem-card ok">
-          <div><b>График собран правильно</b><span>В этом месяце пустых и двойных смен нет</span>${balancedNote}</div>
-        </div>`;
-      details.classList.add("hidden");
-      details.innerHTML="";
+    if(!adminView){
+      tools.classList.add("hidden");
       return;
     }
 
+    const problems=monthScheduleProblems(currentIndex);
+
+    // Если график нормальный — не занимаем место сообщением «всё хорошо».
+    if(!problems.length){
+      tools.classList.add("hidden");
+      summary.innerHTML="";
+      details.innerHTML="";
+      details.classList.add("hidden");
+      return;
+    }
+
+    tools.classList.remove("hidden");
+
+    const affected=new Set(problems.map(p=>`${p.date}|${p.service}`)).size;
+    const missing=problems.filter(p=>p.count===0).length;
+    const overlaps=problems.filter(p=>p.count>1).length;
     const parts=[];
     if(missing) parts.push(`не назначено: ${missing}`);
     if(overlaps) parts.push(`пересечения: ${overlaps}`);
@@ -4605,11 +5665,10 @@ body{min-height:100dvh}
     summary.innerHTML=`
       <div class="schedule-problem-card">
         <div>
-          <b>Требуют внимания: ${affected} смен</b>
+          <b>⚠ ${affected} ${affected===1?"проблема":"проблемы"} в графике</b>
           <span>${parts.join(" · ")}</span>
-          ${balancedNote}
         </div>
-        <button class="secondary schedule-problem-toggle" id="scheduleProblemToggle" type="button">Показать</button>
+        <button class="secondary schedule-problem-toggle" id="scheduleProblemToggle" type="button">Посмотреть</button>
       </div>`;
 
     details.innerHTML=problems.map(p=>{
@@ -4633,7 +5692,7 @@ body{min-height:100dvh}
       toggle.onclick=()=>{
         const willShow=details.classList.contains("hidden");
         details.classList.toggle("hidden");
-        toggle.textContent=willShow?"Скрыть":"Показать";
+        toggle.textContent=willShow?"Скрыть":"Посмотреть";
       };
     }
 
@@ -4670,6 +5729,10 @@ body{min-height:100dvh}
   function openQuickReplaceFor(date,service,role){
     if(!isAdmin()){ openLoginModal(); return; }
 
+    quickReplaceFixedContext=true;
+    $("quickReplaceTitle").textContent="Замена на один день";
+    $("quickReplaceContextFields").classList.add("hidden");
+
     $("quickReplaceDate").value=date;
     $("quickReplaceService").innerHTML=`
       <option value="${escapeHtml(settings.service1)}">${escapeHtml(settings.service1)}</option>
@@ -4677,6 +5740,7 @@ body{min-height:100dvh}
     $("quickReplaceService").value=service;
     $("quickReplaceRole").innerHTML='<option value="manager">Менеджер</option><option value="master">Мастер</option>';
     $("quickReplaceRole").value=role;
+
     refreshQuickReplaceForm();
     $("scheduleManageModal").classList.add("hidden");
     $("quickReplaceModal").classList.remove("hidden");
@@ -4783,7 +5847,7 @@ body{min-height:100dvh}
           <button class="secondary" type="button"
             data-manage-replace="${role}"
             data-manage-date="${escapeHtml(date)}"
-            data-manage-service="${escapeHtml(service)}">Заменить на день</button>
+            data-manage-service="${escapeHtml(service)}">Замена</button>
           ${hasCard && !balanced?`<button class="secondary" type="button" data-manage-edit-name="${escapeHtml(name)}" data-manage-edit-date="${escapeHtml(date)}">Изменить график</button>`:""}
           <button class="danger" type="button"
             data-manage-left-name="${escapeHtml(name)}"
@@ -4799,7 +5863,7 @@ body{min-height:100dvh}
     if(!pair) return;
 
     $("scheduleManageTitle").textContent=`${service} · ${russianDateLong(date)}`;
-    $("scheduleManageSubtitle").textContent="Здесь можно исправить именно эту смену или изменить сотрудника на будущее.";
+    $("scheduleManageSubtitle").textContent="Нужна разовая подмена — нажмите «Замена» возле сотрудника.";
     $("scheduleManageBody").innerHTML=
       manageRoleHtml("manager","Менеджер",pair.manager,date,service)+
       manageRoleHtml("master","Мастер",pair.master,date,service);
@@ -4879,11 +5943,19 @@ body{min-height:100dvh}
 
   function highlightEmployee(){
     const name=employeeFilter.value;
+
+    document.querySelectorAll(".unified-shift-cell").forEach(cell=>{
+      const match=name==="__unassigned__"
+        ? (cell.dataset.manager==="Не назначен" || cell.dataset.master==="Не назначен")
+        : (!!name && (cell.dataset.manager===name || cell.dataset.master===name));
+      cell.classList.toggle("highlight",match);
+    });
+
+    // Совместимость со старым/служебным представлением графика.
     document.querySelectorAll(".schedule tbody tr").forEach(tr=>{
       const match=name==="__unassigned__"
         ? (tr.dataset.manager==="Не назначен" || tr.dataset.master==="Не назначен")
         : (!!name && (tr.dataset.manager===name || tr.dataset.master===name));
-
       tr.classList.toggle("highlight",match);
     });
   }
@@ -5139,7 +6211,7 @@ body{min-height:100dvh}
 
     const date=dateObjectFromKey(effectiveDate);
     if(isBalancedRosterRole(emp.role,date)){
-      toast("Эта должность сейчас распределяется автоматически. Используй «Заменить на день» или «Больше не работает».");
+      toast("Эта должность сейчас распределяется автоматически. Используй «Замена» или «Больше не работает».");
       return;
     }
     const visible=employeesForDate(date).find(x=>String(x.id)===String(id));
@@ -5273,8 +6345,10 @@ body{min-height:100dvh}
     renderPinFields();
     fillHistoryFilters();
     fillDeviceServiceSelect();
+    updateCurrentScheduleSummary();
     updatePushState();
     renderDevicePanel();
+    updateSettingsSystemStatus();
   }
 
   function readSettingsFromForm(){
@@ -5363,50 +6437,85 @@ body{min-height:100dvh}
     if(!base) return;
 
     const roleSel=$("quickReplaceRole");
-    const previousRole=roleSel.value || inferQuickReplaceRole(base,existing);
+    const requestedRole=quickReplaceFixedContext
+      ? (roleSel.value||"manager")
+      : (roleSel.value || inferQuickReplaceRole(base,existing));
+
     roleSel.innerHTML=`
       <option value="manager">Менеджер — ${escapeHtml(base.manager)}</option>
       <option value="master">Мастер — ${escapeHtml(base.master)}</option>`;
-    roleSel.value=["manager","master"].includes(previousRole)?previousRole:"manager";
+    roleSel.value=["manager","master"].includes(requestedRole)?requestedRole:"manager";
 
     const role=roleSel.value;
     const absent=role==="manager"?base.manager:base.master;
-    const candidates=quickReplacementCandidates(date,role).filter(n=>n!==absent);
+    let candidates=quickReplacementCandidates(date,role).filter(n=>n!==absent);
     const currentReplacement=existing ? (role==="manager"?existing.manager:existing.master) : "";
+
+    if(currentReplacement && currentReplacement!==absent && !candidates.includes(currentReplacement)){
+      candidates.unshift(currentReplacement);
+    }
+    candidates=[...new Set(candidates)];
 
     const replaceSel=$("quickReplaceWith");
     replaceSel.innerHTML=candidates.length
-      ? candidates.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("")
-      : '<option value="">Нет доступных сотрудников</option>';
-    if(currentReplacement && candidates.includes(currentReplacement)) replaceSel.value=currentReplacement;
+      ? '<option value="">Выберите сотрудника</option>'+
+        candidates.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("")
+      : '<option value="">Нет свободных сотрудников</option>';
 
-    $("quickReplaceSummary").innerHTML=
-      `<b>${escapeHtml(service)} · ${escapeHtml(russianDateLong(date))}</b><br>`+
-      `По графику: ${escapeHtml(base.manager)} + ${escapeHtml(base.master)}`;
+    if(currentReplacement && candidates.includes(currentReplacement)){
+      replaceSel.value=currentReplacement;
+    }
+
+    const serviceClass=serviceKeyForName(service);
+    const summary=$("quickReplaceSummary");
+    summary.className=`quick-replace-summary ${serviceClass?`service-${serviceClass}`:""}`.trim();
+    summary.innerHTML=`
+      <div class="replace-place">${escapeHtml(service)} <span class="replace-date">· ${escapeHtml(russianDateLong(date))}</span></div>
+      <div class="replace-person">Меняем: ${escapeHtml(absent)}</div>
+      <div class="replace-role">${role==="manager"?"Менеджер":"Мастер"}</div>
+    `;
+
+    $("quickReplaceWithLabel").textContent=`Кто выйдет вместо ${absent}?`;
 
     const box=$("quickReplaceExisting");
     const removeBtn=$("removeQuickReplace");
+    const saveBtn=$("saveQuickReplace");
+
     if(existing){
       const changedRole=inferQuickReplaceRole(base,existing);
       const original=existing.replacedName || (changedRole==="manager"?base.manager:base.master);
       const replacement=changedRole==="manager"?existing.manager:existing.master;
       const reason=existing.reason?` · ${escapeHtml(existing.reason)}`:"";
-      box.innerHTML=`Уже есть замена: <b>${escapeHtml(original)} → ${escapeHtml(replacement)}</b>${reason}`;
+
+      box.innerHTML=`Сейчас стоит замена: <b>${escapeHtml(original)} → ${escapeHtml(replacement)}</b>${reason}`;
       box.classList.remove("hidden");
+      removeBtn.textContent=`Вернуть ${original} по графику`;
       removeBtn.classList.remove("hidden");
+      saveBtn.textContent="Изменить замену";
+
       if(existing.reason && [...$("quickReplaceReason").options].some(o=>o.value===existing.reason)){
         $("quickReplaceReason").value=existing.reason;
+      }else{
+        $("quickReplaceReason").value="";
       }
     }else{
       box.classList.add("hidden");
       box.innerHTML="";
       removeBtn.classList.add("hidden");
-      $("quickReplaceReason").value="Болезнь";
+      saveBtn.textContent="Заменить";
+      $("quickReplaceReason").value="";
     }
+
+    saveBtn.disabled=!candidates.length;
   }
 
   function openQuickReplace(){
     if(!isAdmin()){ openLoginModal(); return; }
+
+    quickReplaceFixedContext=false;
+    $("quickReplaceTitle").textContent="Замена сегодня";
+    $("quickReplaceContextFields").classList.remove("hidden");
+
     $("quickReplaceDate").value=moscowParts().date;
     $("quickReplaceService").innerHTML=`
       <option value="${escapeHtml(settings.service1)}">${escapeHtml(settings.service1)}</option>
@@ -5414,11 +6523,15 @@ body{min-height:100dvh}
     $("quickReplaceService").value=settings.service1;
     $("quickReplaceRole").innerHTML='<option value="manager">Менеджер</option><option value="master">Мастер</option>';
     $("quickReplaceRole").value="manager";
+
     refreshQuickReplaceForm();
     $("quickReplaceModal").classList.remove("hidden");
   }
 
-  function closeQuickReplace(){ $("quickReplaceModal").classList.add("hidden"); }
+  function closeQuickReplace(){
+    $("quickReplaceModal").classList.add("hidden");
+    quickReplaceFixedContext=false;
+  }
 
   async function persistQuickReplacement(previousSettings,successText){
     try{
@@ -5485,7 +6598,7 @@ body{min-height:100dvh}
     });
     settings.dayOverrides.sort((a,b)=>a.date.localeCompare(b.date));
 
-    await persistQuickReplacement(previousSettings,`Замена сохранена: ${absent} → ${replacement}`);
+    await persistQuickReplacement(previousSettings,`${absent} заменён на ${replacement}`);
   }
 
   async function removeQuickReplacement(){
@@ -5895,6 +7008,7 @@ body{min-height:100dvh}
   $("closeScheduleManage").onclick=()=>$("scheduleManageModal").classList.add("hidden");
   $("scheduleManageModal").addEventListener("click",e=>{ if(e.target===$("scheduleManageModal")) $("scheduleManageModal").classList.add("hidden"); });
   $("closeQuickReplace").onclick=closeQuickReplace;
+  $("cancelQuickReplace").onclick=closeQuickReplace;
   $("quickReplaceModal").addEventListener("click",e=>{ if(e.target===$("quickReplaceModal")) closeQuickReplace(); });
   $("quickReplaceDate").onchange=refreshQuickReplaceForm;
   $("quickReplaceService").onchange=refreshQuickReplaceForm;
