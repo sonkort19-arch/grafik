@@ -328,6 +328,43 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   .service-device-mode .bottom-inner{grid-template-columns:repeat(2,1fr)!important}
 }
 
+
+/* Рабочий компьютер: упрощённый график своей точки */
+.service-point-schedule{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;box-shadow:var(--shadow)}
+.service-point-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.service-point-head h2{margin:0;color:var(--blue);font-size:21px}
+.service-point-head span{font-size:12px;color:var(--muted)}
+.service-quick-nav{display:grid;grid-template-columns:auto auto 1fr;gap:7px;margin-bottom:10px}
+.service-quick-nav button,.service-quick-nav input{min-height:42px;border:1px solid var(--line);background:#fff;border-radius:11px;padding:8px 10px;font-size:14px}
+.service-quick-nav button{font-weight:850;color:#24344d}
+.service-quick-nav input{width:100%;color:#24344d}
+.service-schedule-scroll{max-height:62vh;overflow:auto;border:1px solid var(--line);border-radius:14px;scroll-behavior:smooth}
+.service-day-row{width:100%;display:grid;grid-template-columns:78px 1fr;gap:10px;align-items:center;border:0;border-bottom:1px solid var(--line);background:#fff;padding:12px;text-align:left}
+.service-day-row:last-child{border-bottom:0}
+.service-day-row:hover{background:#f8fafc}
+.service-day-row.today{background:#eaf2ff}
+.service-day-row.today .service-day-date b{color:var(--blue)}
+.service-day-date{border-right:1px solid var(--line);padding-right:10px}
+.service-day-date b{display:block;font-size:18px;color:#24344d}
+.service-day-date span{display:block;margin-top:2px;font-size:11px;color:var(--muted);text-transform:uppercase}
+.service-day-pair b{display:block;font-size:15px;color:#24344d}
+.service-day-pair span{display:block;margin-top:3px;font-size:12px;color:var(--muted)}
+.service-today-tag{display:inline-block;margin-left:6px;padding:3px 6px;border-radius:999px;background:#0f5bd7;color:#fff;font-size:9px;font-weight:900;vertical-align:2px}
+.service-day-detail{display:grid;gap:9px;margin-top:12px}
+.service-day-detail-row{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.service-day-detail-row small{display:block;color:var(--muted);margin-bottom:4px}
+.service-day-detail-row b{font-size:15px;color:#24344d}
+.service-day-status{border-radius:12px;padding:11px 12px;font-weight:850}
+.service-day-status.ok{background:#ecfdf3;color:#166534}
+.service-day-status.warn{background:#fff7ed;color:#9a3412}
+.service-day-status.bad{background:#fef2f2;color:#991b1b}
+.service-device-mode #monthSubtitle:empty{display:none}
+@media(max-width:620px){
+  .service-quick-nav{grid-template-columns:1fr 1fr}
+  .service-quick-nav input{grid-column:1/-1}
+  .service-day-row{grid-template-columns:68px 1fr}
+}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -605,6 +642,16 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     <div class="employee-picker-grid" id="employeePickerGrid"></div>
     <div class="employee-mode-note">Выбор сотрудника не даёт права открывать смену. Для открытия всё равно нужен компьютер/планшет сервиса и PIN.</div>
     <button class="secondary" id="employeePickerAdmin" style="width:100%;margin-top:12px">Я администратор</button>
+  </div>
+</div>
+
+<div class="modal hidden" id="serviceDayModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2 id="serviceDayTitle">Смена</h2>
+      <button class="close" id="closeServiceDay">×</button>
+    </div>
+    <div class="service-day-detail" id="serviceDayDetail"></div>
   </div>
 </div>
 
@@ -2116,6 +2163,141 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     if(names.includes(prev)) employeeFilter.value=prev;
   }
 
+  function serviceScheduleDateKey(date){
+    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+  }
+
+  function serviceScheduleIndexForDate(dateStr){
+    const [y,m]=dateStr.split("-").map(Number);
+    return (y-Number(settings.startYear))*12 + ((m-1)-Number(settings.startMonth));
+  }
+
+  function jumpServiceScheduleToDate(dateStr){
+    if(!isServiceDeviceMode()) return;
+    const idx=serviceScheduleIndexForDate(dateStr);
+    if(!visibleMonthIndices().includes(idx)){
+      toast("На эту дату график не задан");
+      return;
+    }
+    currentIndex=idx;
+    userSelectedMonth=true;
+    renderMonth();
+    requestAnimationFrame(()=>{
+      const row=document.querySelector(`[data-service-date="${dateStr}"]`);
+      if(row) row.scrollIntoView({behavior:"smooth",block:"center"});
+    });
+  }
+
+  function openServiceDayDetail(dateStr){
+    if(!isServiceDeviceMode()) return;
+    const service=serviceDeviceName();
+    const idx=serviceScheduleIndexForDate(dateStr);
+    const info=monthInfo(idx);
+    const day=Number(dateStr.slice(-2));
+
+    if(!isAnnualScheduleMonth(idx)){
+      $("serviceDayTitle").textContent=`${day} ${info.name.toLowerCase()} ${info.year}`;
+      $("serviceDayDetail").innerHTML='<div class="service-day-status warn">На эту дату годовой график не задан.</div>';
+      $("serviceDayModal").classList.remove("hidden");
+      return;
+    }
+
+    const rows=buildMonthRows(idx);
+    const row=rows.find(r=>r.date.getDate()===day);
+    if(!row) return;
+
+    const key=service===settings.service1 ? "s1" : "s2";
+    const pair=row[key];
+    const date=new Date(info.year,info.month,day);
+    const title=new Intl.DateTimeFormat("ru-RU",{
+      weekday:"long",day:"numeric",month:"long",year:"numeric"
+    }).format(date);
+
+    let statusHtml="";
+    if(dateStr===moscowParts().date){
+      const shift=currentShiftRows.find(x=>x.service===service)||null;
+      if(shift?.closed_at){
+        statusHtml=`<div class="service-day-status ok">Смена закрыта в ${formatMoscowTime(shift.closed_at)} · ${escapeHtml(shift.closed_by||"—")}</div>`;
+      }else if(shift?.opened_at){
+        const cls=(shift.open_late_minutes||0)>0?"warn":"ok";
+        const late=(shift.open_late_minutes||0)>0?` · опоздание ${shift.open_late_minutes} мин`:"";
+        statusHtml=`<div class="service-day-status ${cls}">Смена открыта в ${formatMoscowTime(shift.opened_at)} · ${escapeHtml(shift.opened_by||"—")}${late}</div>`;
+      }else{
+        statusHtml='<div class="service-day-status bad">Смена сегодня ещё не открыта.</div>';
+      }
+    }else{
+      statusHtml='<div class="service-day-status ok">Плановая смена</div>';
+    }
+
+    $("serviceDayTitle").textContent=title;
+    $("serviceDayDetail").innerHTML=`
+      <div class="service-day-detail-row"><small>Менеджер</small><b>${escapeHtml(pair.manager)}</b></div>
+      <div class="service-day-detail-row"><small>Мастер</small><b>${escapeHtml(pair.master)}</b></div>
+      <div class="service-day-detail-row"><small>Время</small><b>${settings.shiftStart}–${settings.shiftEnd}</b></div>
+      ${statusHtml}
+    `;
+    $("serviceDayModal").classList.remove("hidden");
+  }
+
+  function renderServicePointSchedule(rows){
+    const service=serviceDeviceName();
+    const key=service===settings.service1 ? "s1" : "s2";
+    const today=moscowParts().date;
+    const tomorrow=addDaysISO(today,1);
+
+    const wrap=document.createElement("section");
+    wrap.className="service-point-schedule";
+    wrap.innerHTML=`
+      <div class="service-point-head">
+        <div>
+          <h2>График ${escapeHtml(service)}</h2>
+          <span>Нажмите на день, чтобы посмотреть детали</span>
+        </div>
+      </div>
+      <div class="service-quick-nav">
+        <button type="button" id="serviceJumpToday">Сегодня</button>
+        <button type="button" id="serviceJumpTomorrow">Завтра</button>
+        <input type="date" id="serviceJumpDate" aria-label="Выбрать дату">
+      </div>
+      <div class="service-schedule-scroll" id="serviceScheduleScroll"></div>
+    `;
+
+    const list=wrap.querySelector("#serviceScheduleScroll");
+    list.innerHTML=rows.map(r=>{
+      const pair=r[key];
+      const dateKey=serviceScheduleDateKey(r.date);
+      const isToday=dateKey===today;
+      return `<button type="button" class="service-day-row ${isToday?"today":""}" data-service-date="${dateKey}">
+        <div class="service-day-date">
+          <b>${r.date.getDate()}${isToday?'<span class="service-today-tag">Сегодня</span>':""}</b>
+          <span>${WD[r.date.getDay()]}</span>
+        </div>
+        <div class="service-day-pair">
+          <b>${escapeHtml(pair.manager)} + ${escapeHtml(pair.master)}</b>
+          <span>Менеджер + мастер</span>
+        </div>
+      </button>`;
+    }).join("");
+
+    wrap.querySelector("#serviceJumpToday").onclick=()=>jumpServiceScheduleToDate(today);
+    wrap.querySelector("#serviceJumpTomorrow").onclick=()=>jumpServiceScheduleToDate(tomorrow);
+    wrap.querySelector("#serviceJumpDate").onchange=e=>{
+      if(e.target.value) jumpServiceScheduleToDate(e.target.value);
+    };
+    list.querySelectorAll("[data-service-date]").forEach(btn=>{
+      btn.onclick=()=>openServiceDayDetail(btn.dataset.serviceDate);
+    });
+
+    requestAnimationFrame(()=>{
+      const todayRow=list.querySelector(`[data-service-date="${today}"]`);
+      if(todayRow && currentIndex===getCurrentMonthIndex()){
+        todayRow.scrollIntoView({behavior:"auto",block:"center"});
+      }
+    });
+
+    return wrap;
+  }
+
   function renderMonth(){
     renderSelectors();
     const info=monthInfo(currentIndex);
@@ -2128,10 +2310,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     if(inPlan){
       const rows=buildMonthRows(currentIndex);
       if(isServiceDeviceMode()){
-        const service=serviceDeviceName();
-        const key=service===settings.service1 ? "s1" : "s2";
-        $("monthSubtitle").textContent=`${service} • ${settings.shiftStart}–${settings.shiftEnd}`;
-        root.appendChild(serviceCard(service,key,rows));
+        $("monthSubtitle").textContent="";
+        root.appendChild(renderServicePointSchedule(rows));
         $("summaryChips").innerHTML="";
         $("monthSummary").classList.add("hidden");
         $("monthActions").classList.add("hidden");
@@ -2153,13 +2333,20 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       $("monthSubtitle").textContent=current
         ? `Текущий месяц • годовой график: ${annualPeriodText()}`
         : `Месяц вне годового графика • план: ${annualPeriodText()}`;
-      root.innerHTML=`<div class="outside-plan">
-        ${current ? '<div class="current-badge">ТЕКУЩИЙ МЕСЯЦ</div>' : ''}
-        <h3>${escapeHtml(info.name)} ${info.year}</h3>
-        <p>Этот месяц не входит в годовой график.</p>
-        <p><b>Годовой график начинается с ${escapeHtml(monthInfo(0).name)} ${monthInfo(0).year}.</b></p>
-        <p>Блок <b>«Сегодня»</b> выше продолжает работать: смену можно открыть, закрыть и посмотреть её состояние.</p>
-      </div>`;
+      root.innerHTML=isServiceDeviceMode()
+        ? `<div class="outside-plan">
+            ${current ? '<div class="current-badge">ТЕКУЩИЙ МЕСЯЦ</div>' : ''}
+            <h3>${escapeHtml(info.name)} ${info.year}</h3>
+            <p>На этот месяц график точки ещё не задан.</p>
+            <p><b>График начинается с ${escapeHtml(monthInfo(0).name)} ${monthInfo(0).year}.</b></p>
+          </div>`
+        : `<div class="outside-plan">
+            ${current ? '<div class="current-badge">ТЕКУЩИЙ МЕСЯЦ</div>' : ''}
+            <h3>${escapeHtml(info.name)} ${info.year}</h3>
+            <p>Этот месяц не входит в годовой график.</p>
+            <p><b>Годовой график начинается с ${escapeHtml(monthInfo(0).name)} ${monthInfo(0).year}.</b></p>
+            <p>Блок <b>«Сегодня»</b> выше продолжает работать: смену можно открыть, закрыть и посмотреть её состояние.</p>
+          </div>`;
       $("summaryChips").innerHTML="";
       $("monthSummary").classList.add("hidden");
       $("monthActions").classList.add("hidden");
@@ -2571,6 +2758,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   $("pairDeviceBtn").onclick=pairCurrentDevice;
   $("enablePushBtn").onclick=enablePush;
   $("adminBtn").onclick=()=>{ if(isAdmin()) switchTab("settings"); else openLoginModal(); };
+  $("closeServiceDay").onclick=()=>$("serviceDayModal").classList.add("hidden");
+  $("serviceDayModal").addEventListener("click",e=>{ if(e.target===$("serviceDayModal")) $("serviceDayModal").classList.add("hidden"); });
   $("closePersonal").onclick=()=>$("personalModal").classList.add("hidden");
   $("personalModal").addEventListener("click",e=>{ if(e.target===$("personalModal")) $("personalModal").classList.add("hidden"); });
   $("copyPhotoBtn").onclick=copyPhoto;
