@@ -401,6 +401,21 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   .history-custom-range,.history-filters-clean{grid-template-columns:1fr}
 }
 
+
+/* Напоминания сотруднику */
+.employee-reminder-card{border:1px solid var(--line);border-radius:16px;padding:13px;background:#fff;margin-bottom:12px}
+.employee-reminder-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.employee-reminder-head b{display:block;color:#24344d;font-size:15px}
+.employee-reminder-state{font-size:12px;color:var(--muted);line-height:1.45;margin-top:5px}
+.employee-reminder-times{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.employee-reminder-times span{border:1px solid var(--line);background:#f8fafc;border-radius:999px;padding:6px 8px;font-size:11px;font-weight:800;color:#42526a}
+.employee-reminder-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}
+.employee-reminder-actions button:only-child{grid-column:1/-1}
+.employee-reminder-ok{color:#166534!important}
+.employee-reminder-warn{color:#9a6700!important}
+.employee-reminder-bad{color:#b42318!important}
+@media(max-width:520px){.employee-reminder-actions{grid-template-columns:1fr}}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -455,6 +470,23 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       <div class="section">
         <div class="employee-my-head">
           <div><h2>Мой график</h2></div>
+        </div>
+        <div class="employee-reminder-card" id="employeeReminderCard">
+          <div class="employee-reminder-head">
+            <div>
+              <b>Напоминания о работе</b>
+              <div class="employee-reminder-state" id="employeeReminderState">Проверяем уведомления…</div>
+            </div>
+          </div>
+          <div class="employee-reminder-times">
+            <span>Вечером в 20:00</span>
+            <span>За 1 час</span>
+            <span>За 15 минут</span>
+          </div>
+          <div class="employee-reminder-actions">
+            <button class="primary" id="enableEmployeeReminders">Включить напоминания</button>
+            <button class="secondary hidden" id="disableEmployeeReminders">Выключить</button>
+          </div>
         </div>
         <div class="employee-shift-list" id="employeeShiftList"></div>
       </div>
@@ -786,6 +818,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   const DEVICE_KEY_DB = "ma_shift_device_keys_v1";
   const DEVICE_KEY_STORE = "keys";
   const EMPLOYEE_STORAGE_KEY = "ma_employee_name_v1";
+  const EMPLOYEE_PUSH_NAME_KEY = "ma_employee_push_name_v1";
   const SYNC_INTERVAL_MS = 30000;
   const SHIFT_TABLE = "ma_shifts";
   const SHIFT_FUNCTION_URL = SUPABASE_URL + "/functions/v1/ma-shifts";
@@ -976,6 +1009,16 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     try{
       if(name) localStorage.setItem(EMPLOYEE_STORAGE_KEY,name);
       else localStorage.removeItem(EMPLOYEE_STORAGE_KEY);
+    }catch(e){}
+  }
+
+  function employeePushName(){
+    try{ return localStorage.getItem(EMPLOYEE_PUSH_NAME_KEY)||""; }catch(e){ return ""; }
+  }
+  function saveEmployeePushName(name){
+    try{
+      if(name) localStorage.setItem(EMPLOYEE_PUSH_NAME_KEY,name);
+      else localStorage.removeItem(EMPLOYEE_PUSH_NAME_KEY);
     }catch(e){}
   }
   function selectedEmployee(){
@@ -1800,6 +1843,125 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     }catch(e){ console.error(e); toast(e.message||"Не удалось включить push"); }
   }
 
+
+  async function updateEmployeeReminderState(){
+    const state=$("employeeReminderState");
+    const enable=$("enableEmployeeReminders");
+    const disable=$("disableEmployeeReminders");
+    if(!state||!enable||!disable) return;
+
+    const name=selectedEmployee();
+    if(!name){
+      state.textContent="Сначала выбери сотрудника.";
+      state.className="employee-reminder-state employee-reminder-warn";
+      enable.disabled=true;
+      disable.classList.add("hidden");
+      return;
+    }
+
+    const standalone=window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true;
+    if(!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)){
+      state.textContent="На этом телефоне push-уведомления недоступны.";
+      state.className="employee-reminder-state employee-reminder-bad";
+      enable.disabled=true;
+      disable.classList.add("hidden");
+      return;
+    }
+
+    if(Notification.permission==="denied"){
+      state.textContent="Уведомления запрещены в настройках телефона.";
+      state.className="employee-reminder-state employee-reminder-bad";
+      enable.disabled=true;
+      disable.classList.add("hidden");
+      return;
+    }
+
+    const reg=serviceWorkerRegistration || await registerServiceWorker();
+    const sub=reg ? await reg.pushManager.getSubscription() : null;
+    const linked=employeePushName();
+
+    if(sub && Notification.permission==="granted" && linked===name){
+      state.textContent=`Включены для ${name}. Напомним вечером, за 1 час и за 15 минут до смены.`;
+      state.className="employee-reminder-state employee-reminder-ok";
+      enable.textContent="Напоминания включены";
+      enable.disabled=true;
+      disable.classList.remove("hidden");
+      return;
+    }
+
+    enable.disabled=false;
+    disable.classList.add("hidden");
+    enable.textContent=linked && linked!==name ? `Переключить на ${name}` : "Включить напоминания";
+
+    if(linked && linked!==name){
+      state.textContent=`Этот телефон сейчас подписан на напоминания для ${linked}.`;
+      state.className="employee-reminder-state employee-reminder-warn";
+    }else if(!standalone && /iPhone|iPad|iPod/i.test(navigator.userAgent)){
+      state.textContent="На iPhone сначала добавь приложение на экран «Домой», открой его оттуда и нажми «Включить».";
+      state.className="employee-reminder-state employee-reminder-warn";
+    }else{
+      state.textContent="Выключены. Нажми «Включить напоминания» один раз.";
+      state.className="employee-reminder-state";
+    }
+  }
+
+  async function enableEmployeeReminders(){
+    const name=selectedEmployee();
+    if(!name){ openEmployeePicker(); return; }
+    if(!("Notification" in window)){ toast("На этом телефоне уведомления недоступны"); return; }
+
+    try{
+      const perm=await Notification.requestPermission();
+      if(perm!=="granted") throw new Error("Уведомления не разрешены");
+
+      const reg=serviceWorkerRegistration || await registerServiceWorker();
+      if(!reg) throw new Error("Не удалось запустить уведомления");
+
+      let sub=await reg.pushManager.getSubscription();
+      if(!sub){
+        sub=await reg.pushManager.subscribe({
+          userVisibleOnly:true,
+          applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      }
+
+      await shiftFunction({
+        op:"subscribe-employee",
+        employee:name,
+        subscription:sub.toJSON()
+      });
+
+      saveEmployeePushName(name);
+      await updateEmployeeReminderState();
+      toast(`Напоминания для ${name} включены`);
+    }catch(e){
+      console.error(e);
+      toast(e.message||"Не удалось включить напоминания");
+      await updateEmployeeReminderState();
+    }
+  }
+
+  async function disableEmployeeReminders(){
+    const reg=serviceWorkerRegistration || await registerServiceWorker();
+    const sub=reg ? await reg.pushManager.getSubscription() : null;
+    try{
+      if(sub){
+        await shiftFunction({
+          op:"unsubscribe-employee",
+          employee:employeePushName()||selectedEmployee(),
+          endpoint:sub.endpoint
+        });
+        await sub.unsubscribe();
+      }
+      saveEmployeePushName("");
+      toast("Напоминания выключены");
+    }catch(e){
+      console.error(e);
+      toast(e.message||"Не удалось выключить напоминания");
+    }
+    await updateEmployeeReminderState();
+  }
+
   function monthStartISO(dateStr){
     const [y,m]=dateStr.split("-").map(Number);
     return `${y}-${String(m).padStart(2,"0")}-01`;
@@ -2360,6 +2522,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     renderEmployeeToday();
     renderEmployeeMySchedule();
     renderEmployeeCalendar();
+    updateEmployeeReminderState();
   }
 
   function renderSelectors(){
@@ -3093,6 +3256,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   $("savePinsBtn").onclick=saveManagerPins;
   $("pairDeviceBtn").onclick=pairCurrentDevice;
   $("enablePushBtn").onclick=enablePush;
+  $("enableEmployeeReminders").onclick=enableEmployeeReminders;
+  $("disableEmployeeReminders").onclick=disableEmployeeReminders;
   $("adminBtn").onclick=()=>{ if(isAdmin()) switchTab("settings"); else openLoginModal(); };
   $("closeServiceDay").onclick=()=>$("serviceDayModal").classList.add("hidden");
   $("serviceDayModal").addEventListener("click",e=>{ if(e.target===$("serviceDayModal")) $("serviceDayModal").classList.add("hidden"); });
