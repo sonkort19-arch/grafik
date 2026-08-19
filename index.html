@@ -618,9 +618,21 @@ body{min-height:100dvh}
 .employee-admin-card b{display:block;font-size:15px;color:#24344d}
 .employee-admin-card span{display:block;margin-top:3px;font-size:12px;color:var(--muted);line-height:1.4}
 .employee-admin-card button{min-width:105px}
-.employee-schedule-warning{margin-bottom:12px;padding:11px 12px;border-radius:13px;border:1px solid var(--line);font-size:12px;line-height:1.45}
-.employee-schedule-warning.ok{background:#ecfdf3;color:#166534;border-color:#bbf7d0}
-.employee-schedule-warning.bad{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+.employee-main-note{margin-bottom:12px}
+.employee-schedule-warning{margin-bottom:12px;padding:10px 12px;border-radius:13px;border:1px solid var(--line);font-size:12px;line-height:1.45}
+.employee-schedule-warning.bad{background:#fffaf0;color:#8a4b08;border-color:#f6d79a}
+.employee-warning-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.employee-warning-head b{display:block;font-size:13px;color:#7c3f05}
+.employee-warning-head span{display:block;margin-top:2px;color:#9a670f}
+.employee-warning-toggle{flex:0 0 auto;padding:7px 11px!important;min-height:auto!important;font-size:12px!important}
+.employee-warning-details{margin-top:9px;padding-top:8px;border-top:1px solid #f3dfb5}
+.employee-warning-details div+div{margin-top:4px}
+.inactive-employees{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.inactive-employees h3{margin:0 0 8px;font-size:13px;color:var(--muted)}
+.inactive-employee-list{display:grid;gap:7px}
+.inactive-employee-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}
+.inactive-employee-row b{display:block;font-size:13px;color:#5b6575}
+.inactive-employee-row span{display:block;margin-top:2px;font-size:11px;color:var(--muted)}
 .employee-preview{display:flex;gap:6px;overflow-x:auto;padding:3px 0 4px;scrollbar-width:none}
 .employee-preview::-webkit-scrollbar{display:none}
 .employee-preview-day{flex:0 0 72px;border:1px solid var(--line);border-radius:11px;padding:8px 6px;text-align:center;background:#f8fafc}
@@ -781,15 +793,19 @@ body{min-height:100dvh}
     <section id="employeesPage" class="hidden">
       <div class="section">
         <h2>Сотрудники</h2>
-        <div class="notice" style="margin-bottom:8px">У каждого сотрудника свой график. Точки Моба и Нова меняются автоматически каждые <b id="employeeServiceBlockLabel">14</b> дней.</div>
-        <div class="notice" style="margin-bottom:12px">Новая личная логика действует с <b id="individualScheduleFromLabel">—</b>. Даты до неё остаются по старому графику.</div>
+        <div class="notice employee-main-note">У каждого свой график. Моба ↔ Нова меняются каждые <b id="employeeServiceBlockLabel">14</b> дней.</div>
         <div id="employeeScheduleWarning"></div>
         <div class="employee-admin-list" id="employeeAdminList"></div>
+
+        <div class="inactive-employees hidden" id="inactiveEmployeesWrap">
+          <h3>Больше не работают</h3>
+          <div class="inactive-employee-list" id="inactiveEmployeeList"></div>
+        </div>
       </div>
 
       <div class="section">
         <h2>Постоянные изменения</h2>
-        <div class="notice">Если новый сотрудник уже есть — укажи его имя и нажми «Заменить». Если пока никого нет — выбери сотрудника и нажми «Сотрудник ушёл».</div>
+        <div class="notice">Есть замена — введи имя. Сотрудник уволился и замены пока нет — нажми «Сотрудник ушёл».</div>
         <div class="change-form" style="margin-top:10px">
           <div class="field"><label>С какой даты</label><input type="date" id="changeDate"></div>
           <div class="field"><label>Сотрудник</label><select id="changeOld"></select></div>
@@ -3794,10 +3810,11 @@ body{min-height:100dvh}
   function renderEmployeesPage(){
     const root=$("employeeAdminList");
     const warning=$("employeeScheduleWarning");
+    const inactiveWrap=$("inactiveEmployeesWrap");
+    const inactiveRoot=$("inactiveEmployeeList");
     if(!root || !warning) return;
 
     if($("employeeServiceBlockLabel")) $("employeeServiceBlockLabel").textContent=settings.serviceBlockDays;
-    if($("individualScheduleFromLabel")) $("individualScheduleFromLabel").textContent=settings.individualScheduleFrom;
 
     const today=moscowParts().date;
     const [y,m,d]=today.split("-").map(Number);
@@ -3810,11 +3827,23 @@ body{min-height:100dvh}
       return a.slot-b.slot;
     });
 
-    root.innerHTML=employees.map(emp=>{
-      const leftChange=(settings.staffChanges||[])
+    function currentLeftChange(emp){
+      return (settings.staffChanges||[])
         .filter(x=>x.type==="left" && x.oldName===emp.name && x.date<=today)
         .sort((a,b)=>a.date.localeCompare(b.date))
         .slice(-1)[0]||null;
+    }
+
+    const activeEmployees=[];
+    const inactiveEmployees=[];
+
+    employees.forEach(emp=>{
+      const leftChange=currentLeftChange(emp);
+      if(leftChange) inactiveEmployees.push({emp,leftChange});
+      else activeEmployees.push(emp);
+    });
+
+    root.innerHTML=activeEmployees.map(emp=>{
       let works=false,service="";
       for(const item of [
         {service:settings.service1,pair:todayBase.s1},
@@ -3825,11 +3854,12 @@ body{min-height:100dvh}
           service=item.service;
         }
       }
+
       return `<div class="employee-admin-card">
         <div>
           <b>${escapeHtml(emp.name)}</b>
-          <span>${roleLabel(emp.role)} · график ${emp.workDays}/${emp.offDays}</span>
-          <span>${leftChange?`Больше не работает с ${escapeHtml(leftChange.date)}`:(works?`Сегодня работает · ${escapeHtml(service)}`:"Сегодня выходной")} · точки меняются каждые ${settings.serviceBlockDays} дней</span>
+          <span>${roleLabel(emp.role)} · ${emp.workDays}/${emp.offDays}</span>
+          <span>${works?`Сегодня работает · ${escapeHtml(service)}`:"Сегодня выходной"}</span>
         </div>
         <button class="secondary" data-edit-employee="${escapeHtml(emp.id)}">Изменить</button>
       </div>`;
@@ -3839,17 +3869,63 @@ body{min-height:100dvh}
       btn.onclick=()=>openEmployeeScheduleEditor(btn.dataset.editEmployee);
     });
 
+    if(inactiveWrap && inactiveRoot){
+      if(inactiveEmployees.length){
+        inactiveWrap.classList.remove("hidden");
+        inactiveRoot.innerHTML=inactiveEmployees.map(({emp,leftChange})=>`
+          <div class="inactive-employee-row">
+            <div>
+              <b>${escapeHtml(emp.name)}</b>
+              <span>${roleLabel(emp.role)} · больше не работает с ${escapeHtml(leftChange.date)}</span>
+            </div>
+          </div>`).join("");
+      }else{
+        inactiveWrap.classList.add("hidden");
+        inactiveRoot.innerHTML="";
+      }
+    }
+
     const problems=employeeScheduleConflicts(30);
     if(!problems.length){
-      warning.className="employee-schedule-warning ok";
-      warning.innerHTML="<b>График собран правильно.</b> На ближайшие 30 дней в каждой точке есть один менеджер и один мастер.";
+      warning.className="";
+      warning.innerHTML="";
     }else{
-      const first=problems.slice(0,4).map(p=>{
-        const detail=p.count===0?"никто не назначен":`${p.count} сотрудника одновременно`;
-        return `${p.date} · ${escapeHtml(p.service)} · ${p.role}: ${detail}`;
-      }).join("<br>");
+      const affectedShifts=new Set(problems.map(p=>`${p.date}|${p.service}`)).size;
+      const missing=problems.filter(p=>p.count===0).length;
+      const overlaps=problems.filter(p=>p.count>1).length;
+
+      const details=problems.slice(0,10).map(p=>{
+        const detail=p.count===0?"не назначен":`${p.count} одновременно`;
+        return `<div>${escapeHtml(p.date)} · ${escapeHtml(p.service)} · ${escapeHtml(p.role)}: <b>${detail}</b></div>`;
+      }).join("");
+
+      const summaryParts=[];
+      if(missing) summaryParts.push(`нет сотрудника: ${missing}`);
+      if(overlaps) summaryParts.push(`пересечение: ${overlaps}`);
+
       warning.className="employee-schedule-warning bad";
-      warning.innerHTML=`<b>Нужно проверить график.</b><br>${first}${problems.length>4?`<br>И ещё: ${problems.length-4}`:""}`;
+      warning.innerHTML=`
+        <div class="employee-warning-head">
+          <div>
+            <b>График требует внимания: ${affectedShifts} смен</b>
+            <span>${summaryParts.join(" · ")}</span>
+          </div>
+          <button class="secondary employee-warning-toggle" id="employeeWarningToggle" type="button">Показать</button>
+        </div>
+        <div class="employee-warning-details hidden" id="employeeWarningDetails">
+          ${details}
+          ${problems.length>10?`<div>И ещё: ${problems.length-10}</div>`:""}
+        </div>`;
+
+      const toggle=$("employeeWarningToggle");
+      const detailRoot=$("employeeWarningDetails");
+      if(toggle && detailRoot){
+        toggle.onclick=()=>{
+          const willShow=detailRoot.classList.contains("hidden");
+          detailRoot.classList.toggle("hidden");
+          toggle.textContent=willShow?"Скрыть":"Показать";
+        };
+      }
     }
 
     renderScheduleEditLists();
@@ -3867,7 +3943,7 @@ body{min-height:100dvh}
     $("employeeOffDays").value=emp.offDays;
     $("employeeScheduleStart").value=emp.cycleStart||settings.anchorDate;
     $("employeeSchedulePreset").value=presetForCycle(emp.workDays,emp.offDays);
-    $("employeePointRule").innerHTML=`Точки: <b>${escapeHtml(settings.service1)} ↔ ${escapeHtml(settings.service2)}</b> каждые <b>${settings.serviceBlockDays} дней</b>. Личный график действует с <b>${escapeHtml(settings.individualScheduleFrom)}</b>.`;
+    $("employeePointRule").innerHTML=`Точки: <b>${escapeHtml(settings.service1)} ↔ ${escapeHtml(settings.service2)}</b> каждые <b>${settings.serviceBlockDays} дней</b>.`;
     renderEmployeeSchedulePreview();
     $("employeeScheduleModal").classList.remove("hidden");
   }
