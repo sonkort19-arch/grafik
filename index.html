@@ -620,6 +620,30 @@ body{min-height:100dvh}
 .schedule-problem-row b{font-size:12px}
 .schedule-problem-row span{display:block;margin-top:2px;font-size:11px;color:var(--muted)}
 .schedule-problem-fix{padding:7px 10px!important;font-size:11px!important;white-space:nowrap}
+
+/* Нагрузка сотрудников за выбранный месяц */
+.schedule-workload-card{
+  margin:10px 0 14px;background:#fff;border:1px solid var(--line);
+  border-radius:16px;padding:12px;box-shadow:var(--shadow)
+}
+.schedule-workload-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:9px}
+.schedule-workload-head h3{margin:0;color:var(--blue);font-size:17px}
+.schedule-workload-head span{font-size:11px;color:var(--muted);text-align:right}
+.schedule-workload-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.workload-table{width:100%;min-width:500px;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.workload-table th,.workload-table td{padding:9px 10px;border-bottom:1px solid var(--line);font-size:12px;text-align:center}
+.workload-table th{background:var(--blue2);color:#31435d;font-size:11px}
+.workload-table th:first-child,.workload-table td:first-child{text-align:left}
+.workload-table tr:last-child td{border-bottom:0}
+.workload-table .employee-name{font-weight:800;color:#24324a}
+.workload-table .employee-role{display:block;margin-top:2px;font-size:10px;font-weight:600;color:var(--muted)}
+.workload-table .total-shifts{font-weight:900;color:var(--blue);font-size:14px}
+@media(max-width:520px){
+  .schedule-workload-card{padding:10px}
+  .schedule-workload-head{align-items:flex-start;flex-direction:column}
+  .schedule-workload-head span{text-align:left}
+}
+
 .schedule tbody tr.manageable{cursor:pointer}
 .schedule tbody tr.manageable:hover td{background:#f4f8ff}
 .schedule tbody tr.has-problem td{background:#fff8dc}
@@ -779,6 +803,14 @@ body{min-height:100dvh}
         </div>
         <div class="schedule-problem-details hidden" id="scheduleProblemDetails"></div>
       </div>
+
+      <section class="schedule-workload-card hidden" id="scheduleWorkloadCard">
+        <div class="schedule-workload-head">
+          <h3>Нагрузка за месяц</h3>
+          <span id="scheduleWorkloadLabel">—</span>
+        </div>
+        <div class="schedule-workload-scroll" id="scheduleWorkloadTable"></div>
+      </section>
 
       <div id="servicesRoot"></div>
       <div class="actions" id="monthActions">
@@ -1167,7 +1199,7 @@ body{min-height:100dvh}
     shiftStart: "08:00",
     shiftEnd: "22:00",
     managers: [["Сергей","Арсен"],["Дина","Амалия"]],
-    masters: [["Олег","Аслан"],["Ислам","Георгий"]],
+    masters: [["Олег","Асик"],["Ислам","Георгий"]],
     staffChanges: [],
     dayOverrides: []
   };
@@ -1846,7 +1878,7 @@ body{min-height:100dvh}
         }));
 
       merged.employeeSchedules.forEach(emp=>{
-        if(emp.name==="Асик") emp.name="Аслан";
+        if(emp.name==="Аслан") emp.name="Асик";
       });
 
       const roles={manager:merged.employeeSchedules.filter(x=>x.role==="manager"),master:merged.employeeSchedules.filter(x=>x.role==="master")};
@@ -1856,13 +1888,13 @@ body{min-height:100dvh}
     }
 
     (merged.employeeSchedules||[]).forEach(emp=>{
-      if(emp.name==="Асик") emp.name="Аслан";
+      if(emp.name==="Аслан") emp.name="Асик";
     });
     if(Array.isArray(merged.managers)){
-      merged.managers=merged.managers.map(pair=>pair.map(n=>n==="Асик"?"Аслан":n));
+      merged.managers=merged.managers.map(pair=>pair.map(n=>n==="Аслан"?"Асик":n));
     }
     if(Array.isArray(merged.masters)){
-      merged.masters=merged.masters.map(pair=>pair.map(n=>n==="Асик"?"Аслан":n));
+      merged.masters=merged.masters.map(pair=>pair.map(n=>n==="Аслан"?"Асик":n));
     }
 
     syncLegacyTeamsFromEmployees(merged);
@@ -1876,8 +1908,8 @@ body{min-height:100dvh}
         return {
           id:x.id||(`chg-${Date.now()}-${Math.random().toString(36).slice(2)}`),
           date:String(x.date),
-          oldName:String(x.oldName)==="Асик"?"Аслан":String(x.oldName),
-          newName:isLeft?"":(rawNew==="Асик"?"Аслан":rawNew),
+          oldName:String(x.oldName)==="Аслан"?"Асик":String(x.oldName),
+          newName:isLeft?"":(rawNew==="Аслан"?"Асик":rawNew),
           type:isLeft?"left":"replace"
         };
       })
@@ -1894,11 +1926,11 @@ body{min-height:100dvh}
         return {
           id:x.id||(`chg-${Date.now()}-${Math.random().toString(36).slice(2)}`),
           date:String(x.date),serviceKey,service,
-          manager:String(x.manager)==="Асик"?"Аслан":String(x.manager),
-          master:String(x.master)==="Асик"?"Аслан":String(x.master),
+          manager:String(x.manager)==="Аслан"?"Асик":String(x.manager),
+          master:String(x.master)==="Аслан"?"Асик":String(x.master),
           reason:x.reason?String(x.reason):"",
           replacedRole:x.replacedRole==="master"?"master":(x.replacedRole==="manager"?"manager":""),
-          replacedName:x.replacedName?(String(x.replacedName)==="Асик"?"Аслан":String(x.replacedName)):""
+          replacedName:x.replacedName?(String(x.replacedName)==="Аслан"?"Асик":String(x.replacedName)):""
         };
       })
       .sort((a,b)=>a.date.localeCompare(b.date));
@@ -2335,7 +2367,7 @@ body{min-height:100dvh}
           <div class="startup-shift-person"><span>Мастер</span><b>${escapeHtml(expected.master||"—")}</b></div>
           <div class="startup-shift-person"><span>Смена</span><b>${escapeHtml(settings.shiftStart)}–${escapeHtml(settings.shiftEnd)}</b></div>
         </div>
-        <div class="startup-shift-status ok">В воскресенье в ${escapeHtml(settings.service2)} менеджер не требуется. Открывать смену по PIN не нужно.</div>
+        <div class="startup-shift-status ok">В субботу и воскресенье в ${escapeHtml(settings.service2)} менеджер не требуется. Открывать смену по PIN не нужно.</div>
         <button class="startup-shift-close" id="startupCloseWindow">Закрыть окно</button>`;
       const closeBtn=$("startupCloseWindow");
       if(closeBtn) closeBtn.onclick=closeStartupShiftWindow;
@@ -3492,7 +3524,7 @@ body{min-height:100dvh}
     const masters=[...new Set(active.filter(x=>x.role==="master").map(x=>x.name))];
 
     const managerReady=sameRoster(managers,["Сергей","Арсен","Дина"]);
-    const masterReady=sameRoster(masters,["Олег","Ислам","Георгий","Аслан"]);
+    const masterReady=sameRoster(masters,["Олег","Ислам","Георгий","Асик"]);
 
     if(!managerReady && !masterReady) return null;
 
@@ -3509,9 +3541,9 @@ body{min-height:100dvh}
     const managerOff=["Дина","Арсен","Сергей"][mod(days,3)];
 
     const managerBlocks=[
-      {s1:"Сергей",s2:"Арсен",reserve:"Дина"},
-      {s1:"Дина",s2:"Сергей",reserve:"Арсен"},
-      {s1:"Арсен",s2:"Дина",reserve:"Сергей"}
+      {s1:"Арсен",s2:"Сергей",reserve:"Дина"},
+      {s1:"Дина",s2:"Арсен",reserve:"Сергей"},
+      {s1:"Сергей",s2:"Дина",reserve:"Арсен"}
     ];
 
     const managerPlan=managerBlocks[mod(block,3)];
@@ -3537,13 +3569,13 @@ body{min-height:100dvh}
       const phase=mod(days,4);
 
       const teamA=["Олег","Георгий"];
-      const teamB=["Ислам","Аслан"];
+      const teamB=["Ислам","Асик"];
 
       const workingA=(phase===0 || phase===1) ? "Олег" : "Георгий";
       const offA=workingA==="Олег" ? "Георгий" : "Олег";
 
-      const workingB=(phase===0 || phase===1) ? "Аслан" : "Ислам";
-      const offB=workingB==="Ислам" ? "Аслан" : "Ислам";
+      const workingB=(phase===0 || phase===1) ? "Асик" : "Ислам";
+      const offB=workingB==="Ислам" ? "Асик" : "Ислам";
 
       if(mod(block,2)===0){
         masterS1=workingA;
@@ -3589,9 +3621,31 @@ body{min-height:100dvh}
     return !!(state && (role==="manager"?state.managerReady:state.masterReady));
   }
 
-  function isNovaSundayRule(date,serviceName=settings.service2){
+  function isNovaWeekendRule(date,serviceName=settings.service2){
     const d=date instanceof Date ? date : dateObjectFromKey(String(date));
-    return serviceName===settings.service2 && d.getDay()===0;
+    return serviceName===settings.service2 && (d.getDay()===0 || d.getDay()===6);
+  }
+
+  function novaWeekendMasters(date){
+    const d=date instanceof Date ? date : dateObjectFromKey(String(date));
+    const anchor=new Date(2026,7,1); // 01.08.2026 — суббота
+    const weekIndex=Math.floor(dateDiffDays(anchor,d)/7);
+    const saturday=d.getDay()===6;
+
+    // Каждые выходные Георгий и Асик делят субботу/воскресенье,
+    // а на следующей неделе меняются днями, чтобы было справедливо.
+    let novaMaster;
+    if(mod(weekIndex,2)===0){
+      novaMaster=saturday ? "Георгий" : "Асик";
+    }else{
+      novaMaster=saturday ? "Асик" : "Георгий";
+    }
+
+    // Чтобы один мастер не оказался одновременно в двух точках:
+    // если в Нове Георгий — в Мобе Олег;
+    // если в Нове Асик — в Мобе Ислам.
+    const mobaMaster=novaMaster==="Георгий" ? "Олег" : "Ислам";
+    return {novaMaster,mobaMaster};
   }
 
   function isNoManagerValue(value){
@@ -3621,11 +3675,24 @@ body{min-height:100dvh}
       base.s2.masterNames=[state.master.s2];
     }
 
-    // По воскресеньям в Нове работает только один мастер, без менеджера.
-    if(isNovaSundayRule(date,settings.service2)){
+    // По субботам и воскресеньям в Нове:
+    // только Георгий или Асик, без менеджера.
+    if(isNovaWeekendRule(date,settings.service2)){
+      const weekend=novaWeekendMasters(date);
+
       base.s2.manager="Без менеджера";
       base.s2.managerCount=0;
       base.s2.managerNames=[];
+
+      base.s2.master=weekend.novaMaster;
+      base.s2.masterCount=1;
+      base.s2.masterNames=[weekend.novaMaster];
+
+      // В Мобе в этот день ставим сильного мастера,
+      // чтобы никто не оказался одновременно на двух точках.
+      base.s1.master=weekend.mobaMaster;
+      base.s1.masterCount=1;
+      base.s1.masterNames=[weekend.mobaMaster];
     }
 
     return base;
@@ -3716,7 +3783,7 @@ body{min-height:100dvh}
       }else if(state.cls==="wait"){
         shiftText=`Смена начинается в ${settings.shiftStart}`;
       }else if(state.cls==="solo"){
-        shiftText="Воскресенье: менеджер не требуется";
+        shiftText="Выходной день Новы: менеджер не требуется";
       }
 
       work.className="employee-main-status work";
@@ -4101,7 +4168,7 @@ body{min-height:100dvh}
         $("monthActions").classList.add("hidden");
         $("monthPhotoNotice").classList.add("hidden");
       }else{
-        $("monthSubtitle").textContent=`Смена ${settings.shiftStart}–${settings.shiftEnd} • по воскресеньям в ${settings.service2} работает только мастер`;
+        $("monthSubtitle").textContent=`Смена ${settings.shiftStart}–${settings.shiftEnd} • по субботам и воскресеньям в ${settings.service2} работают только Георгий или Асик`;
         root.appendChild(serviceCard(settings.service1,"s1",rows));
         root.appendChild(serviceCard(settings.service2,"s2",rows));
         $("monthActions").classList.remove("hidden");
@@ -4130,6 +4197,7 @@ body{min-height:100dvh}
     }
 
     renderScheduleAdminTools();
+    renderMonthlyWorkload();
     if(!$("adminTodayPage").classList.contains("hidden")) renderTodayShifts();
   }
 
@@ -4145,6 +4213,98 @@ body{min-height:100dvh}
 
   function scheduleValueCount(value){
     return scheduleValueNames(value).length;
+  }
+
+  function monthlyWorkloadData(monthIndex){
+    const rows=buildMonthRows(monthIndex);
+    const map=new Map();
+
+    function add(role,name,service){
+      if(!name || name==="Не назначен" || isNoManagerValue(name)) return;
+      const key=`${role}|${name}`;
+      if(!map.has(key)){
+        map.set(key,{
+          role,
+          name,
+          total:0,
+          s1:0,
+          s2:0
+        });
+      }
+      const item=map.get(key);
+      item.total+=1;
+      if(service===settings.service1) item.s1+=1;
+      if(service===settings.service2) item.s2+=1;
+    }
+
+    rows.forEach(r=>{
+      scheduleValueNames(r.s1.manager).forEach(name=>add("manager",name,settings.service1));
+      scheduleValueNames(r.s1.master).forEach(name=>add("master",name,settings.service1));
+      scheduleValueNames(r.s2.manager).forEach(name=>add("manager",name,settings.service2));
+      scheduleValueNames(r.s2.master).forEach(name=>add("master",name,settings.service2));
+    });
+
+    const knownOrder=new Map();
+    (settings.employeeSchedules||[]).forEach((emp,index)=>{
+      const role=emp.role==="master"?"master":"manager";
+      knownOrder.set(`${role}|${emp.name}`,index);
+    });
+
+    return [...map.values()].sort((a,b)=>{
+      const roleA=a.role==="manager"?0:1;
+      const roleB=b.role==="manager"?0:1;
+      if(roleA!==roleB) return roleA-roleB;
+
+      const ai=knownOrder.has(`${a.role}|${a.name}`)?knownOrder.get(`${a.role}|${a.name}`):9999;
+      const bi=knownOrder.has(`${b.role}|${b.name}`)?knownOrder.get(`${b.role}|${b.name}`):9999;
+      if(ai!==bi) return ai-bi;
+      return a.name.localeCompare(b.name,"ru");
+    });
+  }
+
+  function renderMonthlyWorkload(){
+    const card=$("scheduleWorkloadCard");
+    const root=$("scheduleWorkloadTable");
+    const label=$("scheduleWorkloadLabel");
+    if(!card || !root || !label) return;
+
+    const show=isAdmin() && !isServiceDeviceMode() && !isEmployeePhoneMode();
+    card.classList.toggle("hidden",!show);
+    if(!show) return;
+
+    const info=monthInfo(currentIndex);
+    const data=monthlyWorkloadData(currentIndex);
+    label.textContent=`${info.name} ${info.year}`;
+
+    if(!data.length){
+      root.innerHTML=`<div class="notice">На этот месяц нет назначенных смен.</div>`;
+      return;
+    }
+
+    root.innerHTML=`
+      <table class="workload-table">
+        <thead>
+          <tr>
+            <th>Сотрудник</th>
+            <th>Всего смен</th>
+            <th>${escapeHtml(settings.service1)}</th>
+            <th>${escapeHtml(settings.service2)}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.map(item=>`
+            <tr>
+              <td>
+                <span class="employee-name">${escapeHtml(item.name)}</span>
+                <span class="employee-role">${item.role==="manager"?"Менеджер":"Мастер"}</span>
+              </td>
+              <td class="total-shifts">${item.total}</td>
+              <td>${item.s1}</td>
+              <td>${item.s2}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>`;
   }
 
   function monthScheduleProblems(monthIndex){
@@ -4228,7 +4388,7 @@ body{min-height:100dvh}
     const balancedNote=balanced
       ? `<div style="margin-top:7px;font-size:11px;color:var(--muted)">
           1–15 / 16–конец: сотрудники закреплены за точкой.
-          По воскресеньям в <b>${escapeHtml(settings.service2)}</b> работает только мастер, без менеджера.
+          По субботам и воскресеньям в <b>${escapeHtml(settings.service2)}</b> работает только <b>Георгий или Асик</b>, без менеджера.
           Подменный менеджер: <b>${escapeHtml(balanced.manager.reserve)}</b>.
           Мастера меняются точками только между полумесяцами.
         </div>`
@@ -4385,8 +4545,8 @@ body{min-height:100dvh}
     if(role==="manager" && isNoManagerValue(value)){
       return `
         <div class="schedule-manage-role">
-          <div><small>${escapeHtml(label)} · воскресенье</small><b>Без менеджера</b></div>
-          <div style="font-size:12px;color:var(--muted);margin-top:6px">В Нове по воскресеньям работает только мастер.</div>
+          <div><small>${escapeHtml(label)} · сб/вс</small><b>Без менеджера</b></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px">В Нове по субботам и воскресеньям работают только Георгий или Асик.</div>
         </div>`;
     }
 
@@ -4475,7 +4635,7 @@ body{min-height:100dvh}
   function serviceCard(title,key,rows){
     const card=document.createElement("section"); card.className="service-card";
     const head=document.createElement("div"); head.className="service-head";
-    const ruleText=title===settings.service2 ? "Вс–только мастер" : "1 менеджер + 1 мастер";
+    const ruleText=title===settings.service2 ? "Сб–Вс: Георгий / Асик" : "1 менеджер + 1 мастер";
     head.innerHTML=`<h2>${escapeHtml(title)}</h2><div class="small">${ruleText}</div>`;
     card.appendChild(head);
 
@@ -5371,7 +5531,7 @@ body{min-height:100dvh}
     drawText(ctx,`${info.name} ${info.year}`,W/2,72,54,800,"#0f5bd7","center");
     const sampleDate=new Date(info.year,info.month,Math.min(20,info.days));
     const balanced=balancedRosterState(sampleDate);
-    drawText(ctx,`Смена ${settings.shiftStart}–${settings.shiftEnd} • ${settings.service2}: вс только мастер • ${balanced?"закрепление 1–15 / 16–конец":"индивидуальные графики"}`,W/2,122,25,500,"#64748b","center");
+    drawText(ctx,`Смена ${settings.shiftStart}–${settings.shiftEnd} • ${settings.service2}: сб–вс Георгий/Асик • ${balanced?"закрепление 1–15 / 16–конец":"индивидуальные графики"}`,W/2,122,25,500,"#64748b","center");
 
     const firstEnd=Math.min(15,info.days);
     const serviceTop=[160,1010];
