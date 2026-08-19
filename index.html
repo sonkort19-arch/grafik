@@ -921,7 +921,7 @@ body{min-height:100dvh}
               </div>
               <details class="help-details">
                 <summary>Как считается график?</summary>
-                <div>Мастера закреплены парами за одной точкой на полмесяца и меняются точками только 1-го и 16-го числа. У менеджеров два человека закреплены за точками, третий работает подменным. Роль подменного тоже меняется каждые полмесяца.</div>
+                <div>Менеджеры: Арсен и Дина работают 2/2. Обычно они в Мобе, Сергей — в Нове 5/2. Каждый вторник и четверг Сергей работает в Мобе, а работающий по 2/2 Арсен или Дина в этот день переходит в Нову. Суббота и воскресенье у Сергея выходные. Мастера: в Мобе Олег и Ислам; связки менеджер ↔ мастер меняются примерно каждые 10 дней. В Нове Георгий и Асик остаются 2/2.</div>
               </details>
             </div>
 
@@ -3508,6 +3508,37 @@ body{min-height:100dvh}
     return a.length===b.length && a.every((x,i)=>x===b[i]);
   }
 
+  function fixedMasterPlanForDate(date){
+    const days=dateDiffDays(settings.balancedRosterFrom||"2026-08-01",date);
+    const phase=mod(days,4);
+    const day=date.getDate();
+
+    // Нова не меняется:
+    // Георгий / Асик продолжают обычный 2/2.
+    const novaMaster=(phase===0 || phase===1) ? "Георгий" : "Асик";
+
+    // Мобильный Ангел:
+    // 1–10: Арсен чаще в связке с Олегом, Дина — с Исламом.
+    // 11-е — переходный день, чтобы не ломать нагрузку резко.
+    // 12–21: пары меняются — Арсен с Исламом, Дина с Олегом.
+    // 21-е является вторым переходным краем блока.
+    // 22–конец: возвращаем первую связку.
+    //
+    // Такой переход сохраняет Олегу/Исламу примерно равное число смен
+    // (15–16 в месяц), вместо перекоса, который получился бы при жёстком
+    // переключении ровно каждые 10 календарных дней.
+    const baseMobaMaster=(phase===0 || phase===1) ? "Олег" : "Ислам";
+    const swapPairing=(day>=12 && day<=21);
+    const mobaMaster=swapPairing
+      ? (baseMobaMaster==="Олег" ? "Ислам" : "Олег")
+      : baseMobaMaster;
+
+    return {
+      s1:mobaMaster,
+      s2:novaMaster
+    };
+  }
+
   function balancedRosterState(date){
     if(settings.balancedRosterEnabled===false) return null;
 
@@ -3528,68 +3559,48 @@ body{min-height:100dvh}
 
     if(!managerReady && !masterReady) return null;
 
-    // Один блок = 1–15 или 16–конец месяца.
-    // За 12 месяцев получается 24 блока:
-    // у каждого менеджера 8 блоков Моба, 8 Нова, 8 подменный.
+    // Менеджеры закреплены по точкам постоянно.
+    // Моба: только Арсен и Дина, оба работают 2/2 в противофазе.
+    // Нова: только Сергей, график 5/2 (пн–пт), сб/вс выходной.
     const anchor=new Date(2026,7,1);
-    const monthOffset=(date.getFullYear()-anchor.getFullYear())*12+(date.getMonth()-anchor.getMonth());
-    const half=date.getDate()>=16?1:0;
-    const block=monthOffset*2+half;
-
-    // Общий непрерывный цикл 2/1 для менеджеров.
     const days=dateDiffDays(from,date);
-    const managerOff=["Дина","Арсен","Сергей"][mod(days,3)];
+    const half=date.getDate()>=16?1:0;
+    const block=Math.floor(days/15);
 
-    const managerBlocks=[
-      {s1:"Арсен",s2:"Сергей",reserve:"Дина"},
-      {s1:"Дина",s2:"Арсен",reserve:"Сергей"},
-      {s1:"Сергей",s2:"Дина",reserve:"Арсен"}
-    ];
-
-    const managerPlan=managerBlocks[mod(block,3)];
-    let managerS1=null,managerS2=null;
+    let managerS1=null,managerS2=null,managerOff=[];
 
     if(managerReady){
-      managerS1=managerPlan.s1;
-      managerS2=managerPlan.s2;
+      const mobaPhase=mod(days,4);
+      const mobaRegularManager=(mobaPhase===0 || mobaPhase===1) ? "Арсен" : "Дина";
 
-      // Два основных менеджера не меняют точку внутри блока.
-      // Подменный ездит только туда, где у основного выходной.
-      if(managerOff===managerPlan.s1) managerS1=managerPlan.reserve;
-      if(managerOff===managerPlan.s2) managerS2=managerPlan.reserve;
+      const weekday=date.getDay();
+      const swapDay=(weekday===2 || weekday===4); // вторник / четверг
+
+      if(swapDay){
+        // Сергей идёт в Мобу, а Арсен/Дина по своему 2/2 в этот день идут в Нову.
+        managerS1="Сергей";
+        managerS2=mobaRegularManager;
+      }else{
+        managerS1=mobaRegularManager;
+        managerS2=(weekday>=1 && weekday<=5) ? "Сергей" : "Без менеджера";
+      }
+
+      managerOff=["Арсен","Дина","Сергей"].filter(name=>name!==managerS1 && name!==managerS2);
     }
 
-    // Мастера разделены на две постоянные пары.
-    // Внутри пары сотрудники чередуются 2/2, сама пара 15 дней закреплена за одной точкой.
-    // Вторая пара идёт в противофазе, чтобы ежедневно хотя бы один из Олег/Ислам был на работе.
+    // Мастера закреплены за своими точками постоянно.
+    // Моба: Олег / Ислам 2/2.
+    // Нова: Георгий / Асик 2/2.
     let masterS1=null,masterS2=null,masterOff=[];
     let masterTeamS1=[],masterTeamS2=[];
 
     if(masterReady){
-      const phase=mod(days,4);
-
-      const teamA=["Олег","Георгий"];
-      const teamB=["Ислам","Асик"];
-
-      const workingA=(phase===0 || phase===1) ? "Олег" : "Георгий";
-      const offA=workingA==="Олег" ? "Георгий" : "Олег";
-
-      const workingB=(phase===0 || phase===1) ? "Асик" : "Ислам";
-      const offB=workingB==="Ислам" ? "Асик" : "Ислам";
-
-      if(mod(block,2)===0){
-        masterS1=workingA;
-        masterS2=workingB;
-        masterTeamS1=teamA;
-        masterTeamS2=teamB;
-      }else{
-        masterS1=workingB;
-        masterS2=workingA;
-        masterTeamS1=teamB;
-        masterTeamS2=teamA;
-      }
-
-      masterOff=[offA,offB];
+      const masterDay=fixedMasterPlanForDate(date);
+      masterS1=masterDay.s1;
+      masterS2=masterDay.s2;
+      masterOff=["Олег","Ислам","Георгий","Асик"].filter(n=>n!==masterS1 && n!==masterS2);
+      masterTeamS1=["Олег","Ислам"];
+      masterTeamS2=["Георгий","Асик"];
     }
 
     return {
@@ -3602,9 +3613,9 @@ body{min-height:100dvh}
         s1:managerS1,
         s2:managerS2,
         off:managerOff,
-        fixedS1:managerPlan.s1,
-        fixedS2:managerPlan.s2,
-        reserve:managerPlan.reserve
+        fixedS1:"Арсен / Дина",
+        fixedS2:"Сергей",
+        reserve:""
       },
       master:{
         s1:masterS1,
@@ -3626,28 +3637,6 @@ body{min-height:100dvh}
     return serviceName===settings.service2 && (d.getDay()===0 || d.getDay()===6);
   }
 
-  function novaWeekendMasters(date){
-    const d=date instanceof Date ? date : dateObjectFromKey(String(date));
-    const anchor=new Date(2026,7,1); // 01.08.2026 — суббота
-    const weekIndex=Math.floor(dateDiffDays(anchor,d)/7);
-    const saturday=d.getDay()===6;
-
-    // Каждые выходные Георгий и Асик делят субботу/воскресенье,
-    // а на следующей неделе меняются днями, чтобы было справедливо.
-    let novaMaster;
-    if(mod(weekIndex,2)===0){
-      novaMaster=saturday ? "Георгий" : "Асик";
-    }else{
-      novaMaster=saturday ? "Асик" : "Георгий";
-    }
-
-    // Чтобы один мастер не оказался одновременно в двух точках:
-    // если в Нове Георгий — в Мобе Олег;
-    // если в Нове Асик — в Мобе Ислам.
-    const mobaMaster=novaMaster==="Георгий" ? "Олег" : "Ислам";
-    return {novaMaster,mobaMaster};
-  }
-
   function isNoManagerValue(value){
     return String(value||"").trim()==="Без менеджера";
   }
@@ -3659,11 +3648,18 @@ body{min-height:100dvh}
 
     if(state.managerReady){
       base.s1.manager=state.manager.s1;
-      base.s2.manager=state.manager.s2;
       base.s1.managerCount=1;
-      base.s2.managerCount=1;
       base.s1.managerNames=[state.manager.s1];
-      base.s2.managerNames=[state.manager.s2];
+
+      if(isNoManagerValue(state.manager.s2)){
+        base.s2.manager="Без менеджера";
+        base.s2.managerCount=0;
+        base.s2.managerNames=[];
+      }else{
+        base.s2.manager=state.manager.s2;
+        base.s2.managerCount=1;
+        base.s2.managerNames=[state.manager.s2];
+      }
     }
 
     if(state.masterReady){
@@ -3675,24 +3671,12 @@ body{min-height:100dvh}
       base.s2.masterNames=[state.master.s2];
     }
 
-    // По субботам и воскресеньям в Нове:
-    // только Георгий или Асик, без менеджера.
+    // По субботам и воскресеньям в Нове менеджера нет.
+    // Мастер уже выбран постоянным графиком 2/2 и это всегда Георгий или Асик.
     if(isNovaWeekendRule(date,settings.service2)){
-      const weekend=novaWeekendMasters(date);
-
       base.s2.manager="Без менеджера";
       base.s2.managerCount=0;
       base.s2.managerNames=[];
-
-      base.s2.master=weekend.novaMaster;
-      base.s2.masterCount=1;
-      base.s2.masterNames=[weekend.novaMaster];
-
-      // В Мобе в этот день ставим сильного мастера,
-      // чтобы никто не оказался одновременно на двух точках.
-      base.s1.master=weekend.mobaMaster;
-      base.s1.masterCount=1;
-      base.s1.masterNames=[weekend.mobaMaster];
     }
 
     return base;
@@ -4168,7 +4152,7 @@ body{min-height:100dvh}
         $("monthActions").classList.add("hidden");
         $("monthPhotoNotice").classList.add("hidden");
       }else{
-        $("monthSubtitle").textContent=`Смена ${settings.shiftStart}–${settings.shiftEnd} • по субботам и воскресеньям в ${settings.service2} работают только Георгий или Асик`;
+        $("monthSubtitle").textContent=`Смена ${settings.shiftStart}–${settings.shiftEnd} • вт/чт Сергей ↔ Арсен/Дина меняются сервисами`;
         root.appendChild(serviceCard(settings.service1,"s1",rows));
         root.appendChild(serviceCard(settings.service2,"s2",rows));
         $("monthActions").classList.remove("hidden");
@@ -4387,10 +4371,11 @@ body{min-height:100dvh}
     const balanced=balancedRosterState(sampleDate);
     const balancedNote=balanced
       ? `<div style="margin-top:7px;font-size:11px;color:var(--muted)">
-          1–15 / 16–конец: сотрудники закреплены за точкой.
+          Менеджеры: <b>вт/чт Сергей работает в ${escapeHtml(settings.service1)}</b>, 
+          а Арсен/Дина по своему 2/2 в этот день работают в <b>${escapeHtml(settings.service2)}</b>.
+          В остальные будни Сергей — в ${escapeHtml(settings.service2)}; сб/вс у него выходной.
           По субботам и воскресеньям в <b>${escapeHtml(settings.service2)}</b> работает только <b>Георгий или Асик</b>, без менеджера.
-          Подменный менеджер: <b>${escapeHtml(balanced.manager.reserve)}</b>.
-          Мастера меняются точками только между полумесяцами.
+          Мастера: <b>Моба — Олег/Ислам, связки меняются ~каждые 10 дней</b>; <b>Нова — Георгий/Асик 2/2</b>.
         </div>`
       : "";
 
@@ -4635,7 +4620,9 @@ body{min-height:100dvh}
   function serviceCard(title,key,rows){
     const card=document.createElement("section"); card.className="service-card";
     const head=document.createElement("div"); head.className="service-head";
-    const ruleText=title===settings.service2 ? "Сб–Вс: Георгий / Асик" : "1 менеджер + 1 мастер";
+    const ruleText=title===settings.service2
+      ? "Сергей обычно здесь · вт/чт Арсен/Дина"
+      : "Арсен/Дина 2/2 · вт/чт Сергей";
     head.innerHTML=`<h2>${escapeHtml(title)}</h2><div class="small">${ruleText}</div>`;
     card.appendChild(head);
 
@@ -5531,7 +5518,7 @@ body{min-height:100dvh}
     drawText(ctx,`${info.name} ${info.year}`,W/2,72,54,800,"#0f5bd7","center");
     const sampleDate=new Date(info.year,info.month,Math.min(20,info.days));
     const balanced=balancedRosterState(sampleDate);
-    drawText(ctx,`Смена ${settings.shiftStart}–${settings.shiftEnd} • ${settings.service2}: сб–вс Георгий/Асик • ${balanced?"закрепление 1–15 / 16–конец":"индивидуальные графики"}`,W/2,122,25,500,"#64748b","center");
+    drawText(ctx,`Менеджеры: вт/чт Сергей в ${settings.service1}, Арсен/Дина в ${settings.service2} • остальные будни наоборот`,W/2,122,25,500,"#64748b","center");
 
     const firstEnd=Math.min(15,info.days);
     const serviceTop=[160,1010];
