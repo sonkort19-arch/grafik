@@ -266,6 +266,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   .employee-cal-cell span{font-size:7.5px}
 }
 
+
+.employee-own-shift-status{display:block;margin-top:9px;padding-top:9px;border-top:1px solid rgba(0,0,0,.08);font-weight:800;font-size:13px}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -301,20 +303,13 @@ button,a,input,select,textarea,label{touch-action:manipulation}
         <div class="employee-hero-top">
           <div>
             <h2>Сегодня</h2>
+            <div class="today-date" id="employeeTodayDate">—</div>
             <div class="employee-name" id="employeeTodayName">—</div>
           </div>
-          <button class="employee-change" id="changeEmployeeToday">Сменить</button>
         </div>
         <div class="employee-main-status unknown" id="employeeTodayWork">Загрузка…</div>
         <div class="employee-next" id="employeeNextShift"></div>
       </div>
-      <div class="section">
-        <div class="today-head">
-          <div><h2 style="font-size:19px">Состояние точек</h2><div class="today-date" id="employeeTodayDate">—</div></div>
-        </div>
-        <div class="employee-service-list" id="employeeServiceStatus"></div>
-      </div>
-      <div class="notice">Открытие и закрытие смены выполняется только на зарегистрированном устройстве сервиса.</div>
     </section>
 
     <section id="employeeMyPage" class="hidden">
@@ -1661,38 +1656,54 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     if(!isEmployeePhoneMode()) return;
     const name=selectedEmployee();
     if(!name) return;
+
     const now=moscowParts();
     const todayAssignment=employeeAssignmentForDate(name,now.date);
+
     $("employeeTodayName").textContent=name;
-    $("employeeTodayDate").textContent=new Intl.DateTimeFormat("ru-RU",{timeZone:SHIFT_TIMEZONE,weekday:"long",day:"numeric",month:"long"}).format(new Date());
+    $("employeeTodayDate").textContent=new Intl.DateTimeFormat("ru-RU",{
+      timeZone:SHIFT_TIMEZONE,
+      weekday:"long",
+      day:"numeric",
+      month:"long"
+    }).format(new Date());
 
     const work=$("employeeTodayWork");
     const monthIdx=getCurrentMonthIndex();
+
     if(!isAnnualScheduleMonth(monthIdx)){
       work.className="employee-main-status unknown";
-      work.innerHTML=`<b>График на сегодня не задан</b><span>Годовой график начинается с ${escapeHtml(monthInfo(0).name)} ${monthInfo(0).year}.</span>`;
+      work.innerHTML=`<b>График на сегодня ещё не задан</b>`;
     }else if(todayAssignment){
-      const partner=todayAssignment.pair.manager===name ? todayAssignment.pair.master : todayAssignment.pair.manager;
+      const partner=todayAssignment.pair.manager===name
+        ? todayAssignment.pair.master
+        : todayAssignment.pair.manager;
+
+      const state=employeeServiceState(todayAssignment.service);
+      let shiftText="Смена ещё не открыта";
+      if(state.cls==="open" || state.cls==="late"){
+        shiftText=`Смена открыта ${state.label.replace(/^Открыта\s*/,"в ")}`;
+      }else if(state.cls==="closed"){
+        shiftText=`Смена ${state.label.toLowerCase()}`;
+      }else if(state.cls==="wait"){
+        shiftText=`Смена начинается в ${settings.shiftStart}`;
+      }
+
       work.className="employee-main-status work";
-      work.innerHTML=`<b>Сегодня работаю — ${escapeHtml(todayAssignment.service)}</b><span>${settings.shiftStart}–${settings.shiftEnd} · вместе с ${escapeHtml(partner)}</span>`;
+      work.innerHTML=`
+        <b>Сегодня работаю</b>
+        <span><strong>${escapeHtml(todayAssignment.service)}</strong> · ${settings.shiftStart}–${settings.shiftEnd}<br>Напарник: <strong>${escapeHtml(partner)}</strong></span>
+        <span class="employee-own-shift-status">${escapeHtml(shiftText)}</span>
+      `;
     }else{
       work.className="employee-main-status off";
-      work.innerHTML=`<b>Сегодня выходной</b><span>По годовому графику смены сегодня нет.</span>`;
+      work.innerHTML=`<b>Сегодня выходной</b>`;
     }
 
     const next=employeeUpcomingShifts(name,{afterToday:true,limit:1})[0];
     $("employeeNextShift").innerHTML=next
       ? `<small>Следующая смена</small><b>${new Intl.DateTimeFormat("ru-RU",{weekday:"short",day:"numeric",month:"long"}).format(next.date)} · ${escapeHtml(next.service)} · ${settings.shiftStart}–${settings.shiftEnd}</b>`
       : `<small>Следующая смена</small><b>В текущем годовом графике больше смен нет</b>`;
-
-    $("employeeServiceStatus").innerHTML=[settings.service1,settings.service2].map(service=>{
-      const s=employeeServiceState(service);
-      const pair=s.exp?`${escapeHtml(s.exp.manager)} + ${escapeHtml(s.exp.master)}`:"График на эту дату не задан";
-      return `<div class="employee-service-card">
-        <div class="employee-service-head"><h3>${escapeHtml(service)}</h3><div class="shift-status ${s.cls}" style="margin:0"><span class="dot"></span>${s.label}</div></div>
-        <div class="employee-service-pair"><b>По графику:</b> ${pair}<br>${s.meta}</div>
-      </div>`;
-    }).join("");
   }
 
   function renderEmployeeMySchedule(){
@@ -2257,7 +2268,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   monthSelect.onchange=()=>{ currentIndex=Number(monthSelect.value); userSelectedMonth=true; renderMonth(); };
   employeeFilter.onchange=highlightEmployee;
   $("personalBtn").onclick=personalSchedule;
-  $("changeEmployeeToday").onclick=openEmployeePicker;
   $("changeEmployeeMy").onclick=openEmployeePicker;
   $("changeEmployeeCalendar").onclick=openEmployeePicker;
   $("employeeCalPrev").onclick=()=>{
