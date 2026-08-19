@@ -467,11 +467,68 @@ body.startup-shift-mode .toast{z-index:300}
 .install-app-state.warn{color:#9a6700}
 @media(max-width:620px){.install-app-grid{grid-template-columns:1fr}}
 
+
+/* Стабильный запуск приложения: не показываем неправильный режим на долю секунды */
+.app-boot-screen{
+  position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;
+  background:var(--bg);padding:24px
+}
+.app-booting .app,
+.app-booting .bottom,
+.app-booting .employee-identity-bar{visibility:hidden}
+.app-booting .app-boot-screen{display:flex}
+.app-boot-card{
+  width:min(100%,360px);background:#fff;border:1px solid var(--line);border-radius:20px;
+  padding:22px;text-align:center;box-shadow:var(--shadow)
+}
+.app-boot-logo{
+  width:54px;height:54px;margin:0 auto 12px;border-radius:15px;background:var(--blue);
+  color:#fff;font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center
+}
+.app-boot-title{font-size:18px;font-weight:900;color:#24344d}
+.app-boot-text{margin-top:5px;font-size:12px;color:var(--muted)}
+
+/* Более собранный рабочий экран */
+.topbar{padding:calc(8px + env(safe-area-inset-top)) 14px 8px}
+.brand{font-size:19px}
+.page{padding-top:12px}
+.today-board{padding:16px;border-radius:18px}
+.today-head{margin-bottom:12px}
+.today-board h2{font-size:21px}
+.shift-cards{gap:12px}
+.shift-card{
+  padding:15px;border-radius:15px;background:#fff;
+  box-shadow:0 3px 12px rgba(28,64,120,.04)
+}
+.shift-card h3{font-size:20px;margin-bottom:8px}
+.shift-pair{line-height:1.5;margin-bottom:7px}
+.shift-meta{min-height:28px}
+.shift-action{min-height:42px;margin-top:8px;border-radius:11px}
+.admin-attention{margin-bottom:12px}
+@media(min-width:760px){
+  .page{padding:14px 16px}
+  .today-board{padding:18px}
+  .shift-card{padding:16px}
+}
+.service-device-mode .today-board{max-width:720px;margin-left:auto;margin-right:auto}
+.service-device-mode .shift-cards{grid-template-columns:1fr!important}
+.service-device-mode .shift-card{padding:18px}
+.service-device-mode .shift-card h3{font-size:22px}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 </head>
-<body>
+<body class="app-booting">
+
+<div class="app-boot-screen" id="appBootScreen" aria-live="polite">
+  <div class="app-boot-card">
+    <div class="app-boot-logo">MA</div>
+    <div class="app-boot-title">MA График</div>
+    <div class="app-boot-text">Проверяем этот компьютер…</div>
+  </div>
+</div>
+
 <div class="startup-shift-window" id="startupShiftWindow">
   <div class="startup-shift-card">
     <div class="startup-shift-logo">
@@ -1330,7 +1387,7 @@ body.startup-shift-mode .toast{z-index:300}
     const btn=$("adminBtn"); if(!btn) return;
     btn.textContent=isAdmin() ? "Админ ✓" : ((isEmployeePhoneMode() || isServiceDeviceMode()) ? "Админ" : "Администратор");
     updateCloudSettingsState();
-    if($("todayShiftCards")) renderTodayShifts();
+    if(!document.body.classList.contains("app-booting") && $("todayShiftCards")) renderTodayShifts();
     if($("currentDeviceState")) renderDevicePanel();
     applyUserMode();
   }
@@ -1520,6 +1577,7 @@ body.startup-shift-mode .toast{z-index:300}
       currentDeviceAccess={allowed:false,device:null};
       renderDevicePanel();
       renderTodayShifts();
+      applyUserMode();
       if(isStartupShiftMode()) renderStartupShiftWindow();
       return currentDeviceAccess;
     }
@@ -3783,29 +3841,58 @@ body.startup-shift-mode .toast{z-index:300}
   $("settingsPage").addEventListener("input",e=>{ if(!e.target.id.startsWith("managerPin")) markDirty(); });
 
   // Init
-  if(isStartupShiftMode()) document.body.classList.add("startup-shift-mode");
-  lastSettingsSignature=stableJson(settings);
-  populateSettings();
-  defaultHistoryDates();
-  renderMonth();
-  updateAuthUI();
-  applyUserMode();
-  switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday");
-  registerServiceWorker().then(()=>{ updatePushState(); updateInstallUI(); });
-  updateInstallUI();
-  refreshDeviceAccess();
-  if(isAdmin()) loadRegisteredDevices();
-  loadTodayShifts(false).then(()=>{ if(isStartupShiftMode()) renderStartupShiftWindow(); });
-  shiftPollTimer=setInterval(()=>loadTodayShifts(false),SHIFT_POLL_MS);
-  if(cloudConfigured()){
-    syncFromCloud(false);
-    syncTimer=setInterval(()=>syncFromCloud(false),SYNC_INTERVAL_MS);
-    window.addEventListener("focus",()=>{ syncFromCloud(false); loadTodayShifts(false); });
-    document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ syncFromCloud(false); loadTodayShifts(false); } });
-  }else{
-    setCloudStatus("Локально","offline");
-    updateCloudStatusLine();
+  async function initApp(){
+    if(isStartupShiftMode()) document.body.classList.add("startup-shift-mode");
+
+    lastSettingsSignature=stableJson(settings);
+    populateSettings();
+    defaultHistoryDates();
+    renderMonth();
+
+    // Сначала определяем, что это за устройство.
+    // Только после этого показываем интерфейс — поэтому Моба/Нова больше не мигают.
+    try{
+      await refreshDeviceAccess();
+    }catch(e){
+      console.error("initial device check",e);
+    }
+
+    updateAuthUI();
+    applyUserMode();
+    switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday");
+
+    try{
+      await loadTodayShifts(false);
+    }catch(e){
+      console.error("initial shifts",e);
+    }
+
+    if(isStartupShiftMode()) renderStartupShiftWindow();
+    document.body.classList.remove("app-booting");
+
+    registerServiceWorker().then(()=>{ updatePushState(); updateInstallUI(); });
+    updateInstallUI();
+
+    if(isAdmin()) loadRegisteredDevices();
+
+    shiftPollTimer=setInterval(()=>loadTodayShifts(false),SHIFT_POLL_MS);
+
+    if(cloudConfigured()){
+      syncFromCloud(false);
+      syncTimer=setInterval(()=>syncFromCloud(false),SYNC_INTERVAL_MS);
+      window.addEventListener("focus",()=>{ syncFromCloud(false); loadTodayShifts(false); });
+      document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ syncFromCloud(false); loadTodayShifts(false); } });
+    }else{
+      setCloudStatus("Локально","offline");
+      updateCloudStatusLine();
+    }
   }
+
+  initApp().catch(e=>{
+    console.error("init",e);
+    document.body.classList.remove("app-booting");
+    setCloudStatus("Ошибка запуска","offline");
+  });
 })();
 </script>
 </body>
