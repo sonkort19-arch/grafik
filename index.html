@@ -83,9 +83,6 @@ button{cursor:pointer}
 .sheet-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .sheet h2{margin:0;color:var(--blue)}
 .close{border:0;background:#eef3f8;border-radius:10px;width:40px;height:40px;font-size:20px}
-.personal-list{display:grid;gap:8px}
-.personal-item{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px;font-size:13px}
-.personal-item b{color:var(--blue)}
 @media(min-width:760px){
  .page{padding:14px 16px}
  .halves{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -188,8 +185,7 @@ button{cursor:pointer}
 .employee-phone-mode .bottom-inner{grid-template-columns:repeat(3,1fr)!important}
 @media(max-width:760px){
   .employee-phone-mode #scheduleControls{padding-top:2px}
-  .employee-phone-mode .filters #employeeFilter,
-  .employee-phone-mode .filters #personalBtn{display:none}
+  .employee-phone-mode .filters #employeeFilter{display:none}
   .employee-phone-mode .filters{grid-template-columns:1fr}
   .employee-phone-mode .filters #refreshBtn{justify-self:end}
 }
@@ -618,7 +614,6 @@ body{min-height:100dvh}
 .employee-admin-card b{display:block;font-size:15px;color:#24344d}
 .employee-admin-card span{display:block;margin-top:3px;font-size:12px;color:var(--muted);line-height:1.4}
 .employee-admin-card button{min-width:105px}
-.employee-main-note{margin-bottom:12px}
 .employee-schedule-warning{margin-bottom:12px;padding:10px 12px;border-radius:13px;border:1px solid var(--line);font-size:12px;line-height:1.45}
 .employee-schedule-warning.bad{background:#fffaf0;color:#8a4b08;border-color:#f6d79a}
 .employee-warning-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -627,12 +622,6 @@ body{min-height:100dvh}
 .employee-warning-toggle{flex:0 0 auto;padding:7px 11px!important;min-height:auto!important;font-size:12px!important}
 .employee-warning-details{margin-top:9px;padding-top:8px;border-top:1px solid #f3dfb5}
 .employee-warning-details div+div{margin-top:4px}
-.inactive-employees{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
-.inactive-employees h3{margin:0 0 8px;font-size:13px;color:var(--muted)}
-.inactive-employee-list{display:grid;gap:7px}
-.inactive-employee-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}
-.inactive-employee-row b{display:block;font-size:13px;color:#5b6575}
-.inactive-employee-row span{display:block;margin-top:2px;font-size:11px;color:var(--muted)}
 .employee-preview{display:flex;gap:6px;overflow-x:auto;padding:3px 0 4px;scrollbar-width:none}
 .employee-preview::-webkit-scrollbar{display:none}
 .employee-preview-day{flex:0 0 72px;border:1px solid var(--line);border-radius:11px;padding:8px 6px;text-align:center;background:#f8fafc}
@@ -640,13 +629,51 @@ body{min-height:100dvh}
 .employee-preview-day.off{background:#f8fafc}
 .employee-preview-day b{display:block;font-size:13px;color:#24344d}
 .employee-preview-day span{display:block;margin-top:3px;font-size:9px;color:var(--muted);line-height:1.2}
-.bottom-inner.admin-five{grid-template-columns:repeat(5,1fr)!important}
+.bottom-inner.admin-four{grid-template-columns:repeat(4,1fr)!important}
 @media(max-width:620px){
-  .bottom-inner.admin-five .tab{font-size:10px;padding-left:2px;padding-right:2px}
+  .bottom-inner.admin-four .tab{font-size:11px;padding-left:4px;padding-right:4px}
   .employee-admin-card{grid-template-columns:1fr}
   .employee-admin-card button{width:100%}
 }
 
+
+@media(max-width:760px){
+  }
+
+/* Управление сотрудниками прямо из графика */
+.schedule-admin-tools{margin:0 0 12px}
+.schedule-admin-line{display:flex;gap:10px;align-items:stretch}
+.schedule-problem-summary{flex:1;min-width:0}
+.schedule-problem-card{border:1px solid #f1d79e;background:#fffaf0;border-radius:14px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.schedule-problem-card.ok{border-color:#cfe8d7;background:#f4fbf6}
+.schedule-problem-card b{display:block;font-size:13px}
+.schedule-problem-card span{display:block;margin-top:2px;font-size:11px;color:var(--muted)}
+.schedule-problem-toggle{flex:0 0 auto;padding:7px 10px!important;font-size:11px!important}
+.schedule-add-employee{flex:0 0 auto;white-space:nowrap}
+.schedule-problem-details{margin-top:8px;border:1px solid var(--line);background:#fff;border-radius:14px;overflow:hidden}
+.schedule-problem-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border-bottom:1px solid var(--line)}
+.schedule-problem-row:last-child{border-bottom:0}
+.schedule-problem-row b{font-size:12px}
+.schedule-problem-row span{display:block;margin-top:2px;font-size:11px;color:var(--muted)}
+.schedule-problem-fix{padding:7px 10px!important;font-size:11px!important;white-space:nowrap}
+.schedule tbody tr.manageable{cursor:pointer}
+.schedule tbody tr.manageable:hover td{background:#f4f8ff}
+.schedule tbody tr.has-problem td{background:#fff8dc}
+.schedule tbody tr.has-problem.manageable:hover td{background:#fff2bd}
+.schedule-manage-body{display:grid;gap:10px;margin-top:14px}
+.schedule-manage-role{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+.schedule-manage-role.problem{border-color:#f1d79e;background:#fffaf0}
+.schedule-manage-role small{display:block;color:var(--muted);font-size:11px}
+.schedule-manage-role b{display:block;margin-top:2px;font-size:16px}
+.schedule-manage-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.schedule-manage-actions button{padding:8px 10px;font-size:11px;min-height:auto}
+.schedule-manage-conflict{display:grid;gap:7px;margin-top:10px}
+.schedule-manage-conflict-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 9px;border:1px solid var(--line);border-radius:10px;background:#fff}
+@media(max-width:760px){
+  .schedule-admin-line{display:grid;grid-template-columns:1fr}
+  .schedule-add-employee{width:100%}
+  .schedule-problem-row{align-items:flex-start}
+}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -692,7 +719,6 @@ body{min-height:100dvh}
       <button class="secondary today-month-btn" id="todayMonthBtn">Сегодня</button>
       <div class="filters">
         <select id="employeeFilter"><option value="">Все сотрудники</option></select>
-        <button class="secondary" id="personalBtn">Личный график</button>
         <button class="iconbtn" id="refreshBtn" title="Обновить общий график" aria-label="Обновить">↻</button>
       </div>
     </div>
@@ -782,39 +808,21 @@ body{min-height:100dvh}
         <h1 id="monthTitle"></h1>
         <p id="monthSubtitle"></p>
       </div>
+
+      <div class="schedule-admin-tools hidden" id="scheduleAdminTools">
+        <div class="schedule-admin-line">
+          <div class="schedule-problem-summary" id="scheduleProblemSummary"></div>
+          <button class="primary schedule-add-employee" id="addEmployeeBtn" type="button">+ Сотрудник</button>
+        </div>
+        <div class="schedule-problem-details hidden" id="scheduleProblemDetails"></div>
+      </div>
+
       <div id="servicesRoot"></div>
       <div class="actions" id="monthActions">
         <button class="primary" id="shareBtn">Поделиться фото</button>
         <button class="secondary" id="downloadBtn">Скачать PNG</button>
       </div>
       <div class="notice" id="monthPhotoNotice">Фото строится прямо внутри приложения, поэтому таблица остаётся чёткой. На iPhone кнопка «Поделиться фото» обычно удобнее всего: можно сразу сохранить в «Фото» или отправить в WhatsApp.</div>
-    </section>
-
-    <section id="employeesPage" class="hidden">
-      <div class="section">
-        <h2>Сотрудники</h2>
-        <div class="notice employee-main-note">У каждого свой график. Моба ↔ Нова меняются каждые <b id="employeeServiceBlockLabel">14</b> дней.</div>
-        <div id="employeeScheduleWarning"></div>
-        <div class="employee-admin-list" id="employeeAdminList"></div>
-
-        <div class="inactive-employees hidden" id="inactiveEmployeesWrap">
-          <h3>Больше не работают</h3>
-          <div class="inactive-employee-list" id="inactiveEmployeeList"></div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>Постоянные изменения</h2>
-        <div class="notice">Есть замена — введи имя. Сотрудник уволился и замены пока нет — нажми «Сотрудник ушёл».</div>
-        <div class="change-form" style="margin-top:10px">
-          <div class="field"><label>С какой даты</label><input type="date" id="changeDate"></div>
-          <div class="field"><label>Сотрудник</label><select id="changeOld"></select></div>
-          <div class="field"><label>Новый сотрудник</label><input id="changeNew" placeholder="Имя нового сотрудника"></div>
-          <button class="primary" id="addStaffChangeBtn">Заменить</button>
-          <button class="danger" id="markStaffLeftBtn" type="button">Сотрудник ушёл</button>
-        </div>
-        <div class="change-list" id="staffChangesList"></div>
-      </div>
     </section>
 
     <section id="historyPage" class="hidden">
@@ -947,12 +955,11 @@ body{min-height:100dvh}
 </div>
 
 <nav class="bottom">
-  <div class="bottom-inner admin-five" id="bottomInner">
+  <div class="bottom-inner admin-four" id="bottomInner">
     <button class="tab active" id="bottomTab1" data-tab="adminToday">Сегодня</button>
     <button class="tab" id="bottomTab2" data-tab="schedule">График</button>
-    <button class="tab" id="bottomTab3" data-tab="employees">Сотрудники</button>
-    <button class="tab" id="bottomTab4" data-tab="history">История</button>
-    <button class="tab" id="bottomTab5" data-tab="settings">Настройки</button>
+    <button class="tab" id="bottomTab3" data-tab="history">История</button>
+    <button class="tab" id="bottomTab4" data-tab="settings">Настройки</button>
   </div>
 </nav>
 
@@ -981,16 +988,6 @@ body{min-height:100dvh}
   </div>
 </div>
 
-<div class="modal hidden" id="personalModal">
-  <div class="sheet">
-    <div class="sheet-head">
-      <h2 id="personalTitle">Личный график</h2>
-      <button class="close" id="closePersonal">×</button>
-    </div>
-    <div class="personal-list" id="personalList" style="margin-top:12px"></div>
-  </div>
-</div>
-
 <div class="modal hidden" id="loginModal">
   <div class="sheet">
     <div class="sheet-head"><h2>Вход администратора</h2><button class="close" id="closeLogin">×</button></div>
@@ -999,6 +996,64 @@ body{min-height:100dvh}
     <div class="field"><label>Пароль</label><input type="password" id="adminPassword" autocomplete="current-password" placeholder="Пароль"></div>
     <div class="login-error" id="loginError"></div>
     <div class="login-actions"><button class="secondary" id="cancelLogin">Отмена</button><button class="primary" id="loginBtn">Войти</button></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="addEmployeeModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2>Добавить сотрудника</h2>
+      <button class="close" id="closeAddEmployee">×</button>
+    </div>
+
+    <div class="grid2" style="margin-top:14px">
+      <div class="field">
+        <label>Имя</label>
+        <input id="newEmployeeName" placeholder="Например, Марат">
+      </div>
+
+      <div class="field">
+        <label>Должность</label>
+        <select id="newEmployeeRole">
+          <option value="manager">Менеджер</option>
+          <option value="master">Мастер</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>График</label>
+        <select id="newEmployeePreset">
+          <option value="2/2">2/2</option>
+          <option value="3/3">3/3</option>
+          <option value="5/2">5/2</option>
+          <option value="6/1">6/1</option>
+          <option value="7/7">7/7</option>
+          <option value="custom">Свой</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Первый рабочий день</label>
+        <input type="date" id="newEmployeeStart">
+      </div>
+
+      <div class="field">
+        <label>Рабочих дней подряд</label>
+        <input type="number" id="newEmployeeWorkDays" min="1" max="14" value="2">
+      </div>
+
+      <div class="field">
+        <label>Выходных дней подряд</label>
+        <input type="number" id="newEmployeeOffDays" min="1" max="14" value="2">
+      </div>
+    </div>
+
+    <div class="notice" id="newEmployeePlaceNote">Место в графике приложение подберёт автоматически.</div>
+
+    <div class="login-actions">
+      <button class="secondary" id="cancelAddEmployee" type="button">Отмена</button>
+      <button class="primary" id="saveAddEmployee" type="button">Добавить</button>
+    </div>
   </div>
 </div>
 
@@ -1034,6 +1089,19 @@ body{min-height:100dvh}
       <button class="secondary" id="cancelEmployeeSchedule">Отмена</button>
       <button class="primary" id="saveEmployeeSchedule">Сохранить сотрудника</button>
     </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="scheduleManageModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div>
+        <h2 id="scheduleManageTitle">Смена</h2>
+        <div class="employee-mode-note" id="scheduleManageSubtitle"></div>
+      </div>
+      <button class="close" id="closeScheduleManage">×</button>
+    </div>
+    <div class="schedule-manage-body" id="scheduleManageBody"></div>
   </div>
 </div>
 
@@ -1522,19 +1590,18 @@ body{min-height:100dvh}
     document.body.classList.toggle("service-device-mode",serviceMode);
 
     const inner=$("bottomInner");
-    const t1=$("bottomTab1"),t2=$("bottomTab2"),t3=$("bottomTab3"),t4=$("bottomTab4"),t5=$("bottomTab5");
+    const t1=$("bottomTab1"),t2=$("bottomTab2"),t3=$("bottomTab3"),t4=$("bottomTab4");
     const brand=document.querySelector(".brand");
 
     if(employeeMode){
       if(brand) brand.textContent="MA График";
-      inner.classList.remove("admin-five");
+      inner.classList.remove("admin-four");
       inner.classList.add("employee-three");
 
       t1.textContent="Сегодня"; t1.dataset.tab="employeeToday"; t1.classList.remove("hidden");
       t2.textContent="Мой график"; t2.dataset.tab="employeeMy"; t2.classList.remove("hidden");
       t3.textContent="Календарь"; t3.dataset.tab="employeeCalendar"; t3.classList.remove("hidden");
       t4.classList.add("hidden");
-      t5.classList.add("hidden");
 
       $("adminBtn").textContent="Админ";
       ensureEmployeeSelected();
@@ -1548,7 +1615,6 @@ body{min-height:100dvh}
       if(!visible ||
          !$("adminTodayPage").classList.contains("hidden") ||
          !$("schedulePage").classList.contains("hidden") ||
-         !$("employeesPage").classList.contains("hidden") ||
          !$("historyPage").classList.contains("hidden") ||
          !$("settingsPage").classList.contains("hidden")){
         switchTab(employeeMobileView || "employeeToday");
@@ -1559,20 +1625,18 @@ body{min-height:100dvh}
     if(serviceMode){
       const service=serviceDeviceName();
       if(brand) brand.textContent=`${service} · Смена`;
-      inner.classList.remove("admin-five","employee-three");
+      inner.classList.remove("admin-four","employee-three");
 
       t1.textContent="Сегодня"; t1.dataset.tab="adminToday"; t1.classList.remove("hidden");
       t2.textContent="График"; t2.dataset.tab="schedule"; t2.classList.remove("hidden");
       t3.classList.add("hidden");
       t4.classList.add("hidden");
-      t5.classList.add("hidden");
 
       $("adminBtn").textContent="Админ";
       if($("attentionTitle")) $("attentionTitle").textContent="Контроль смены";
       $("employeePickerModal").classList.add("hidden");
 
-      if(!$("employeesPage").classList.contains("hidden") ||
-         !$("historyPage").classList.contains("hidden") ||
+      if(!$("historyPage").classList.contains("hidden") ||
          !$("settingsPage").classList.contains("hidden") ||
          !$("employeeTodayPage").classList.contains("hidden") ||
          !$("employeeMyPage").classList.contains("hidden") ||
@@ -1587,20 +1651,18 @@ body{min-height:100dvh}
     if(brand) brand.textContent="MA График";
     if($("attentionTitle")) $("attentionTitle").textContent="Требует внимания";
     inner.classList.remove("employee-three");
-    inner.classList.add("admin-five");
+    inner.classList.add("admin-four");
 
     t1.textContent="Сегодня"; t1.dataset.tab="adminToday"; t1.classList.remove("hidden");
     t2.textContent="График"; t2.dataset.tab="schedule"; t2.classList.remove("hidden");
-    t3.textContent="Сотрудники"; t3.dataset.tab="employees"; t3.classList.remove("hidden");
-    t4.textContent="История"; t4.dataset.tab="history"; t4.classList.remove("hidden");
-    t5.textContent="Настройки"; t5.dataset.tab="settings"; t5.classList.remove("hidden");
+    t3.textContent="История"; t3.dataset.tab="history"; t3.classList.remove("hidden");
+    t4.textContent="Настройки"; t4.dataset.tab="settings"; t4.classList.remove("hidden");
 
     $("employeePickerModal").classList.add("hidden");
 
     const anyVisible =
       !$("adminTodayPage").classList.contains("hidden") ||
       !$("schedulePage").classList.contains("hidden") ||
-      !$("employeesPage").classList.contains("hidden") ||
       !$("historyPage").classList.contains("hidden") ||
       !$("settingsPage").classList.contains("hidden");
 
@@ -1617,6 +1679,7 @@ body{min-height:100dvh}
     if(!document.body.classList.contains("app-booting") && $("todayShiftCards")) renderTodayShifts();
     if($("currentDeviceState")) renderDevicePanel();
     applyUserMode();
+    if(!$("schedulePage").classList.contains("hidden")) renderMonth();
   }
 
   async function authFetch(path,options={}){
@@ -1693,8 +1756,8 @@ body{min-height:100dvh}
       const phase=legacyPairPhase(s,migrationDate,role,group);
       const firstStart=addDaysToDateString(from,-phase);
       const secondStart=addDaysToDateString(firstStart,2);
-      result.push({id:`${prefix}-a`,name:String(pair[0]),role,group,slot:0,workDays:2,offDays:2,cycleStart:firstStart});
-      result.push({id:`${prefix}-b`,name:String(pair[1]),role,group,slot:1,workDays:2,offDays:2,cycleStart:secondStart});
+      result.push({id:`${prefix}-a`,name:String(pair[0]),role,group,slot:0,workDays:2,offDays:2,cycleStart:firstStart,employmentStart:from,isExtra:false});
+      result.push({id:`${prefix}-b`,name:String(pair[1]),role,group,slot:1,workDays:2,offDays:2,cycleStart:secondStart,employmentStart:from,isExtra:false});
     }
 
     addPair("manager",0,managers[0],"mgr-g0");
@@ -1710,7 +1773,7 @@ body{min-height:100dvh}
 
     function groupNames(role,group,fallback){
       const items=s.employeeSchedules
-        .filter(x=>x.role===role && Number(x.group)===group)
+        .filter(x=>x.role===role && Number(x.group)===group && x.isExtra!==true)
         .sort((a,b)=>(Number(a.slot)||0)-(Number(b.slot)||0));
       return [
         items[0]?.name || fallback[0],
@@ -1765,7 +1828,9 @@ body{min-height:100dvh}
           slot:Number(x.slot)===1?1:0,
           workDays:Math.max(1,Math.min(14,Number(x.workDays)||2)),
           offDays:Math.max(1,Math.min(14,Number(x.offDays)||2)),
-          cycleStart:/^\d{4}-\d{2}-\d{2}$/.test(String(x.cycleStart||""))?String(x.cycleStart):merged.anchorDate
+          cycleStart:/^\d{4}-\d{2}-\d{2}$/.test(String(x.cycleStart||""))?String(x.cycleStart):merged.anchorDate,
+          employmentStart:/^\d{4}-\d{2}-\d{2}$/.test(String(x.employmentStart||""))?String(x.employmentStart):merged.individualScheduleFrom,
+          isExtra:x.isExtra===true
         }));
 
       const roles={manager:merged.employeeSchedules.filter(x=>x.role==="manager"),master:merged.employeeSchedules.filter(x=>x.role==="master")};
@@ -3147,6 +3212,9 @@ body{min-height:100dvh}
   }
 
   function employeeWorksOnDate(employee,date){
+    const employmentStart=employee.employmentStart||settings.individualScheduleFrom||settings.anchorDate;
+    if(dateKeyFromDate(date)<employmentStart) return false;
+
     const work=Math.max(1,Number(employee.workDays)||2);
     const off=Math.max(1,Number(employee.offDays)||2);
     const cycle=work+off;
@@ -3494,6 +3562,44 @@ body{min-height:100dvh}
     renderEmployeeToday();
   }
 
+  function employeeNamesInMonth(monthIndex){
+    const rows=buildMonthRows(monthIndex);
+    const names=[];
+
+    function addValue(value){
+      const raw=String(value||"").trim();
+      if(!raw || raw==="Не назначен") return;
+
+      if(raw.startsWith("Конфликт:")){
+        raw.replace(/^Конфликт:\s*/,"").split(",").forEach(n=>{
+          const name=n.trim();
+          if(name) names.push(name);
+        });
+        return;
+      }
+
+      names.push(raw);
+    }
+
+    rows.forEach(r=>{
+      addValue(r.s1.manager);
+      addValue(r.s1.master);
+      addValue(r.s2.manager);
+      addValue(r.s2.master);
+    });
+
+    return [...new Set(names)];
+  }
+
+  function monthHasUnassigned(monthIndex){
+    return buildMonthRows(monthIndex).some(r=>
+      r.s1.manager==="Не назначен" ||
+      r.s1.master==="Не назначен" ||
+      r.s2.manager==="Не назначен" ||
+      r.s2.master==="Не назначен"
+    );
+  }
+
   function renderSelectors(){
     const info=monthInfo(currentIndex);
 
@@ -3513,13 +3619,31 @@ body{min-height:100dvh}
     $("nextBtn").disabled=info.year>=2100 && info.month===11;
     $("todayMonthBtn").textContent=`Сегодня • ${todayMonthLabel()}`;
 
-    const names=allEmployeeNames();
+    const names=employeeNamesInMonth(currentIndex);
+    const hasUnassigned=monthHasUnassigned(currentIndex);
     const prev=employeeFilter.value;
+
     employeeFilter.innerHTML='<option value="">Все сотрудники</option>';
+
+    if(hasUnassigned){
+      const o=document.createElement("option");
+      o.value="__unassigned__";
+      o.textContent="Не назначен";
+      employeeFilter.appendChild(o);
+    }
+
     names.forEach(n=>{
-      const o=document.createElement("option");o.value=n;o.textContent=n;employeeFilter.appendChild(o);
+      const o=document.createElement("option");
+      o.value=n;
+      o.textContent=n;
+      employeeFilter.appendChild(o);
     });
-    if(names.includes(prev)) employeeFilter.value=prev;
+
+    if(prev==="__unassigned__" && hasUnassigned){
+      employeeFilter.value=prev;
+    }else{
+      employeeFilter.value=names.includes(prev)?prev:"";
+    }
   }
 
   function serviceScheduleDateKey(date){
@@ -3677,14 +3801,12 @@ body{min-height:100dvh}
         root.appendChild(renderServicePointSchedule(rows));
         $("monthActions").classList.add("hidden");
         $("monthPhotoNotice").classList.add("hidden");
-        $("personalBtn").disabled=true;
       }else{
         $("monthSubtitle").textContent=`Смена ${settings.shiftStart}–${settings.shiftEnd} • оба сервиса работают каждый день`;
         root.appendChild(serviceCard(settings.service1,"s1",rows));
         root.appendChild(serviceCard(settings.service2,"s2",rows));
         $("monthActions").classList.remove("hidden");
         $("monthPhotoNotice").classList.remove("hidden");
-        $("personalBtn").disabled=false;
         highlightEmployee();
       }
     }else{
@@ -3706,10 +3828,279 @@ body{min-height:100dvh}
           </div>`;
       $("monthActions").classList.add("hidden");
       $("monthPhotoNotice").classList.add("hidden");
-      $("personalBtn").disabled=true;
     }
 
+    renderScheduleAdminTools();
     if(!$("adminTodayPage").classList.contains("hidden")) renderTodayShifts();
+  }
+
+
+  function scheduleValueNames(value){
+    const raw=String(value||"").trim();
+    if(!raw || raw==="Не назначен") return [];
+    if(raw.startsWith("Конфликт:")){
+      return raw.replace(/^Конфликт:\s*/,"").split(",").map(x=>x.trim()).filter(Boolean);
+    }
+    return [raw];
+  }
+
+  function scheduleValueCount(value){
+    return scheduleValueNames(value).length;
+  }
+
+  function monthScheduleProblems(monthIndex){
+    const rows=buildMonthRows(monthIndex);
+    const problems=[];
+
+    rows.forEach(r=>{
+      const date=dateKeyFromDate(r.date);
+      for(const item of [
+        {service:settings.service1,role:"manager",label:"менеджер",value:r.s1.manager},
+        {service:settings.service1,role:"master",label:"мастер",value:r.s1.master},
+        {service:settings.service2,role:"manager",label:"менеджер",value:r.s2.manager},
+        {service:settings.service2,role:"master",label:"мастер",value:r.s2.master}
+      ]){
+        const count=scheduleValueCount(item.value);
+        if(count!==1) problems.push({...item,date,count,names:scheduleValueNames(item.value)});
+      }
+    });
+
+    return problems;
+  }
+
+  function renderScheduleAdminTools(){
+    const tools=$("scheduleAdminTools");
+    const summary=$("scheduleProblemSummary");
+    const details=$("scheduleProblemDetails");
+    if(!tools || !summary || !details) return;
+
+    const show=isAdmin() && !isServiceDeviceMode() && !isEmployeePhoneMode();
+    tools.classList.toggle("hidden",!show);
+    if(!show) return;
+
+    const problems=monthScheduleProblems(currentIndex);
+    const affected=new Set(problems.map(p=>`${p.date}|${p.service}`)).size;
+    const missing=problems.filter(p=>p.count===0).length;
+    const overlaps=problems.filter(p=>p.count>1).length;
+
+    if(!problems.length){
+      summary.innerHTML=`
+        <div class="schedule-problem-card ok">
+          <div><b>График собран правильно</b><span>В этом месяце пустых и двойных смен нет</span></div>
+        </div>`;
+      details.classList.add("hidden");
+      details.innerHTML="";
+      return;
+    }
+
+    const parts=[];
+    if(missing) parts.push(`не назначено: ${missing}`);
+    if(overlaps) parts.push(`пересечения: ${overlaps}`);
+
+    summary.innerHTML=`
+      <div class="schedule-problem-card">
+        <div>
+          <b>Требуют внимания: ${affected} смен</b>
+          <span>${parts.join(" · ")}</span>
+        </div>
+        <button class="secondary schedule-problem-toggle" id="scheduleProblemToggle" type="button">Показать</button>
+      </div>`;
+
+    details.innerHTML=problems.map(p=>{
+      const problemText=p.count===0 ? `нет ${p.label}а` : `${p.count} сотрудника одновременно`;
+      return `
+        <div class="schedule-problem-row">
+          <div>
+            <b>${escapeHtml(russianDateLong(p.date))} · ${escapeHtml(p.service)}</b>
+            <span>${escapeHtml(problemText)}</span>
+          </div>
+          <button class="secondary schedule-problem-fix" type="button"
+            data-fix-date="${escapeHtml(p.date)}"
+            data-fix-service="${escapeHtml(p.service)}">Исправить</button>
+        </div>`;
+    }).join("");
+
+    details.classList.add("hidden");
+
+    const toggle=$("scheduleProblemToggle");
+    if(toggle){
+      toggle.onclick=()=>{
+        const willShow=details.classList.contains("hidden");
+        details.classList.toggle("hidden");
+        toggle.textContent=willShow?"Скрыть":"Показать";
+      };
+    }
+
+    details.querySelectorAll("[data-fix-date]").forEach(btn=>{
+      btn.onclick=()=>openScheduleManage(btn.dataset.fixDate,btn.dataset.fixService);
+    });
+  }
+
+  function currentPairForDate(dateStr,service){
+    const [y,m,d]=dateStr.split("-").map(Number);
+    const idx=monthIndexForYearMonth(y,m-1);
+    const row=daySchedule(idx,d);
+    return service===settings.service1 ? row.s1 : row.s2;
+  }
+
+  function employeeRecordByVisibleName(name){
+    return (settings.employeeSchedules||[]).find(x=>x.name===name)||null;
+  }
+
+  function openEmployeeEditorByName(name){
+    const emp=employeeRecordByVisibleName(name);
+    if(!emp){
+      toast("Для этого сотрудника нет отдельной карточки графика");
+      return;
+    }
+    $("scheduleManageModal").classList.add("hidden");
+    openEmployeeScheduleEditor(emp.id);
+  }
+
+  function openQuickReplaceFor(date,service,role){
+    if(!isAdmin()){ openLoginModal(); return; }
+
+    $("quickReplaceDate").value=date;
+    $("quickReplaceService").innerHTML=`
+      <option value="${escapeHtml(settings.service1)}">${escapeHtml(settings.service1)}</option>
+      <option value="${escapeHtml(settings.service2)}">${escapeHtml(settings.service2)}</option>`;
+    $("quickReplaceService").value=service;
+    $("quickReplaceRole").innerHTML='<option value="manager">Менеджер</option><option value="master">Мастер</option>';
+    $("quickReplaceRole").value=role;
+    refreshQuickReplaceForm();
+    $("scheduleManageModal").classList.add("hidden");
+    $("quickReplaceModal").classList.remove("hidden");
+  }
+
+  async function markEmployeeLeftDirect(name,date){
+    if(!isAdmin()){ openLoginModal(); return; }
+    if(!name || name==="Не назначен" || name.startsWith("Конфликт:")) return;
+
+    const ok=confirm(`${name} больше не работает с ${date}? Прошлые дни останутся без изменений.`);
+    if(!ok) return;
+
+    const previous=clone(settings);
+    try{
+      settings.staffChanges=settings.staffChanges||[];
+
+      const already=settings.staffChanges.some(x=>
+        x.type==="left" &&
+        x.oldName===name &&
+        x.date<=date
+      );
+      if(already){
+        toast("Этот сотрудник уже отмечен как ушедший");
+        return;
+      }
+
+      settings.staffChanges.push({
+        id:`left-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        date,
+        oldName:name,
+        newName:"",
+        type:"left"
+      });
+      settings.staffChanges.sort((a,b)=>a.date.localeCompare(b.date));
+      settings=normalizeScheduleSettings(settings);
+      saveSettings();
+      if(cloudConfigured()) await saveToCloud(settings);
+      settingsDirty=false;
+      lastSettingsSignature=stableJson(settings);
+
+      $("scheduleManageModal").classList.add("hidden");
+      renderMonth();
+      renderPinFields();
+      fillHistoryFilters();
+      if(isEmployeePhoneMode()) renderEmployeePages();
+      toast(`${name}: больше не работает с ${date}`);
+    }catch(e){
+      console.error(e);
+      settings=previous;
+      saveSettings();
+      renderMonth();
+      toast(e.message||"Не удалось изменить сотрудника");
+    }
+  }
+
+  function manageRoleHtml(role,label,value,date,service){
+    const names=scheduleValueNames(value);
+    const count=names.length;
+
+    if(count===0){
+      const ending=role==="manager"?"менеджера":"мастера";
+      return `
+        <div class="schedule-manage-role problem">
+          <div><small>${escapeHtml(label)}</small><b>Не назначен</b></div>
+          <div class="schedule-manage-actions">
+            <button class="primary" type="button"
+              data-manage-assign="${role}"
+              data-manage-date="${escapeHtml(date)}"
+              data-manage-service="${escapeHtml(service)}">Назначить ${ending}</button>
+          </div>
+        </div>`;
+    }
+
+    if(count>1){
+      return `
+        <div class="schedule-manage-role problem">
+          <div><small>${escapeHtml(label)}</small><b>Одновременно ${count}</b></div>
+          <div class="schedule-manage-conflict">
+            ${names.map(n=>`
+              <div class="schedule-manage-conflict-row">
+                <span>${escapeHtml(n)}</span>
+                <button class="secondary" type="button" data-manage-edit-name="${escapeHtml(n)}">Изменить график</button>
+              </div>`).join("")}
+          </div>
+        </div>`;
+    }
+
+    const name=names[0];
+    const hasCard=!!employeeRecordByVisibleName(name);
+    return `
+      <div class="schedule-manage-role">
+        <div><small>${escapeHtml(label)}</small><b>${escapeHtml(name)}</b></div>
+        <div class="schedule-manage-actions">
+          <button class="secondary" type="button"
+            data-manage-replace="${role}"
+            data-manage-date="${escapeHtml(date)}"
+            data-manage-service="${escapeHtml(service)}">Заменить на день</button>
+          ${hasCard?`<button class="secondary" type="button" data-manage-edit-name="${escapeHtml(name)}">Изменить график</button>`:""}
+          <button class="danger" type="button"
+            data-manage-left-name="${escapeHtml(name)}"
+            data-manage-left-date="${escapeHtml(date)}">Больше не работает</button>
+        </div>
+      </div>`;
+  }
+
+  function openScheduleManage(date,service){
+    if(!isAdmin()){ openLoginModal(); return; }
+
+    const pair=currentPairForDate(date,service);
+    if(!pair) return;
+
+    $("scheduleManageTitle").textContent=`${service} · ${russianDateLong(date)}`;
+    $("scheduleManageSubtitle").textContent="Здесь можно исправить именно эту смену или изменить сотрудника на будущее.";
+    $("scheduleManageBody").innerHTML=
+      manageRoleHtml("manager","Менеджер",pair.manager,date,service)+
+      manageRoleHtml("master","Мастер",pair.master,date,service);
+
+    $("scheduleManageBody").querySelectorAll("[data-manage-assign]").forEach(btn=>{
+      btn.onclick=()=>openQuickReplaceFor(btn.dataset.manageDate,btn.dataset.manageService,btn.dataset.manageAssign);
+    });
+
+    $("scheduleManageBody").querySelectorAll("[data-manage-replace]").forEach(btn=>{
+      btn.onclick=()=>openQuickReplaceFor(btn.dataset.manageDate,btn.dataset.manageService,btn.dataset.manageReplace);
+    });
+
+    $("scheduleManageBody").querySelectorAll("[data-manage-edit-name]").forEach(btn=>{
+      btn.onclick=()=>openEmployeeEditorByName(btn.dataset.manageEditName);
+    });
+
+    $("scheduleManageBody").querySelectorAll("[data-manage-left-name]").forEach(btn=>{
+      btn.onclick=()=>markEmployeeLeftDirect(btn.dataset.manageLeftName,btn.dataset.manageLeftDate);
+    });
+
+    $("scheduleManageModal").classList.remove("hidden");
   }
 
   function serviceCard(title,key,rows){
@@ -3721,13 +4112,13 @@ body{min-height:100dvh}
     const halves=document.createElement("div"); halves.className="halves";
     const first=rows.filter(r=>r.date.getDate()<=15);
     const second=rows.filter(r=>r.date.getDate()>=16);
-    halves.appendChild(halfTable("1–15 число",key,first));
-    halves.appendChild(halfTable(`16–${rows.length} число`,key,second));
+    halves.appendChild(halfTable("1–15 число",key,first,title));
+    halves.appendChild(halfTable(`16–${rows.length} число`,key,second,title));
     card.appendChild(halves);
     return card;
   }
 
-  function halfTable(label,key,rows){
+  function halfTable(label,key,rows,serviceName){
     const wrap=document.createElement("div"); wrap.className="half";
     const h=document.createElement("h3"); h.textContent=label; wrap.appendChild(h);
     const t=document.createElement("table"); t.className="schedule";
@@ -3736,7 +4127,22 @@ body{min-height:100dvh}
     rows.forEach(r=>{
       const d=r.date.getDate(), pair=r[key];
       const tr=document.createElement("tr");
-      tr.dataset.manager=pair.manager; tr.dataset.master=pair.master;
+      const dateKey=dateKeyFromDate(r.date);
+      tr.dataset.manager=pair.manager;
+      tr.dataset.master=pair.master;
+      tr.dataset.scheduleDate=dateKey;
+      tr.dataset.scheduleService=serviceName;
+
+      if(scheduleValueCount(pair.manager)!==1 || scheduleValueCount(pair.master)!==1){
+        tr.classList.add("has-problem");
+      }
+
+      if(isAdmin() && !isServiceDeviceMode()){
+        tr.classList.add("manageable");
+        tr.title="Нажмите, чтобы изменить смену";
+        tr.onclick=()=>openScheduleManage(dateKey,serviceName);
+      }
+
       const today=new Date();
       if(today.getFullYear()===r.date.getFullYear() && today.getMonth()===r.date.getMonth() && today.getDate()===d) tr.classList.add("today");
       tr.innerHTML=`<td class="date">${d} ${WD[r.date.getDay()]}</td><td class="pair">${escapeHtml(pair.manager)} + ${escapeHtml(pair.master)}</td>`;
@@ -3748,22 +4154,14 @@ body{min-height:100dvh}
   function highlightEmployee(){
     const name=employeeFilter.value;
     document.querySelectorAll(".schedule tbody tr").forEach(tr=>{
-      tr.classList.toggle("highlight", !!name && (tr.dataset.manager===name || tr.dataset.master===name));
+      const match=name==="__unassigned__"
+        ? (tr.dataset.manager==="Не назначен" || tr.dataset.master==="Не назначен")
+        : (!!name && (tr.dataset.manager===name || tr.dataset.master===name));
+
+      tr.classList.toggle("highlight",match);
     });
   }
 
-  function personalSchedule(){
-    const name=employeeFilter.value || allManagerNames()[0] || allEmployeeNames()[0] || "";
-    if(!employeeFilter.value){ employeeFilter.value=name; highlightEmployee(); }
-    const rows=buildMonthRows(currentIndex), info=monthInfo(currentIndex), list=[];
-    rows.forEach(r=>{
-      if(r.s1.manager===name || r.s1.master===name) list.push({d:r.date,svc:settings.service1,p:r.s1});
-      if(r.s2.manager===name || r.s2.master===name) list.push({d:r.date,svc:settings.service2,p:r.s2});
-    });
-    $("personalTitle").textContent=`${name} — ${info.name} ${info.year}`;
-    $("personalList").innerHTML=list.length ? list.map(x=>`<div class="personal-item"><span><b>${x.d.getDate()} ${WD[x.d.getDay()]}</b> · ${escapeHtml(x.svc)}</span><span>${escapeHtml(x.p.manager)} + ${escapeHtml(x.p.master)}</span></div>`).join("") : '<div class="notice">В этом месяце смен нет.</div>';
-    $("personalModal").classList.remove("hidden");
-  }
 
   function escapeHtml(s){
     return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -3777,158 +4175,163 @@ body{min-height:100dvh}
     return ["2/2","3/3","5/2","6/1","7/7"].includes(key)?key:"custom";
   }
 
-  function employeeScheduleConflicts(days=30){
-    const today=moscowParts().date;
-    const [y,m,d]=today.split("-").map(Number);
-    const start=new Date(y,m-1,d);
-    const problems=[];
 
-    for(let i=0;i<days;i++){
-      const date=new Date(start);
-      date.setDate(start.getDate()+i);
-      const base=baseScheduleForDate(date);
-      for(const item of [
-        {service:settings.service1,role:"менеджер",count:base.s1.managerCount,names:base.s1.managerNames},
-        {service:settings.service1,role:"мастер",count:base.s1.masterCount,names:base.s1.masterNames},
-        {service:settings.service2,role:"менеджер",count:base.s2.managerCount,names:base.s2.managerNames},
-        {service:settings.service2,role:"мастер",count:base.s2.masterCount,names:base.s2.masterNames}
-      ]){
-        if(item.count!==1){
-          problems.push({
-            date:dateKeyFromDate(date),
-            service:item.service,
-            role:item.role,
-            count:item.count,
-            names:item.names
-          });
-        }
-      }
-    }
-    return problems;
+  function closeAddEmployeeModal(){
+    $("addEmployeeModal").classList.add("hidden");
   }
 
-  function renderEmployeesPage(){
-    const root=$("employeeAdminList");
-    const warning=$("employeeScheduleWarning");
-    const inactiveWrap=$("inactiveEmployeesWrap");
-    const inactiveRoot=$("inactiveEmployeeList");
-    if(!root || !warning) return;
+  function updateNewEmployeeCustomFields(){
+    const custom=$("newEmployeePreset").value==="custom";
+    $("newEmployeeWorkDays").closest(".field").classList.toggle("hidden",!custom);
+    $("newEmployeeOffDays").closest(".field").classList.toggle("hidden",!custom);
+  }
 
-    if($("employeeServiceBlockLabel")) $("employeeServiceBlockLabel").textContent=settings.serviceBlockDays;
-
-    const today=moscowParts().date;
-    const [y,m,d]=today.split("-").map(Number);
-    const todayDate=new Date(y,m-1,d);
-    const todayBase=baseScheduleForDate(todayDate);
-
-    const employees=(settings.employeeSchedules||[]).slice().sort((a,b)=>{
-      if(a.role!==b.role) return a.role==="manager"?-1:1;
-      if(a.group!==b.group) return a.group-b.group;
-      return a.slot-b.slot;
-    });
-
-    function currentLeftChange(emp){
-      return (settings.staffChanges||[])
-        .filter(x=>x.type==="left" && x.oldName===emp.name && x.date<=today)
-        .sort((a,b)=>a.date.localeCompare(b.date))
-        .slice(-1)[0]||null;
+  function applyNewEmployeePreset(){
+    const value=$("newEmployeePreset").value;
+    if(value!=="custom"){
+      const [work,off]=value.split("/").map(Number);
+      $("newEmployeeWorkDays").value=work;
+      $("newEmployeeOffDays").value=off;
     }
+    updateNewEmployeeCustomFields();
+  }
 
-    const activeEmployees=[];
-    const inactiveEmployees=[];
+  function syncNewEmployeePreset(){
+    $("newEmployeePreset").value=presetForCycle(
+      $("newEmployeeWorkDays").value,
+      $("newEmployeeOffDays").value
+    );
+  }
+
+  function vacancyForNewEmployee(role,startDate){
+    const employees=(settings.employeeSchedules||[]).filter(x=>x.role===role && x.isExtra!==true);
+    const changes=(settings.staffChanges||[])
+      .filter(x=>x.date<=startDate)
+      .slice()
+      .sort((a,b)=>a.date.localeCompare(b.date));
+
+    const vacancies=[];
 
     employees.forEach(emp=>{
-      const leftChange=currentLeftChange(emp);
-      if(leftChange) inactiveEmployees.push({emp,leftChange});
-      else activeEmployees.push(emp);
+      const related=changes.filter(x=>x.oldName===emp.name);
+      const latest=related.slice(-1)[0]||null;
+      if(latest && latest.type==="left"){
+        vacancies.push({emp,left:latest});
+      }
     });
 
-    root.innerHTML=activeEmployees.map(emp=>{
-      let works=false,service="";
-      for(const item of [
-        {service:settings.service1,pair:todayBase.s1},
-        {service:settings.service2,pair:todayBase.s2}
-      ]){
-        if(item.pair.manager===emp.name || item.pair.master===emp.name){
-          works=true;
-          service=item.service;
-        }
-      }
+    vacancies.sort((a,b)=>b.left.date.localeCompare(a.left.date));
+    return vacancies[0]||null;
+  }
 
-      return `<div class="employee-admin-card">
-        <div>
-          <b>${escapeHtml(emp.name)}</b>
-          <span>${roleLabel(emp.role)} · ${emp.workDays}/${emp.offDays}</span>
-          <span>${works?`Сегодня работает · ${escapeHtml(service)}`:"Сегодня выходной"}</span>
-        </div>
-        <button class="secondary" data-edit-employee="${escapeHtml(emp.id)}">Изменить</button>
-      </div>`;
-    }).join("");
+  function autoGroupForNewEmployee(role,startDate){
+    const [y,m,d]=startDate.split("-").map(Number);
+    const date=new Date(y,m-1,d);
+    const existing=employeesForDate(date).filter(x=>
+      x.role===role &&
+      !x.inactive &&
+      (!x.employmentStart || x.employmentStart<=startDate)
+    );
+    const count0=existing.filter(x=>Number(x.group)!==1).length;
+    const count1=existing.filter(x=>Number(x.group)===1).length;
+    return count0<=count1?0:1;
+  }
 
-    root.querySelectorAll("[data-edit-employee]").forEach(btn=>{
-      btn.onclick=()=>openEmployeeScheduleEditor(btn.dataset.editEmployee);
-    });
+  function refreshNewEmployeePlaceNote(){
+    const role=$("newEmployeeRole").value==="master"?"master":"manager";
+    const startDate=$("newEmployeeStart").value||moscowParts().date;
+    const vacancy=vacancyForNewEmployee(role,startDate);
+    const note=$("newEmployeePlaceNote");
+    if(!note) return;
 
-    if(inactiveWrap && inactiveRoot){
-      if(inactiveEmployees.length){
-        inactiveWrap.classList.remove("hidden");
-        inactiveRoot.innerHTML=inactiveEmployees.map(({emp,leftChange})=>`
-          <div class="inactive-employee-row">
-            <div>
-              <b>${escapeHtml(emp.name)}</b>
-              <span>${roleLabel(emp.role)} · больше не работает с ${escapeHtml(leftChange.date)}</span>
-            </div>
-          </div>`).join("");
-      }else{
-        inactiveWrap.classList.add("hidden");
-        inactiveRoot.innerHTML="";
-      }
-    }
-
-    const problems=employeeScheduleConflicts(30);
-    if(!problems.length){
-      warning.className="";
-      warning.innerHTML="";
+    if(vacancy){
+      note.innerHTML=`Есть свободное место после <b>${escapeHtml(vacancy.emp.name)}</b>. Новый сотрудник будет поставлен туда автоматически.`;
     }else{
-      const affectedShifts=new Set(problems.map(p=>`${p.date}|${p.service}`)).size;
-      const missing=problems.filter(p=>p.count===0).length;
-      const overlaps=problems.filter(p=>p.count>1).length;
+      note.textContent="Свободного места нет. Приложение подберёт группу автоматически и проверит, нет ли пересечений.";
+    }
+  }
 
-      const details=problems.slice(0,10).map(p=>{
-        const detail=p.count===0?"не назначен":`${p.count} одновременно`;
-        return `<div>${escapeHtml(p.date)} · ${escapeHtml(p.service)} · ${escapeHtml(p.role)}: <b>${detail}</b></div>`;
-      }).join("");
+  function openAddEmployeeModal(){
+    if(!isAdmin()){ openLoginModal(); return; }
 
-      const summaryParts=[];
-      if(missing) summaryParts.push(`нет сотрудника: ${missing}`);
-      if(overlaps) summaryParts.push(`пересечение: ${overlaps}`);
+    $("newEmployeeName").value="";
+    $("newEmployeeRole").value="manager";
+    $("newEmployeePreset").value="2/2";
+    $("newEmployeeWorkDays").value=2;
+    $("newEmployeeOffDays").value=2;
+    $("newEmployeeStart").value=moscowParts().date;
+    updateNewEmployeeCustomFields();
+    refreshNewEmployeePlaceNote();
+    $("addEmployeeModal").classList.remove("hidden");
+    setTimeout(()=>$("newEmployeeName").focus(),50);
+  }
 
-      warning.className="employee-schedule-warning bad";
-      warning.innerHTML=`
-        <div class="employee-warning-head">
-          <div>
-            <b>График требует внимания: ${affectedShifts} смен</b>
-            <span>${summaryParts.join(" · ")}</span>
-          </div>
-          <button class="secondary employee-warning-toggle" id="employeeWarningToggle" type="button">Показать</button>
-        </div>
-        <div class="employee-warning-details hidden" id="employeeWarningDetails">
-          ${details}
-          ${problems.length>10?`<div>И ещё: ${problems.length-10}</div>`:""}
-        </div>`;
+  async function saveNewEmployee(){
+    if(!isAdmin()){ openLoginModal(); return; }
 
-      const toggle=$("employeeWarningToggle");
-      const detailRoot=$("employeeWarningDetails");
-      if(toggle && detailRoot){
-        toggle.onclick=()=>{
-          const willShow=detailRoot.classList.contains("hidden");
-          detailRoot.classList.toggle("hidden");
-          toggle.textContent=willShow?"Скрыть":"Показать";
-        };
-      }
+    const name=$("newEmployeeName").value.trim();
+    const role=$("newEmployeeRole").value==="master"?"master":"manager";
+    const startDate=$("newEmployeeStart").value;
+    const workDays=Math.max(1,Math.min(14,Number($("newEmployeeWorkDays").value)||2));
+    const offDays=Math.max(1,Math.min(14,Number($("newEmployeeOffDays").value)||2));
+
+    if(!name){ toast("Напиши имя сотрудника"); return; }
+    if(!startDate){ toast("Выбери первый рабочий день"); return; }
+
+    const duplicate=(settings.employeeSchedules||[]).some(x=>x.name.toLowerCase()===name.toLowerCase());
+    if(duplicate){
+      toast("Сотрудник с таким именем уже есть");
+      return;
     }
 
-    renderScheduleEditLists();
+    const previous=clone(settings);
+
+    try{
+      const vacancy=vacancyForNewEmployee(role,startDate);
+      const group=vacancy ? Number(vacancy.emp.group||0) : autoGroupForNewEmployee(role,startDate);
+      const slot=vacancy ? Number(vacancy.emp.slot||0) : 0;
+
+      settings.employeeSchedules=settings.employeeSchedules||[];
+      settings.employeeSchedules.push({
+        id:`employee-new-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        name,
+        role,
+        group:Number(group)===1?1:0,
+        slot:Number(slot)===1?1:0,
+        workDays,
+        offDays,
+        cycleStart:startDate,
+        employmentStart:startDate,
+        isExtra:true
+      });
+
+      settings=normalizeScheduleSettings(settings);
+      saveSettings();
+
+      if(cloudConfigured()) await saveToCloud(settings);
+
+      lastSettingsSignature=stableJson(settings);
+      settingsDirty=false;
+      closeAddEmployeeModal();
+
+      renderPinFields();
+      fillHistoryFilters();
+      if(!$("schedulePage").classList.contains("hidden")) renderMonth();
+      if(isEmployeePhoneMode()) renderEmployeePages();
+      renderTodayShifts();
+
+      if(startDate<settings.individualScheduleFrom){
+        toast(`${name} добавлен. В личном графике начнёт участвовать с ${settings.individualScheduleFrom}`);
+      }else{
+        toast(`${name} добавлен · ${roleLabel(role)} · ${workDays}/${offDays}`);
+      }
+    }catch(e){
+      console.error(e);
+      settings=previous;
+      saveSettings();
+
+      toast(e.message||"Не удалось добавить сотрудника");
+    }
   }
 
   function openEmployeeScheduleEditor(id){
@@ -4017,6 +4420,26 @@ body{min-height:100dvh}
     const previous=clone(settings);
     const oldName=employee.name;
 
+    const previewSettings=clone(settings);
+    const previewEmployee=(previewSettings.employeeSchedules||[]).find(x=>String(x.id)===String(id));
+    if(previewEmployee){
+      previewEmployee.name=name;
+      previewEmployee.workDays=workDays;
+      previewEmployee.offDays=offDays;
+      previewEmployee.cycleStart=cycleStart;
+
+      const realSettings=settings;
+      settings=normalizeScheduleSettings(previewSettings);
+      const previewProblems=monthScheduleProblems(currentIndex);
+      settings=realSettings;
+
+      if(previewProblems.length){
+        const affected=new Set(previewProblems.map(p=>`${p.date}|${p.service}`)).size;
+        const ok=confirm(`После этого изменения в выбранном месяце будет ${affected} смен, которые требуют внимания. Всё равно сохранить?`);
+        if(!ok) return;
+      }
+    }
+
     try{
       employee.name=name;
       employee.workDays=workDays;
@@ -4045,7 +4468,7 @@ body{min-height:100dvh}
       lastSettingsSignature=stableJson(settings);
       settingsDirty=false;
       closeEmployeeScheduleEditor();
-      renderEmployeesPage();
+
       renderPinFields();
       fillHistoryFilters();
       if(!$("schedulePage").classList.contains("hidden")) renderMonth();
@@ -4056,40 +4479,11 @@ body{min-height:100dvh}
       console.error(e);
       settings=previous;
       saveSettings();
-      renderEmployeesPage();
+
       toast(e.message||"Не удалось сохранить график");
     }
   }
 
-  function renderScheduleEditLists(){
-    const changeOld=$("changeOld");
-    if(changeOld){
-      const previous=changeOld.value;
-      changeOld.innerHTML=allEmployeeNames().map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
-      if([...changeOld.options].some(o=>o.value===previous)) changeOld.value=previous;
-    }
-
-    const changesRoot=$("staffChangesList");
-    if(changesRoot){
-      const changes=(settings.staffChanges||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
-      changesRoot.innerHTML=changes.length ? changes.map(x=>`
-        <div class="change-item">
-          <div><b>${escapeHtml(x.date)}</b><small>${x.type==="left"
-            ? `${escapeHtml(x.oldName)} → больше не работает`
-            : `${escapeHtml(x.oldName)} → ${escapeHtml(x.newName)}`}</small></div>
-          <button class="change-delete" data-change-id="${escapeHtml(x.id)}">Удалить</button>
-        </div>`).join("") : '<div class="notice">Постоянных изменений пока нет.</div>';
-      changesRoot.querySelectorAll("[data-change-id]").forEach(btn=>{
-        btn.onclick=()=>{
-          settings.staffChanges=(settings.staffChanges||[]).filter(x=>String(x.id)!==String(btn.dataset.changeId));
-          markDirty();
-          renderScheduleEditLists();
-          renderMonth();
-        };
-      });
-    }
-
-  }
 
   function populateSettings(){
     $("anchorDate").value=settings.anchorDate;
@@ -4097,15 +4491,11 @@ body{min-height:100dvh}
     $("service1").value=settings.service1; $("service2").value=settings.service2;
     $("shiftStart").value=settings.shiftStart; $("shiftEnd").value=settings.shiftEnd;
 
-    if(!$("changeDate").value) $("changeDate").value=moscowParts().date;
-
     renderPinFields();
     fillHistoryFilters();
     fillDeviceServiceSelect();
     updatePushState();
     renderDevicePanel();
-    renderScheduleEditLists();
-    renderEmployeesPage();
   }
 
   function readSettingsFromForm(){
@@ -4131,75 +4521,6 @@ body{min-height:100dvh}
     return new Set(all).size===all.length;
   }
 
-  function addStaffChange(){
-    if(!isAdmin()){ openLoginModal(); return; }
-    const date=$("changeDate").value;
-    const oldName=$("changeOld").value;
-    const newName=$("changeNew").value.trim();
-
-    if(!date || !oldName || !newName){
-      toast("Заполни дату, сотрудника и новое имя");
-      return;
-    }
-    if(oldName===newName){
-      toast("Новое имя должно отличаться");
-      return;
-    }
-
-    settings.staffChanges=settings.staffChanges||[];
-    settings.staffChanges.push({
-      id:`change-${Date.now()}-${(settings.staffChanges||[]).length}-${Math.random().toString(36).slice(2)}`,
-      date,
-      oldName,
-      newName,
-      type:"replace"
-    });
-    settings.staffChanges.sort((a,b)=>a.date.localeCompare(b.date));
-    $("changeNew").value="";
-    markDirty();
-    renderScheduleEditLists();
-    renderMonth();
-    toast("Изменение добавлено. Не забудь сохранить настройки.");
-  }
-
-  function markStaffLeft(){
-    if(!isAdmin()){ openLoginModal(); return; }
-    const date=$("changeDate").value;
-    const oldName=$("changeOld").value;
-
-    if(!date || !oldName){
-      toast("Выбери дату и сотрудника");
-      return;
-    }
-
-    settings.staffChanges=settings.staffChanges||[];
-    const already=settings.staffChanges.some(x=>
-      x.type==="left" &&
-      x.date===date &&
-      x.oldName===oldName
-    );
-    if(already){
-      toast("Этот уход уже добавлен");
-      return;
-    }
-
-    settings.staffChanges.push({
-      id:`left-${Date.now()}-${settings.staffChanges.length}-${Math.random().toString(36).slice(2)}`,
-      date,
-      oldName,
-      newName:"",
-      type:"left"
-    });
-    settings.staffChanges.sort((a,b)=>a.date.localeCompare(b.date));
-    $("changeNew").value="";
-    markDirty();
-    renderScheduleEditLists();
-    renderMonth();
-    renderEmployeesPage();
-    toast(`${oldName}: больше не работает с ${date}. Сохрани настройки.`);
-  }
-
-
 
   function baseExpectedForDate(dateStr,serviceName){
     try{
@@ -4218,7 +4539,26 @@ body{min-height:100dvh}
   function quickReplacementCandidates(date,role){
     try{
       const [y,m,d]=date.split("-").map(Number);
-      const list=employeesForDate(new Date(y,m-1,d)).filter(x=>x.role===role).map(x=>x.name);
+      const day=new Date(y,m-1,d);
+      const idx=monthIndexForYearMonth(y,m-1);
+      const row=daySchedule(idx,d);
+
+      const busy=new Set([
+        ...scheduleValueNames(row.s1.manager),
+        ...scheduleValueNames(row.s1.master),
+        ...scheduleValueNames(row.s2.manager),
+        ...scheduleValueNames(row.s2.master)
+      ]);
+
+      const list=employeesForDate(day)
+        .filter(x=>
+          x.role===role &&
+          !x.inactive &&
+          (!x.employmentStart || x.employmentStart<=date) &&
+          !busy.has(x.name)
+        )
+        .map(x=>x.name);
+
       return [...new Set(list.filter(Boolean))];
     }catch(e){ return []; }
   }
@@ -4390,7 +4730,7 @@ body{min-height:100dvh}
     const employeeMode=isEmployeePhoneMode();
     const serviceMode=isServiceDeviceMode();
 
-    if(employeeMode && ["adminToday","schedule","employees","history","settings"].includes(tab)){
+    if(employeeMode && ["adminToday","schedule","history","settings"].includes(tab)){
       tab="employeeToday";
     }
 
@@ -4398,7 +4738,7 @@ body{min-height:100dvh}
       tab="adminToday";
     }
 
-    if((tab==="settings" || tab==="history" || tab==="employees") && cloudConfigured() && !isAdmin()){
+    if((tab==="settings" || tab==="history") && cloudConfigured() && !isAdmin()){
       if(serviceMode){
         tab="adminToday";
       }else{
@@ -4412,7 +4752,6 @@ body{min-height:100dvh}
     const empCal=tab==="employeeCalendar";
     const adminToday=tab==="adminToday";
     const sched=tab==="schedule";
-    const emps=tab==="employees";
     const hist=tab==="history";
     const sett=tab==="settings";
 
@@ -4421,7 +4760,6 @@ body{min-height:100dvh}
     $("employeeCalendarPage").classList.toggle("hidden",!empCal);
     $("adminTodayPage").classList.toggle("hidden",!adminToday);
     $("schedulePage").classList.toggle("hidden",!sched);
-    $("employeesPage").classList.toggle("hidden",!emps);
     $("historyPage").classList.toggle("hidden",!hist);
     $("settingsPage").classList.toggle("hidden",!sett);
     $("scheduleControls").classList.toggle("hidden",!sched);
@@ -4440,9 +4778,6 @@ body{min-height:100dvh}
       renderTodayShifts();
       renderAdminAttention();
       loadTodayShifts(false);
-    }
-    if(emps){
-      renderEmployeesPage();
     }
     if(sett){
       settingsDirty=false;
@@ -4596,7 +4931,6 @@ body{min-height:100dvh}
   function switchTabLocalSettings(){
     const sched=false;
     $("schedulePage").classList.toggle("hidden",!sched);
-    $("employeesPage").classList.add("hidden");
     $("historyPage").classList.add("hidden");
     $("settingsPage").classList.toggle("hidden",sched);
     $("scheduleControls").classList.toggle("hidden",!sched);
@@ -4638,7 +4972,6 @@ body{min-height:100dvh}
     renderMonth();
   };
   employeeFilter.onchange=highlightEmployee;
-  $("personalBtn").onclick=personalSchedule;
   $("changeEmployeeGlobal").onclick=openEmployeePicker;
   $("employeeCalPrev").onclick=()=>setEmployeeCalendarMonth(employeeCalendarIndex-1);
   $("employeeCalNext").onclick=()=>setEmployeeCalendarMonth(employeeCalendarIndex+1);
@@ -4655,6 +4988,17 @@ body{min-height:100dvh}
   ["historyService","historyEmployee","historyProblem"].forEach(id=>{
     $(id).onchange=()=>loadHistory();
   });
+  $("addEmployeeBtn").onclick=openAddEmployeeModal;
+  $("closeAddEmployee").onclick=closeAddEmployeeModal;
+  $("cancelAddEmployee").onclick=closeAddEmployeeModal;
+  $("addEmployeeModal").addEventListener("click",e=>{ if(e.target===$("addEmployeeModal")) closeAddEmployeeModal(); });
+  $("newEmployeePreset").onchange=applyNewEmployeePreset;
+  $("newEmployeeWorkDays").oninput=syncNewEmployeePreset;
+  $("newEmployeeOffDays").oninput=syncNewEmployeePreset;
+  $("newEmployeeRole").onchange=refreshNewEmployeePlaceNote;
+  $("newEmployeeStart").onchange=refreshNewEmployeePlaceNote;
+  $("saveAddEmployee").onclick=saveNewEmployee;
+
   $("closeEmployeeSchedule").onclick=closeEmployeeScheduleEditor;
   $("cancelEmployeeSchedule").onclick=closeEmployeeScheduleEditor;
   $("employeeScheduleModal").addEventListener("click",e=>{ if(e.target===$("employeeScheduleModal")) closeEmployeeScheduleEditor(); });
@@ -4664,6 +5008,8 @@ body{min-height:100dvh}
   $("employeeScheduleStart").onchange=renderEmployeeSchedulePreview;
   $("saveEmployeeSchedule").onclick=saveEmployeeScheduleEditor;
   $("quickReplaceBtn").onclick=openQuickReplace;
+  $("closeScheduleManage").onclick=()=>$("scheduleManageModal").classList.add("hidden");
+  $("scheduleManageModal").addEventListener("click",e=>{ if(e.target===$("scheduleManageModal")) $("scheduleManageModal").classList.add("hidden"); });
   $("closeQuickReplace").onclick=closeQuickReplace;
   $("quickReplaceModal").addEventListener("click",e=>{ if(e.target===$("quickReplaceModal")) closeQuickReplace(); });
   $("quickReplaceDate").onchange=refreshQuickReplaceForm;
@@ -4679,12 +5025,8 @@ body{min-height:100dvh}
   $("adminBtn").onclick=()=>{ if(isAdmin()) switchTab("settings"); else openLoginModal(); };
   $("closeServiceDay").onclick=()=>$("serviceDayModal").classList.add("hidden");
   $("serviceDayModal").addEventListener("click",e=>{ if(e.target===$("serviceDayModal")) $("serviceDayModal").classList.add("hidden"); });
-  $("closePersonal").onclick=()=>$("personalModal").classList.add("hidden");
-  $("personalModal").addEventListener("click",e=>{ if(e.target===$("personalModal")) $("personalModal").classList.add("hidden"); });
   $("shareBtn").onclick=sharePhoto;
   $("downloadBtn").onclick=downloadPhoto;
-  $("addStaffChangeBtn").onclick=addStaffChange;
-  $("markStaffLeftBtn").onclick=markStaffLeft;
   $("saveSettingsBtn").onclick=saveForm;
   $("forceSyncBtn").onclick=()=>syncFromCloud(true);
   $("logoutBtn").onclick=()=>{ saveAdminSession(null); settingsDirty=false; renderTodayShifts(); applyUserMode(); switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday"); toast("Вы вышли из администратора"); };
