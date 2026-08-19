@@ -54,7 +54,7 @@ button{cursor:pointer}
 .schedule .pair{font-weight:650}
 .highlight{background:#fff7d6!important}
 .today td:first-child{box-shadow:inset 3px 0 0 var(--blue)}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+.actions{display:grid;grid-template-columns:1fr;gap:8px;margin:14px 0}
 .actions button{font-size:13px;padding:10px 8px}
 .section{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow)}
 .section h2{margin:0 0 12px;color:var(--blue);font-size:22px}
@@ -329,17 +329,9 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 /* Бесконечный график */
 .monthnav{grid-template-columns:44px minmax(120px,1fr) 110px 44px}
 .yearselect{width:100%;min-height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 10px;font-weight:800;color:var(--text)}
-.change-form{display:grid;grid-template-columns:150px 1fr 1fr auto;gap:8px;align-items:end}
-.change-list{display:grid;gap:8px;margin-top:10px}
-.change-item{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 11px;background:#fff}
-.change-item b{color:#24344d}
-.change-item small{display:block;color:var(--muted);margin-top:3px;line-height:1.35}
-.change-delete{border:1px solid #fecaca;background:#fff;color:#b42318;border-radius:10px;padding:7px 9px;font-weight:800;white-space:nowrap}
 .infinite-note{margin-top:9px;padding:10px 12px;border-radius:12px;background:#ecfdf3;color:#166534;font-size:12px;line-height:1.45}
 @media(max-width:760px){
   .monthnav{grid-template-columns:42px 1fr 92px 42px}
-  .change-form{grid-template-columns:1fr 1fr}
-  .change-form button{grid-column:1/-1}
 }
 
 .service-day-row.selected{outline:2px solid #0f5bd7;outline-offset:-2px;background:#f2f7ff}
@@ -427,7 +419,6 @@ body.startup-shift-mode #startupShiftWindow{display:flex!important}
 body.startup-shift-mode .toast{z-index:300}
 
 /* Установка приложений */
-.install-quick-btn{border:1px solid var(--line);background:#fff;border-radius:999px;min-height:34px;padding:0 11px;font-size:12px;font-weight:800;color:var(--blue)}
 .install-app-grid{display:grid;grid-template-columns:1fr;gap:10px}
 .install-app-card{border:1px solid var(--line);border-radius:15px;padding:12px;background:#f8fafc}
 .install-app-card b{display:block;color:#24344d;margin-bottom:5px}
@@ -608,35 +599,8 @@ body{min-height:100dvh}
 }
 
 
-/* Сотрудники: личные графики */
-.employee-admin-list{display:grid;gap:10px}
-.employee-admin-card{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:15px;padding:12px;background:#fff}
-.employee-admin-card b{display:block;font-size:15px;color:#24344d}
-.employee-admin-card span{display:block;margin-top:3px;font-size:12px;color:var(--muted);line-height:1.4}
-.employee-admin-card button{min-width:105px}
-.employee-schedule-warning{margin-bottom:12px;padding:10px 12px;border-radius:13px;border:1px solid var(--line);font-size:12px;line-height:1.45}
-.employee-schedule-warning.bad{background:#fffaf0;color:#8a4b08;border-color:#f6d79a}
-.employee-warning-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.employee-warning-head b{display:block;font-size:13px;color:#7c3f05}
-.employee-warning-head span{display:block;margin-top:2px;color:#9a670f}
-.employee-warning-toggle{flex:0 0 auto;padding:7px 11px!important;min-height:auto!important;font-size:12px!important}
-.employee-warning-details{margin-top:9px;padding-top:8px;border-top:1px solid #f3dfb5}
-.employee-warning-details div+div{margin-top:4px}
-.employee-preview{display:flex;gap:6px;overflow-x:auto;padding:3px 0 4px;scrollbar-width:none}
-.employee-preview::-webkit-scrollbar{display:none}
-.employee-preview-day{flex:0 0 72px;border:1px solid var(--line);border-radius:11px;padding:8px 6px;text-align:center;background:#f8fafc}
-.employee-preview-day.work{background:#ecfdf3;border-color:#bbf7d0}
-.employee-preview-day.off{background:#f8fafc}
-.employee-preview-day b{display:block;font-size:13px;color:#24344d}
-.employee-preview-day span{display:block;margin-top:3px;font-size:9px;color:var(--muted);line-height:1.2}
 .bottom-inner.admin-four{grid-template-columns:repeat(4,1fr)!important}
-@media(max-width:620px){
-  .bottom-inner.admin-four .tab{font-size:11px;padding-left:4px;padding-right:4px}
-  .employee-admin-card{grid-template-columns:1fr}
-  .employee-admin-card button{width:100%}
-}
-
-
+@media(max-width:620px){.bottom-inner.admin-four .tab{font-size:11px;padding-left:4px;padding-right:4px}}
 @media(max-width:760px){
   }
 
@@ -705,7 +669,6 @@ body{min-height:100dvh}
       <div class="brand">MA График</div>
       <div style="display:flex;align-items:center;gap:8px">
         <div class="badge" id="saveBadge">Загрузка…</div>
-        <button class="install-quick-btn hidden" id="installQuickBtn">Установить</button>
         <button class="authbtn" id="adminBtn">Администратор</button>
       </div>
     </div>
@@ -797,7 +760,7 @@ body{min-height:100dvh}
       <div class="today-board">
         <div class="today-head">
           <div><h2>Состояние смен</h2><div class="today-date" id="todayDateLabel">—</div></div>
-          <button class="secondary quick-replace-btn hidden" id="quickReplaceBtn">Замена сотрудника</button>
+          <button class="secondary quick-replace-btn hidden" id="quickReplaceBtn">Замена сегодня</button>
         </div>
         <div class="shift-cards" id="todayShiftCards"></div>
       </div>
@@ -819,8 +782,7 @@ body{min-height:100dvh}
 
       <div id="servicesRoot"></div>
       <div class="actions" id="monthActions">
-        <button class="primary" id="shareBtn">Поделиться фото</button>
-        <button class="secondary" id="downloadBtn">Скачать PNG</button>
+        <button class="primary" id="shareBtn">Поделиться / сохранить фото</button>
       </div>
       <div class="notice" id="monthPhotoNotice">Фото строится прямо внутри приложения, поэтому таблица остаётся чёткой. На iPhone кнопка «Поделиться фото» обычно удобнее всего: можно сразу сохранить в «Фото» или отправить в WhatsApp.</div>
     </section>
@@ -845,7 +807,7 @@ body{min-height:100dvh}
         </div>
         <div class="history-filters-clean">
           <select id="historyService"><option value="">Все сервисы</option></select>
-          <select id="historyEmployee"><option value="">Все сотрудники</option></select>
+          <select id="historyEmployee"><option value="">Все менеджеры</option></select>
           <select id="historyProblem"><option value="">Все смены</option><option value="late">Только опоздания</option><option value="unclosed">Только незакрытые</option><option value="voided">Аннулированные</option></select>
         </div>
         <div class="history-stats" id="historyStats"></div>
@@ -919,13 +881,15 @@ body{min-height:100dvh}
             <div class="advanced-block">
               <h3>Служебные параметры графика</h3>
               <div class="notice">Меняй только если действительно перестраиваешь цикл. Эти значения влияют на будущие даты.</div>
-              <div class="grid2" style="margin-top:10px">
-                <div class="field"><label>Общая дата отсчёта</label><input type="date" id="anchorDate"></div>
-                <div class="field"><label>Дней на одной точке</label><input type="number" id="serviceBlockDays" min="1" max="60"></div>
+              <input type="hidden" id="anchorDate">
+              <div class="field" style="margin-top:10px">
+                <label>Закрепление за точкой</label>
+                <input type="text" id="serviceBlockDaysView" value="1–15 / 16–конец месяца" readonly>
+                <input type="hidden" id="serviceBlockDays" value="15">
               </div>
               <details class="help-details">
                 <summary>Как считается график?</summary>
-                <div>У каждого сотрудника свой цикл, например 2/2 или 3/3. Точки меняются через заданное количество дней. Разовая замена не сбивает основной график.</div>
+                <div>Мастера закреплены парами за одной точкой на полмесяца и меняются точками только 1-го и 16-го числа. У менеджеров два человека закреплены за точками, третий работает подменным. Роль подменного тоже меняется каждые полмесяца.</div>
               </details>
             </div>
 
@@ -1034,7 +998,7 @@ body{min-height:100dvh}
 
       <div class="field">
         <label>Первый рабочий день</label>
-        <input type="date" id="newEmployeeStart">
+        <input type="date" id="newEmployeeStart" min="2020-01-01" max="2100-12-31">
       </div>
 
       <div class="field">
@@ -1065,10 +1029,10 @@ body{min-height:100dvh}
     </div>
     <input type="hidden" id="employeeScheduleId">
     <div class="grid2" style="margin-top:14px">
-      <div class="field"><label>Имя</label><input id="employeeScheduleName"></div>
+      <div class="field"><label>Сотрудник</label><input id="employeeScheduleName" class="readonly" readonly></div>
       <div class="field"><label>Должность</label><input id="employeeScheduleRole" class="readonly" readonly></div>
       <div class="field">
-        <label>Готовый график</label>
+        <label>Новый график</label>
         <select id="employeeSchedulePreset">
           <option value="2/2">2/2</option>
           <option value="3/3">3/3</option>
@@ -1078,16 +1042,16 @@ body{min-height:100dvh}
           <option value="custom">Свой</option>
         </select>
       </div>
-      <div class="field"><label>Первый рабочий день цикла</label><input type="date" id="employeeScheduleStart"></div>
+      <div class="field"><label>Изменить график с даты</label><input type="date" id="employeeScheduleStart"></div>
       <div class="field"><label>Рабочих дней подряд</label><input type="number" id="employeeWorkDays" min="1" max="14"></div>
       <div class="field"><label>Выходных дней подряд</label><input type="number" id="employeeOffDays" min="1" max="14"></div>
     </div>
-    <div class="notice" id="employeePointRule">Точки меняются автоматически.</div>
+    <div class="notice" id="employeePointRule">Прошлые даты не изменятся. Точки меняются автоматически.</div>
     <h3>Ближайшие 14 дней</h3>
     <div class="employee-preview" id="employeeSchedulePreview"></div>
     <div class="login-actions">
       <button class="secondary" id="cancelEmployeeSchedule">Отмена</button>
-      <button class="primary" id="saveEmployeeSchedule">Сохранить сотрудника</button>
+      <button class="primary" id="saveEmployeeSchedule">Сохранить новый график</button>
     </div>
   </div>
 </div>
@@ -1195,13 +1159,15 @@ body{min-height:100dvh}
   const DEFAULTS = {
     anchorDate: "2026-09-01",
     individualScheduleFrom: "2026-09-01",
-    serviceBlockDays: 14,
+    serviceBlockDays: 15,
+    balancedRosterEnabled: true,
+    balancedRosterFrom: "2026-08-01",
     service1: "Моба",
     service2: "Нова",
     shiftStart: "08:00",
     shiftEnd: "22:00",
     managers: [["Сергей","Арсен"],["Дина","Амалия"]],
-    masters: [["Олег","Асик"],["Ислам","Георгий"]],
+    masters: [["Олег","Аслан"],["Ислам","Георгий"]],
     staffChanges: [],
     dayOverrides: []
   };
@@ -1244,6 +1210,20 @@ body{min-height:100dvh}
 
   function stableJson(value){
     try{ return JSON.stringify(value); }catch(e){ return ""; }
+  }
+
+  function serviceKeyForName(name,s=null){
+    const cfg=s || settings;
+    if(name===cfg.service1) return "s1";
+    if(name===cfg.service2) return "s2";
+    return "";
+  }
+
+  function serviceNameForKey(key,s=null){
+    const cfg=s || settings;
+    if(key==="s1") return cfg.service1;
+    if(key==="s2") return cfg.service2;
+    return "";
   }
 
   function loadCachedDeviceView(){
@@ -1421,22 +1401,41 @@ body{min-height:100dvh}
     );
   }
 
-  function allEmployeeNames(){
-    const names=(settings.employeeSchedules||[]).map(x=>x.name);
-    (settings.staffChanges||[]).forEach(x=>{
-      names.push(x.oldName);
-      if(x.type!=="left" && x.newName) names.push(x.newName);
-    });
-    (settings.dayOverrides||[]).forEach(x=>{ names.push(x.manager,x.master); });
-    return [...new Set(names.filter(Boolean))];
+  function dateObjectFromKey(dateStr){
+    const [y,m,d]=String(dateStr||moscowParts().date).split("-").map(Number);
+    return new Date(y,m-1,d);
   }
 
-  function allManagerNames(){
-    const names=(settings.employeeSchedules||[]).filter(x=>x.role==="manager").map(x=>x.name);
-    (settings.staffChanges||[]).forEach(ch=>{
-      if(ch.type!=="left" && names.includes(ch.oldName) && ch.newName) names.push(ch.newName);
-    });
-    return [...new Set(names.filter(Boolean))];
+  function activeEmployeesForDate(dateStr=moscowParts().date){
+    const date=dateObjectFromKey(dateStr);
+    return employeesForDate(date).filter(emp=>
+      !emp.inactive &&
+      (!emp.employmentStart || emp.isExtra!==true || emp.employmentStart<=dateStr)
+    );
+  }
+
+  function activeEmployeeNames(dateStr=moscowParts().date){
+    return [...new Set(activeEmployeesForDate(dateStr).map(x=>x.name).filter(Boolean))];
+  }
+
+  function activeManagerNames(dateStr=moscowParts().date){
+    return [...new Set(activeEmployeesForDate(dateStr).filter(x=>x.role==="manager").map(x=>x.name).filter(Boolean))];
+  }
+
+  function allHistoricalManagerNames(){
+    const names=new Set((settings.employeeSchedules||[]).filter(x=>x.role==="manager").map(x=>x.name));
+    const changes=(settings.staffChanges||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+    let changed=true;
+    while(changed){
+      changed=false;
+      changes.forEach(ch=>{
+        if(names.has(ch.oldName) && ch.type!=="left" && ch.newName && !names.has(ch.newName)){
+          names.add(ch.newName);
+          changed=true;
+        }
+      });
+    }
+    return [...names].filter(Boolean);
   }
   function loadEmployeeName(){
     try{ return localStorage.getItem(EMPLOYEE_STORAGE_KEY)||""; }catch(e){ return ""; }
@@ -1459,7 +1458,7 @@ body{min-height:100dvh}
   }
   function selectedEmployee(){
     const name=loadEmployeeName();
-    return allEmployeeNames().includes(name) ? name : "";
+    return activeEmployeeNames().includes(name) ? name : "";
   }
   function isPhoneLike(){
     return window.matchMedia("(max-width: 760px)").matches ||
@@ -1514,7 +1513,7 @@ body{min-height:100dvh}
   function openEmployeePicker(){
     if(!isEmployeePhoneMode()) return;
     const grid=$("employeePickerGrid");
-    grid.innerHTML=allEmployeeNames().map(n=>`<button class="employee-picker-btn" data-employee="${escapeHtml(n)}">${escapeHtml(n)}</button>`).join("");
+    grid.innerHTML=activeEmployeeNames().map(n=>`<button class="employee-picker-btn" data-employee="${escapeHtml(n)}">${escapeHtml(n)}</button>`).join("");
     grid.querySelectorAll(".employee-picker-btn").forEach(btn=>{
       btn.onclick=()=>{
         saveEmployeeName(btn.dataset.employee);
@@ -1756,8 +1755,8 @@ body{min-height:100dvh}
       const phase=legacyPairPhase(s,migrationDate,role,group);
       const firstStart=addDaysToDateString(from,-phase);
       const secondStart=addDaysToDateString(firstStart,2);
-      result.push({id:`${prefix}-a`,name:String(pair[0]),role,group,slot:0,workDays:2,offDays:2,cycleStart:firstStart,employmentStart:from,isExtra:false});
-      result.push({id:`${prefix}-b`,name:String(pair[1]),role,group,slot:1,workDays:2,offDays:2,cycleStart:secondStart,employmentStart:from,isExtra:false});
+      result.push({id:`${prefix}-a`,name:String(pair[0]),role,group,slot:0,workDays:2,offDays:2,cycleStart:firstStart,employmentStart:from,isExtra:false,scheduleChanges:[]});
+      result.push({id:`${prefix}-b`,name:String(pair[1]),role,group,slot:1,workDays:2,offDays:2,cycleStart:secondStart,employmentStart:from,isExtra:false,scheduleChanges:[]});
     }
 
     addPair("manager",0,managers[0],"mgr-g0");
@@ -1808,7 +1807,11 @@ body{min-height:100dvh}
       merged.anchorDate=DEFAULTS.anchorDate;
     }
 
-    merged.serviceBlockDays=Math.max(1,Math.min(60,Number(merged.serviceBlockDays)||14));
+    merged.serviceBlockDays=15;
+    merged.balancedRosterEnabled=merged.balancedRosterEnabled!==false;
+    merged.balancedRosterFrom=/^\d{4}-\d{2}-\d{2}$/.test(String(merged.balancedRosterFrom||""))
+      ? String(merged.balancedRosterFrom)
+      : "2026-08-01";
     if(!raw?.individualScheduleFrom || !/^\d{4}-\d{2}-\d{2}$/.test(String(raw.individualScheduleFrom||""))){
       merged.individualScheduleFrom=merged.anchorDate;
     }else{
@@ -1830,13 +1833,36 @@ body{min-height:100dvh}
           offDays:Math.max(1,Math.min(14,Number(x.offDays)||2)),
           cycleStart:/^\d{4}-\d{2}-\d{2}$/.test(String(x.cycleStart||""))?String(x.cycleStart):merged.anchorDate,
           employmentStart:/^\d{4}-\d{2}-\d{2}$/.test(String(x.employmentStart||""))?String(x.employmentStart):merged.individualScheduleFrom,
-          isExtra:x.isExtra===true
+          isExtra:x.isExtra===true,
+          scheduleChanges:(Array.isArray(x.scheduleChanges)?x.scheduleChanges:[])
+            .filter(c=>c && /^\d{4}-\d{2}-\d{2}$/.test(String(c.from||"")))
+            .map(c=>({
+              from:String(c.from),
+              workDays:Math.max(1,Math.min(14,Number(c.workDays)||2)),
+              offDays:Math.max(1,Math.min(14,Number(c.offDays)||2)),
+              cycleStart:/^\d{4}-\d{2}-\d{2}$/.test(String(c.cycleStart||""))?String(c.cycleStart):String(c.from)
+            }))
+            .sort((a,b)=>a.from.localeCompare(b.from))
         }));
+
+      merged.employeeSchedules.forEach(emp=>{
+        if(emp.name==="Асик") emp.name="Аслан";
+      });
 
       const roles={manager:merged.employeeSchedules.filter(x=>x.role==="manager"),master:merged.employeeSchedules.filter(x=>x.role==="master")};
       if(roles.manager.length<4 || roles.master.length<4){
         merged.employeeSchedules=makeEmployeesFromLegacy(merged);
       }
+    }
+
+    (merged.employeeSchedules||[]).forEach(emp=>{
+      if(emp.name==="Асик") emp.name="Аслан";
+    });
+    if(Array.isArray(merged.managers)){
+      merged.managers=merged.managers.map(pair=>pair.map(n=>n==="Асик"?"Аслан":n));
+    }
+    if(Array.isArray(merged.masters)){
+      merged.masters=merged.masters.map(pair=>pair.map(n=>n==="Асик"?"Аслан":n));
     }
 
     syncLegacyTeamsFromEmployees(merged);
@@ -1850,8 +1876,8 @@ body{min-height:100dvh}
         return {
           id:x.id||(`chg-${Date.now()}-${Math.random().toString(36).slice(2)}`),
           date:String(x.date),
-          oldName:String(x.oldName),
-          newName:isLeft?"":rawNew,
+          oldName:String(x.oldName)==="Асик"?"Аслан":String(x.oldName),
+          newName:isLeft?"":(rawNew==="Асик"?"Аслан":rawNew),
           type:isLeft?"left":"replace"
         };
       })
@@ -1859,14 +1885,22 @@ body{min-height:100dvh}
       .sort((a,b)=>a.date.localeCompare(b.date));
 
     merged.dayOverrides=merged.dayOverrides
-      .filter(x=>x && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date||"")) && x.service && x.manager && x.master)
-      .map(x=>({
-        id:x.id||(`chg-${Date.now()}-${Math.random().toString(36).slice(2)}`),
-        date:String(x.date),service:String(x.service),manager:String(x.manager),master:String(x.master),
-        reason:x.reason?String(x.reason):"",
-        replacedRole:x.replacedRole==="master"?"master":(x.replacedRole==="manager"?"manager":""),
-        replacedName:x.replacedName?String(x.replacedName):""
-      }))
+      .filter(x=>x && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date||"")) && (x.service || x.serviceKey) && x.manager && x.master)
+      .map(x=>{
+        const serviceKey=["s1","s2"].includes(x.serviceKey)
+          ? x.serviceKey
+          : serviceKeyForName(String(x.service||""),merged);
+        const service=serviceKey ? serviceNameForKey(serviceKey,merged) : String(x.service||"");
+        return {
+          id:x.id||(`chg-${Date.now()}-${Math.random().toString(36).slice(2)}`),
+          date:String(x.date),serviceKey,service,
+          manager:String(x.manager)==="Асик"?"Аслан":String(x.manager),
+          master:String(x.master)==="Асик"?"Аслан":String(x.master),
+          reason:x.reason?String(x.reason):"",
+          replacedRole:x.replacedRole==="master"?"master":(x.replacedRole==="manager"?"manager":""),
+          replacedName:x.replacedName?(String(x.replacedName)==="Асик"?"Аслан":String(x.replacedName)):""
+        };
+      })
       .sort((a,b)=>a.date.localeCompare(b.date));
 
     return merged;
@@ -2064,15 +2098,18 @@ body{min-height:100dvh}
   }
 
   async function loadRegisteredDevices(){
-    if(!isAdmin()){ deviceListCache=[]; renderDevicePanel(); return; }
+    if(!isAdmin()){ deviceListCache=[]; renderDevicePanel(); return false; }
     try{
       const data=await shiftFunction({op:"list-devices"},{admin:true});
       deviceListCache=data.devices||[];
+      renderDevicePanel();
+      return true;
     }catch(e){
       console.error("list-devices",e);
       deviceListCache=[];
+      renderDevicePanel();
+      return false;
     }
-    renderDevicePanel();
   }
 
   function renderDevicePanel(){
@@ -2193,7 +2230,7 @@ body{min-height:100dvh}
   }
 
   function startupManagerOptions(expectedManager){
-    const names=allManagerNames();
+    const names=activeManagerNames();
     return names.map(n=>`<option value="${escapeHtml(n)}" ${n===expectedManager?"selected":""}>${escapeHtml(n)}</option>`).join("");
   }
 
@@ -2288,6 +2325,23 @@ body{min-height:100dvh}
     const service=currentDeviceAccess.device.service;
     const expected=expectedForDate(now.date,service);
     const row=currentShiftRows.find(x=>x.service===service)||null;
+
+    if(expected && isNoManagerValue(expected.manager)){
+      root.innerHTML=`
+        <div class="startup-shift-date">${escapeHtml(russianDateLong(now.date))}</div>
+        <div class="startup-shift-service">${escapeHtml(service)}</div>
+        <div class="startup-shift-people">
+          <div class="startup-shift-person"><span>Сегодня</span><b>Только мастер</b></div>
+          <div class="startup-shift-person"><span>Мастер</span><b>${escapeHtml(expected.master||"—")}</b></div>
+          <div class="startup-shift-person"><span>Смена</span><b>${escapeHtml(settings.shiftStart)}–${escapeHtml(settings.shiftEnd)}</b></div>
+        </div>
+        <div class="startup-shift-status ok">В воскресенье в ${escapeHtml(settings.service2)} менеджер не требуется. Открывать смену по PIN не нужно.</div>
+        <button class="startup-shift-close" id="startupCloseWindow">Закрыть окно</button>`;
+      const closeBtn=$("startupCloseWindow");
+      if(closeBtn) closeBtn.onclick=closeStartupShiftWindow;
+      return;
+    }
+
     const nowM=now.hour*60+now.minute;
     const startM=shiftMinutes(settings.shiftStart);
     const endM=shiftMinutes(settings.shiftEnd);
@@ -2449,9 +2503,14 @@ body{min-height:100dvh}
     services.forEach(service=>{
       const row=currentShiftRows.find(x=>x.service===service) || null;
       const exp=expectedForDate(now.date,service);
+      const soloMaster=!!(exp && isNoManagerValue(exp.manager));
       const currentMins=now.hour*60+now.minute, startMins=shiftMinutes(settings.shiftStart), endMins=shiftMinutes(settings.shiftEnd);
       let cls="wait", label="Ожидаем открытия", meta="";
-      if(row && row.opened_at && !row.closed_at){
+      if(soloMaster){
+        cls="open";
+        label="Сегодня работает только мастер";
+        meta="Менеджер и подтверждение открытия смены не требуются";
+      }else if(row && row.opened_at && !row.closed_at){
         cls=(row.open_late_minutes||0)>0?"late":"open";
         label=`Открыта ${formatMoscowTime(row.opened_at)}`;
         meta=`Открыл: ${escapeHtml(row.opened_by||"—")}`;
@@ -2466,9 +2525,11 @@ body{min-height:100dvh}
       }
       const card=document.createElement("div"); card.className="shift-card";
       const pairText=exp
-        ? `Менеджер: <strong>${escapeHtml(exp.manager)}</strong><br>Мастер: <strong>${escapeHtml(exp.master)}</strong><br>${settings.shiftStart}–${settings.shiftEnd}`
+        ? (soloMaster
+          ? `Только мастер: <strong>${escapeHtml(exp.master)}</strong><br>Без менеджера<br>${settings.shiftStart}–${settings.shiftEnd}`
+          : `Менеджер: <strong>${escapeHtml(exp.manager)}</strong><br>Мастер: <strong>${escapeHtml(exp.master)}</strong><br>${settings.shiftStart}–${settings.shiftEnd}`)
         : "График на эту дату не рассчитан";
-      const action=(!row || !row.opened_at) ? "open" : (!row.closed_at ? "close" : "done");
+      const action=soloMaster ? "done" : ((!row || !row.opened_at) ? "open" : (!row.closed_at ? "close" : "done"));
       const allowed=action!=="done" && canUseShiftService(service);
       let btnText=action==="open"?"Открыть смену":action==="close"?"Закрыть смену":"Смена закрыта";
       if(action!=="done" && !allowed) btnText=`Только на устройстве ${service}`;
@@ -2499,6 +2560,8 @@ body{min-height:100dvh}
     for(const service of attentionServices){
       const row=currentShiftRows.find(x=>x.service===service)||null;
       const exp=expectedForDate(now.date,service);
+
+      if(exp && isNoManagerValue(exp.manager)) continue;
 
       if(nowM>=startM+10 && !row?.opened_at){
         problems.push({kind:"bad",text:`${service}: смена не открыта после ${settings.shiftStart}.`});
@@ -2615,7 +2678,7 @@ body{min-height:100dvh}
     pendingShiftAction={service,action,expected};
     $("shiftActionTitle").textContent=action==="open"?`Открыть смену — ${service}`:`Закрыть смену — ${service}`;
     $("shiftActionInfo").innerHTML=expected?`По графику сегодня: <b>${escapeHtml(expected.manager)} + ${escapeHtml(expected.master)}</b>`:"На эту дату автоматический график не найден. Смену можно подтвердить вручную.";
-    const names=allManagerNames();
+    const names=activeManagerNames();
     $("shiftEmployee").innerHTML=names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
     if(expected && names.includes(expected.manager)) $("shiftEmployee").value=expected.manager;
     $("shiftPin").value=""; $("shiftActionError").textContent="";
@@ -2665,12 +2728,12 @@ body{min-height:100dvh}
 
   function renderPinFields(){
     const root=$("pinFields"); if(!root) return;
-    root.innerHTML=allManagerNames().map((n,i)=>`<div class="pin-grid"><div class="field" style="margin:0"><label>${escapeHtml(n)}</label><input class="readonly" value="Менеджер" readonly></div><div class="field" style="margin:0"><label>Новый PIN</label><input id="managerPin${i}" type="password" inputmode="numeric" maxlength="4" placeholder="4 цифры"></div></div>`).join("");
+    root.innerHTML=activeManagerNames().map((n,i)=>`<div class="pin-grid"><div class="field" style="margin:0"><label>${escapeHtml(n)}</label><input class="readonly" value="Менеджер" readonly></div><div class="field" style="margin:0"><label>Новый PIN</label><input id="managerPin${i}" type="password" inputmode="numeric" maxlength="4" placeholder="4 цифры"></div></div>`).join("");
   }
 
   async function saveManagerPins(){
     if(!isAdmin()){ openLoginModal(); return; }
-    const names=allManagerNames();
+    const names=activeManagerNames();
     const filled=names.filter((_,i)=>$(`managerPin${i}`).value.trim()).length;
     if(!filled){ toast("Новые PIN не введены"); return; }
     if(!confirm(`Изменить PIN у ${filled} менеджер${filled===1?"а":"ов"}?\n\nСтарые PIN перестанут работать сразу.`)) return;
@@ -2691,15 +2754,11 @@ body{min-height:100dvh}
   }
 
   function updateInstallUI(){
-    const quick=$("installQuickBtn");
     const grafik=$("installGrafikBtn");
     const state=$("installAppState");
 
     const installed=isStandaloneApp() || grafikAppInstalled;
 
-    if(quick){
-      quick.classList.toggle("hidden",installed || !deferredGrafikInstallPrompt || isStartupShiftMode());
-    }
 
     if(grafik){
       grafik.textContent=installed ? "MA График уже установлен" : "Установить MA График";
@@ -2993,7 +3052,7 @@ body{min-height:100dvh}
     const sv=$("historyService"), emp=$("historyEmployee"); if(!sv||!emp) return;
     const svv=sv.value, ev=emp.value;
     sv.innerHTML=`<option value="">Все сервисы</option><option>${escapeHtml(settings.service1)}</option><option>${escapeHtml(settings.service2)}</option>`;
-    emp.innerHTML='<option value="">Все сотрудники</option>'+allEmployeeNames().map(n=>`<option>${escapeHtml(n)}</option>`).join("");
+    emp.innerHTML='<option value="">Все менеджеры</option>'+allHistoricalManagerNames().map(n=>`<option>${escapeHtml(n)}</option>`).join("");
     if([...sv.options].some(o=>o.value===svv)) sv.value=svv; if([...emp.options].some(o=>o.value===ev)) emp.value=ev;
   }
   async function loadHistory(){
@@ -3211,15 +3270,31 @@ body{min-height:100dvh}
     return Math.floor((b-a)/86400000);
   }
 
-  function employeeWorksOnDate(employee,date){
-    const employmentStart=employee.employmentStart||settings.individualScheduleFrom||settings.anchorDate;
-    if(dateKeyFromDate(date)<employmentStart) return false;
+  function employeeCycleForDate(employee,date){
+    const key=dateKeyFromDate(date);
+    const changes=(employee.scheduleChanges||[])
+      .filter(c=>c.from<=key)
+      .slice()
+      .sort((a,b)=>a.from.localeCompare(b.from));
+    const current=changes.length?changes[changes.length-1]:null;
+    return {
+      workDays:Math.max(1,Number(current?.workDays ?? employee.workDays)||2),
+      offDays:Math.max(1,Number(current?.offDays ?? employee.offDays)||2),
+      cycleStart:current?.cycleStart || employee.cycleStart || settings.anchorDate,
+      effectiveFrom:current?.from || employee.employmentStart || settings.individualScheduleFrom || settings.anchorDate
+    };
+  }
 
-    const work=Math.max(1,Number(employee.workDays)||2);
-    const off=Math.max(1,Number(employee.offDays)||2);
+  function employeeWorksOnDate(employee,date){
+    const key=dateKeyFromDate(date);
+    const employmentStart=employee.employmentStart||settings.individualScheduleFrom||settings.anchorDate;
+    if(key<employmentStart && employee.isExtra===true) return false;
+
+    const cycleInfo=employeeCycleForDate(employee,date);
+    const work=cycleInfo.workDays;
+    const off=cycleInfo.offDays;
     const cycle=work+off;
-    const start=employee.cycleStart||settings.anchorDate;
-    const phase=mod(dateDiffDays(start,date),cycle);
+    const phase=mod(dateDiffDays(cycleInfo.cycleStart,date),cycle);
     return phase<work;
   }
 
@@ -3254,56 +3329,109 @@ body{min-height:100dvh}
   }
 
   function legacyTeamsForDate(date){
-    const teams={
-      managers:clone(settings.managers),
-      masters:clone(settings.masters)
+    const visible=employeesForDate(date).filter(x=>x.isExtra!==true);
+
+    function pair(role,group){
+      const items=visible
+        .filter(x=>x.role===role && Number(x.group)===group)
+        .sort((a,b)=>(Number(a.slot)||0)-(Number(b.slot)||0));
+      return [0,1].map(slot=>{
+        const emp=items.find(x=>(Number(x.slot)||0)===slot) || items[slot];
+        return emp && !emp.inactive ? emp.name : null;
+      });
+    }
+
+    return {
+      managers:[pair("manager",0),pair("manager",1)],
+      masters:[pair("master",0),pair("master",1)]
     };
-    const key=dateKeyFromDate(date);
-    const changes=(settings.staffChanges||[]).filter(x=>x.date<=key).sort((a,b)=>a.date.localeCompare(b.date));
-    changes.forEach(ch=>{
-      const replacement=ch.type==="left"?null:ch.newName;
-      teams.managers=teams.managers.map(pair=>pair.map(n=>n===ch.oldName?replacement:n));
-      teams.masters=teams.masters.map(pair=>pair.map(n=>n===ch.oldName?replacement:n));
-    });
-    return teams;
   }
 
   function legacyBaseScheduleForDate(date){
     const days=globalDayIndex(date);
+    const key=dateKeyFromDate(date);
     const blockDays=Math.max(1,Number(settings.serviceBlockDays)||14);
     const block=Math.floor(days/blockDays);
     const flip=mod(block,2);
     const partnerCycle=mod(Math.floor(block/2),2);
     const masterFlip=partnerCycle?2:0;
     const teams=legacyTeamsForDate(date);
+    const visible=employeesForDate(date);
 
-    function active(pair,offset){
+    function activeName(pair,offset){
       const phase=mod(days+offset,4);
       return pair[phase<2?0:1] || "Не назначен";
     }
 
+    const selected={
+      manager:{
+        0:activeName(teams.managers[0],0),
+        1:activeName(teams.managers[1],2)
+      },
+      master:{
+        0:activeName(teams.masters[0],masterFlip),
+        1:activeName(teams.masters[1],2+masterFlip)
+      }
+    };
+
+    function hasModernCycle(emp){
+      return (emp.scheduleChanges||[]).some(c=>c.from<=key);
+    }
+
+    function namesFor(role,group,service){
+      const names=[];
+
+      visible
+        .filter(emp=>
+          emp.isExtra!==true &&
+          !emp.inactive &&
+          emp.role===role &&
+          Number(emp.group)===group
+        )
+        .forEach(emp=>{
+          const works=hasModernCycle(emp)
+            ? employeeWorksOnDate(emp,date)
+            : emp.name===selected[role][group];
+          if(works) names.push(emp.name);
+        });
+
+      visible
+        .filter(emp=>
+          emp.isExtra===true &&
+          !emp.inactive &&
+          emp.role===role &&
+          (!emp.employmentStart || emp.employmentStart<=key) &&
+          employeeServiceForDate(emp,date)===service &&
+          employeeWorksOnDate(emp,date)
+        )
+        .forEach(emp=>names.push(emp.name));
+
+      return [...new Set(names.filter(Boolean))];
+    }
+
+    function pairFor(service,group){
+      const managerNames=namesFor("manager",group,service);
+      const masterNames=namesFor("master",group,service);
+      return {
+        manager:managerNames.length===1?managerNames[0]:(managerNames.length===0?"Не назначен":`Конфликт: ${managerNames.join(", ")}`),
+        master:masterNames.length===1?masterNames[0]:(masterNames.length===0?"Не назначен":`Конфликт: ${masterNames.join(", ")}`),
+        managerCount:managerNames.length,
+        masterCount:masterNames.length,
+        managerNames,
+        masterNames
+      };
+    }
+
     const g1=flip===0?0:1;
     const g2=flip===0?1:0;
-    const s1={
-      manager:active(teams.managers[g1],g1===1?2:0),
-      master:active(teams.masters[g1],(g1===1?2:0)+masterFlip)
+    return {
+      date,
+      s1:pairFor(settings.service1,g1),
+      s2:pairFor(settings.service2,g2)
     };
-    const s2={
-      manager:active(teams.managers[g2],g2===1?2:0),
-      master:active(teams.masters[g2],(g2===1?2:0)+masterFlip)
-    };
-    s1.managerCount=s1.manager==="Не назначен"?0:1;
-    s1.masterCount=s1.master==="Не назначен"?0:1;
-    s2.managerCount=s2.manager==="Не назначен"?0:1;
-    s2.masterCount=s2.master==="Не назначен"?0:1;
-    s1.managerNames=s1.managerCount?[s1.manager]:[];
-    s1.masterNames=s1.masterCount?[s1.master]:[];
-    s2.managerNames=s2.managerCount?[s2.manager]:[];
-    s2.masterNames=s2.masterCount?[s2.master]:[];
-    return {date,s1,s2};
   }
 
-  function baseScheduleForDate(date){
+  function standardBaseScheduleForDate(date){
     const key=dateKeyFromDate(date);
     if(settings.individualScheduleFrom && key<settings.individualScheduleFrom){
       return legacyBaseScheduleForDate(date);
@@ -3342,6 +3470,167 @@ body{min-height:100dvh}
     };
   }
 
+  function sameRoster(names,required){
+    const a=[...new Set(names)].sort((x,y)=>x.localeCompare(y,"ru"));
+    const b=[...required].sort((x,y)=>x.localeCompare(y,"ru"));
+    return a.length===b.length && a.every((x,i)=>x===b[i]);
+  }
+
+  function balancedRosterState(date){
+    if(settings.balancedRosterEnabled===false) return null;
+
+    const key=dateKeyFromDate(date);
+    const from=settings.balancedRosterFrom||"2026-08-01";
+    if(key<from) return null;
+
+    const active=employeesForDate(date).filter(emp=>
+      !emp.inactive &&
+      (!emp.employmentStart || emp.isExtra!==true || emp.employmentStart<=key)
+    );
+
+    const managers=[...new Set(active.filter(x=>x.role==="manager").map(x=>x.name))];
+    const masters=[...new Set(active.filter(x=>x.role==="master").map(x=>x.name))];
+
+    const managerReady=sameRoster(managers,["Сергей","Арсен","Дина"]);
+    const masterReady=sameRoster(masters,["Олег","Ислам","Георгий","Аслан"]);
+
+    if(!managerReady && !masterReady) return null;
+
+    // Один блок = 1–15 или 16–конец месяца.
+    // За 12 месяцев получается 24 блока:
+    // у каждого менеджера 8 блоков Моба, 8 Нова, 8 подменный.
+    const anchor=new Date(2026,7,1);
+    const monthOffset=(date.getFullYear()-anchor.getFullYear())*12+(date.getMonth()-anchor.getMonth());
+    const half=date.getDate()>=16?1:0;
+    const block=monthOffset*2+half;
+
+    // Общий непрерывный цикл 2/1 для менеджеров.
+    const days=dateDiffDays(from,date);
+    const managerOff=["Дина","Арсен","Сергей"][mod(days,3)];
+
+    const managerBlocks=[
+      {s1:"Сергей",s2:"Арсен",reserve:"Дина"},
+      {s1:"Дина",s2:"Сергей",reserve:"Арсен"},
+      {s1:"Арсен",s2:"Дина",reserve:"Сергей"}
+    ];
+
+    const managerPlan=managerBlocks[mod(block,3)];
+    let managerS1=null,managerS2=null;
+
+    if(managerReady){
+      managerS1=managerPlan.s1;
+      managerS2=managerPlan.s2;
+
+      // Два основных менеджера не меняют точку внутри блока.
+      // Подменный ездит только туда, где у основного выходной.
+      if(managerOff===managerPlan.s1) managerS1=managerPlan.reserve;
+      if(managerOff===managerPlan.s2) managerS2=managerPlan.reserve;
+    }
+
+    // Мастера разделены на две постоянные пары.
+    // Внутри пары сотрудники чередуются 2/2, сама пара 15 дней закреплена за одной точкой.
+    // Вторая пара идёт в противофазе, чтобы ежедневно хотя бы один из Олег/Ислам был на работе.
+    let masterS1=null,masterS2=null,masterOff=[];
+    let masterTeamS1=[],masterTeamS2=[];
+
+    if(masterReady){
+      const phase=mod(days,4);
+
+      const teamA=["Олег","Георгий"];
+      const teamB=["Ислам","Аслан"];
+
+      const workingA=(phase===0 || phase===1) ? "Олег" : "Георгий";
+      const offA=workingA==="Олег" ? "Георгий" : "Олег";
+
+      const workingB=(phase===0 || phase===1) ? "Аслан" : "Ислам";
+      const offB=workingB==="Ислам" ? "Аслан" : "Ислам";
+
+      if(mod(block,2)===0){
+        masterS1=workingA;
+        masterS2=workingB;
+        masterTeamS1=teamA;
+        masterTeamS2=teamB;
+      }else{
+        masterS1=workingB;
+        masterS2=workingA;
+        masterTeamS1=teamB;
+        masterTeamS2=teamA;
+      }
+
+      masterOff=[offA,offB];
+    }
+
+    return {
+      from,
+      block,
+      half,
+      managerReady,
+      masterReady,
+      manager:{
+        s1:managerS1,
+        s2:managerS2,
+        off:managerOff,
+        fixedS1:managerPlan.s1,
+        fixedS2:managerPlan.s2,
+        reserve:managerPlan.reserve
+      },
+      master:{
+        s1:masterS1,
+        s2:masterS2,
+        off:masterOff,
+        teamS1:masterTeamS1,
+        teamS2:masterTeamS2
+      }
+    };
+  }
+
+  function isBalancedRosterRole(role,date){
+    const state=balancedRosterState(date);
+    return !!(state && (role==="manager"?state.managerReady:state.masterReady));
+  }
+
+  function isNovaSundayRule(date,serviceName=settings.service2){
+    const d=date instanceof Date ? date : dateObjectFromKey(String(date));
+    return serviceName===settings.service2 && d.getDay()===0;
+  }
+
+  function isNoManagerValue(value){
+    return String(value||"").trim()==="Без менеджера";
+  }
+
+  function baseScheduleForDate(date){
+    const base=standardBaseScheduleForDate(date);
+    const state=balancedRosterState(date);
+    if(!state) return base;
+
+    if(state.managerReady){
+      base.s1.manager=state.manager.s1;
+      base.s2.manager=state.manager.s2;
+      base.s1.managerCount=1;
+      base.s2.managerCount=1;
+      base.s1.managerNames=[state.manager.s1];
+      base.s2.managerNames=[state.manager.s2];
+    }
+
+    if(state.masterReady){
+      base.s1.master=state.master.s1;
+      base.s2.master=state.master.s2;
+      base.s1.masterCount=1;
+      base.s2.masterCount=1;
+      base.s1.masterNames=[state.master.s1];
+      base.s2.masterNames=[state.master.s2];
+    }
+
+    // По воскресеньям в Нове работает только один мастер, без менеджера.
+    if(isNovaSundayRule(date,settings.service2)){
+      base.s2.manager="Без менеджера";
+      base.s2.managerCount=0;
+      base.s2.managerNames=[];
+    }
+
+    return base;
+  }
+
   function daySchedule(monthIndex,day){
     const info=monthInfo(monthIndex);
     const date=new Date(info.year,info.month,day);
@@ -3357,8 +3646,9 @@ body{min-height:100dvh}
     const overrides=(settings.dayOverrides||[]).filter(x=>x.date===key);
 
     overrides.forEach(o=>{
-      if(o.service===settings.service1) result.s1={manager:o.manager,master:o.master};
-      if(o.service===settings.service2) result.s2={manager:o.manager,master:o.master};
+      const serviceKey=o.serviceKey || serviceKeyForName(o.service);
+      if(serviceKey==="s1") result.s1={manager:o.manager,master:o.master};
+      if(serviceKey==="s2") result.s2={manager:o.manager,master:o.master};
     });
 
     return result;
@@ -3374,6 +3664,9 @@ body{min-height:100dvh}
     const now=moscowParts();
     const row=currentShiftRows.find(x=>x.service===service)||null;
     const exp=expectedForDate(now.date,service);
+    if(exp && isNoManagerValue(exp.manager)){
+      return {cls:"solo",label:"Работает только мастер",meta:"Менеджер по воскресеньям не требуется",exp};
+    }
     const currentMins=now.hour*60+now.minute, startMins=shiftMinutes(settings.shiftStart);
     let cls="wait",label="Ожидаем открытия",meta="";
     if(row && row.opened_at && !row.closed_at){
@@ -3412,6 +3705,7 @@ body{min-height:100dvh}
       const partner=todayAssignment.pair.manager===name
         ? todayAssignment.pair.master
         : todayAssignment.pair.manager;
+      const solo=isNoManagerValue(partner);
 
       const state=employeeServiceState(todayAssignment.service);
       let shiftText="Смена ещё не открыта";
@@ -3421,12 +3715,14 @@ body{min-height:100dvh}
         shiftText=`Смена ${state.label.toLowerCase()}`;
       }else if(state.cls==="wait"){
         shiftText=`Смена начинается в ${settings.shiftStart}`;
+      }else if(state.cls==="solo"){
+        shiftText="Воскресенье: менеджер не требуется";
       }
 
       work.className="employee-main-status work";
       work.innerHTML=`
         <b>Сегодня работаю</b>
-        <span><strong>${escapeHtml(todayAssignment.service)}</strong> · ${settings.shiftStart}–${settings.shiftEnd}<br>Напарник: <strong>${escapeHtml(partner)}</strong></span>
+        <span><strong>${escapeHtml(todayAssignment.service)}</strong> · ${settings.shiftStart}–${settings.shiftEnd}<br>${solo?"Работаю один, без менеджера":`Напарник: <strong>${escapeHtml(partner)}</strong>`}</span>
         <span class="employee-own-shift-status">${escapeHtml(shiftText)}</span>
       `;
     }else{
@@ -3447,9 +3743,10 @@ body{min-height:100dvh}
     const list=employeeUpcomingShifts(name,{afterToday:false,limit:20});
     $("employeeShiftList").innerHTML=list.length ? list.map(x=>{
       const partner=x.pair.manager===name ? x.pair.master : x.pair.manager;
+      const solo=isNoManagerValue(partner);
       return `<div class="employee-shift-item">
         <div class="employee-shift-date"><b>${x.date.getDate()}</b><span>${MONTHS[x.date.getMonth()].slice(0,3)} · ${WD[x.date.getDay()]}</span></div>
-        <div class="employee-shift-info"><b>${escapeHtml(x.service)} · ${settings.shiftStart}–${settings.shiftEnd}</b><span>Вместе с ${escapeHtml(partner)}</span></div>
+        <div class="employee-shift-info"><b>${escapeHtml(x.service)} · ${settings.shiftStart}–${settings.shiftEnd}</b><span>${solo?"Работаю один, без менеджера":`Вместе с ${escapeHtml(partner)}`}</span></div>
       </div>`;
     }).join("") : '<div class="notice">Ближайшие смены не найдены.</div>';
   }
@@ -3485,7 +3782,8 @@ body{min-height:100dvh}
     }
 
     const partner=assignment.pair.manager===name ? assignment.pair.master : assignment.pair.manager;
-    root.innerHTML=`<b>${escapeHtml(title)} — работаю</b><span>${escapeHtml(assignment.service)} · ${settings.shiftStart}–${settings.shiftEnd}<br>Напарник: ${escapeHtml(partner)}</span>`;
+    const solo=isNoManagerValue(partner);
+    root.innerHTML=`<b>${escapeHtml(title)} — работаю</b><span>${escapeHtml(assignment.service)} · ${settings.shiftStart}–${settings.shiftEnd}<br>${solo?"Работаю один, без менеджера":`Напарник: ${escapeHtml(partner)}`}</span>`;
   }
 
   function renderEmployeeCalendar(){
@@ -3568,7 +3866,7 @@ body{min-height:100dvh}
 
     function addValue(value){
       const raw=String(value||"").trim();
-      if(!raw || raw==="Не назначен") return;
+      if(!raw || raw==="Не назначен" || isNoManagerValue(raw)) return;
 
       if(raw.startsWith("Конфликт:")){
         raw.replace(/^Конфликт:\s*/,"").split(",").forEach(n=>{
@@ -3747,14 +4045,15 @@ body{min-height:100dvh}
       const dateKey=serviceScheduleDateKey(r.date);
       const isToday=dateKey===today;
       const isSelected=dateKey===selected;
+      const solo=isNoManagerValue(pair.manager);
       return `<button type="button" class="service-day-row ${isToday?"today":""} ${isSelected?"selected":""}" data-service-date="${dateKey}">
         <div class="service-day-date">
           <b>${r.date.getDate()}${isToday?'<span class="service-today-tag">Сегодня</span>':""}</b>
           <span>${WD[r.date.getDay()]}</span>
         </div>
         <div class="service-day-pair">
-          <b>${escapeHtml(pair.manager)} + ${escapeHtml(pair.master)}</b>
-          <span>Менеджер + мастер</span>
+          <b>${solo?`Только ${escapeHtml(pair.master)}`:`${escapeHtml(pair.manager)} + ${escapeHtml(pair.master)}`}</b>
+          <span>${solo?"Только мастер":"Менеджер + мастер"}</span>
         </div>
       </button>`;
     }).join("");
@@ -3802,7 +4101,7 @@ body{min-height:100dvh}
         $("monthActions").classList.add("hidden");
         $("monthPhotoNotice").classList.add("hidden");
       }else{
-        $("monthSubtitle").textContent=`Смена ${settings.shiftStart}–${settings.shiftEnd} • оба сервиса работают каждый день`;
+        $("monthSubtitle").textContent=`Смена ${settings.shiftStart}–${settings.shiftEnd} • по воскресеньям в ${settings.service2} работает только мастер`;
         root.appendChild(serviceCard(settings.service1,"s1",rows));
         root.appendChild(serviceCard(settings.service2,"s2",rows));
         $("monthActions").classList.remove("hidden");
@@ -3837,7 +4136,7 @@ body{min-height:100dvh}
 
   function scheduleValueNames(value){
     const raw=String(value||"").trim();
-    if(!raw || raw==="Не назначен") return [];
+    if(!raw || raw==="Не назначен" || isNoManagerValue(raw)) return [];
     if(raw.startsWith("Конфликт:")){
       return raw.replace(/^Конфликт:\s*/,"").split(",").map(x=>x.trim()).filter(Boolean);
     }
@@ -3860,12 +4159,54 @@ body{min-height:100dvh}
         {service:settings.service2,role:"manager",label:"менеджер",value:r.s2.manager},
         {service:settings.service2,role:"master",label:"мастер",value:r.s2.master}
       ]){
+        if(item.role==="manager" && isNoManagerValue(item.value)) continue;
         const count=scheduleValueCount(item.value);
         if(count!==1) problems.push({...item,date,count,names:scheduleValueNames(item.value)});
       }
     });
 
     return problems;
+  }
+
+  function scheduleProblemsInRange(fromDate,days=60){
+    const problems=[];
+    const start=dateObjectFromKey(fromDate);
+
+    for(let i=0;i<days;i++){
+      const date=new Date(start);
+      date.setDate(start.getDate()+i);
+      const dateKey=dateKeyFromDate(date);
+      const idx=monthIndexForYearMonth(date.getFullYear(),date.getMonth());
+      const row=daySchedule(idx,date.getDate());
+
+      for(const item of [
+        {service:settings.service1,role:"manager",label:"менеджер",value:row.s1.manager},
+        {service:settings.service1,role:"master",label:"мастер",value:row.s1.master},
+        {service:settings.service2,role:"manager",label:"менеджер",value:row.s2.manager},
+        {service:settings.service2,role:"master",label:"мастер",value:row.s2.master}
+      ]){
+        if(item.role==="manager" && isNoManagerValue(item.value)) continue;
+        const count=scheduleValueCount(item.value);
+        if(count!==1){
+          problems.push({...item,date:dateKey,count,names:scheduleValueNames(item.value)});
+        }
+      }
+    }
+    return problems;
+  }
+
+  function problemPositionKey(p){
+    return `${p.date}|${serviceKeyForName(p.service)||p.service}|${p.role}|${p.count}`;
+  }
+
+  function problemsForTemporarySettings(tempSettings,fromDate,days=60){
+    const real=settings;
+    try{
+      settings=normalizeScheduleSettings(tempSettings);
+      return scheduleProblemsInRange(fromDate,days);
+    }finally{
+      settings=real;
+    }
   }
 
   function renderScheduleAdminTools(){
@@ -3880,13 +4221,26 @@ body{min-height:100dvh}
 
     const problems=monthScheduleProblems(currentIndex);
     const affected=new Set(problems.map(p=>`${p.date}|${p.service}`)).size;
+
+    const info=monthInfo(currentIndex);
+    const sampleDate=new Date(info.year,info.month,Math.min(20,info.days));
+    const balanced=balancedRosterState(sampleDate);
+    const balancedNote=balanced
+      ? `<div style="margin-top:7px;font-size:11px;color:var(--muted)">
+          1–15 / 16–конец: сотрудники закреплены за точкой.
+          По воскресеньям в <b>${escapeHtml(settings.service2)}</b> работает только мастер, без менеджера.
+          Подменный менеджер: <b>${escapeHtml(balanced.manager.reserve)}</b>.
+          Мастера меняются точками только между полумесяцами.
+        </div>`
+      : "";
+
     const missing=problems.filter(p=>p.count===0).length;
     const overlaps=problems.filter(p=>p.count>1).length;
 
     if(!problems.length){
       summary.innerHTML=`
         <div class="schedule-problem-card ok">
-          <div><b>График собран правильно</b><span>В этом месяце пустых и двойных смен нет</span></div>
+          <div><b>График собран правильно</b><span>В этом месяце пустых и двойных смен нет</span>${balancedNote}</div>
         </div>`;
       details.classList.add("hidden");
       details.innerHTML="";
@@ -3902,6 +4256,7 @@ body{min-height:100dvh}
         <div>
           <b>Требуют внимания: ${affected} смен</b>
           <span>${parts.join(" · ")}</span>
+          ${balancedNote}
         </div>
         <button class="secondary schedule-problem-toggle" id="scheduleProblemToggle" type="button">Показать</button>
       </div>`;
@@ -3943,18 +4298,22 @@ body{min-height:100dvh}
     return service===settings.service1 ? row.s1 : row.s2;
   }
 
-  function employeeRecordByVisibleName(name){
+  function employeeRecordByVisibleName(name,dateStr=moscowParts().date){
+    const visible=employeesForDate(dateObjectFromKey(dateStr)).find(x=>x.name===name);
+    if(visible){
+      return (settings.employeeSchedules||[]).find(x=>String(x.id)===String(visible.id))||null;
+    }
     return (settings.employeeSchedules||[]).find(x=>x.name===name)||null;
   }
 
-  function openEmployeeEditorByName(name){
-    const emp=employeeRecordByVisibleName(name);
+  function openEmployeeEditorByName(name,dateStr=moscowParts().date){
+    const emp=employeeRecordByVisibleName(name,dateStr);
     if(!emp){
-      toast("Для этого сотрудника нет отдельной карточки графика");
+      toast("Для этого сотрудника нет карточки графика");
       return;
     }
     $("scheduleManageModal").classList.add("hidden");
-    openEmployeeScheduleEditor(emp.id);
+    openEmployeeScheduleEditor(emp.id,dateStr,name);
   }
 
   function openQuickReplaceFor(date,service,role){
@@ -4023,6 +4382,14 @@ body{min-height:100dvh}
   }
 
   function manageRoleHtml(role,label,value,date,service){
+    if(role==="manager" && isNoManagerValue(value)){
+      return `
+        <div class="schedule-manage-role">
+          <div><small>${escapeHtml(label)} · воскресенье</small><b>Без менеджера</b></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px">В Нове по воскресеньям работает только мастер.</div>
+        </div>`;
+    }
+
     const names=scheduleValueNames(value);
     const count=names.length;
 
@@ -4041,30 +4408,32 @@ body{min-height:100dvh}
     }
 
     if(count>1){
+      const balanced=isBalancedRosterRole(role,dateObjectFromKey(date));
       return `
         <div class="schedule-manage-role problem">
-          <div><small>${escapeHtml(label)}</small><b>Одновременно ${count}</b></div>
+          <div><small>${escapeHtml(label)}${balanced?" · авто":""}</small><b>Одновременно ${count}</b></div>
           <div class="schedule-manage-conflict">
             ${names.map(n=>`
               <div class="schedule-manage-conflict-row">
                 <span>${escapeHtml(n)}</span>
-                <button class="secondary" type="button" data-manage-edit-name="${escapeHtml(n)}">Изменить график</button>
+                ${balanced?"":`<button class="secondary" type="button" data-manage-edit-name="${escapeHtml(n)}" data-manage-edit-date="${escapeHtml(date)}">Изменить график</button>`}
               </div>`).join("")}
           </div>
         </div>`;
     }
 
     const name=names[0];
-    const hasCard=!!employeeRecordByVisibleName(name);
+    const hasCard=!!employeeRecordByVisibleName(name,date);
+    const balanced=isBalancedRosterRole(role,dateObjectFromKey(date));
     return `
       <div class="schedule-manage-role">
-        <div><small>${escapeHtml(label)}</small><b>${escapeHtml(name)}</b></div>
+        <div><small>${escapeHtml(label)}${balanced?" · авто":""}</small><b>${escapeHtml(name)}</b></div>
         <div class="schedule-manage-actions">
           <button class="secondary" type="button"
             data-manage-replace="${role}"
             data-manage-date="${escapeHtml(date)}"
             data-manage-service="${escapeHtml(service)}">Заменить на день</button>
-          ${hasCard?`<button class="secondary" type="button" data-manage-edit-name="${escapeHtml(name)}">Изменить график</button>`:""}
+          ${hasCard && !balanced?`<button class="secondary" type="button" data-manage-edit-name="${escapeHtml(name)}" data-manage-edit-date="${escapeHtml(date)}">Изменить график</button>`:""}
           <button class="danger" type="button"
             data-manage-left-name="${escapeHtml(name)}"
             data-manage-left-date="${escapeHtml(date)}">Больше не работает</button>
@@ -4093,7 +4462,7 @@ body{min-height:100dvh}
     });
 
     $("scheduleManageBody").querySelectorAll("[data-manage-edit-name]").forEach(btn=>{
-      btn.onclick=()=>openEmployeeEditorByName(btn.dataset.manageEditName);
+      btn.onclick=()=>openEmployeeEditorByName(btn.dataset.manageEditName,btn.dataset.manageEditDate);
     });
 
     $("scheduleManageBody").querySelectorAll("[data-manage-left-name]").forEach(btn=>{
@@ -4106,7 +4475,8 @@ body{min-height:100dvh}
   function serviceCard(title,key,rows){
     const card=document.createElement("section"); card.className="service-card";
     const head=document.createElement("div"); head.className="service-head";
-    head.innerHTML=`<h2>${escapeHtml(title)}</h2><div class="small">1 менеджер + 1 мастер</div>`;
+    const ruleText=title===settings.service2 ? "Вс–только мастер" : "1 менеджер + 1 мастер";
+    head.innerHTML=`<h2>${escapeHtml(title)}</h2><div class="small">${ruleText}</div>`;
     card.appendChild(head);
 
     const halves=document.createElement("div"); halves.className="halves";
@@ -4133,7 +4503,7 @@ body{min-height:100dvh}
       tr.dataset.scheduleDate=dateKey;
       tr.dataset.scheduleService=serviceName;
 
-      if(scheduleValueCount(pair.manager)!==1 || scheduleValueCount(pair.master)!==1){
+      if((!isNoManagerValue(pair.manager) && scheduleValueCount(pair.manager)!==1) || scheduleValueCount(pair.master)!==1){
         tr.classList.add("has-problem");
       }
 
@@ -4145,7 +4515,10 @@ body{min-height:100dvh}
 
       const today=new Date();
       if(today.getFullYear()===r.date.getFullYear() && today.getMonth()===r.date.getMonth() && today.getDate()===d) tr.classList.add("today");
-      tr.innerHTML=`<td class="date">${d} ${WD[r.date.getDay()]}</td><td class="pair">${escapeHtml(pair.manager)} + ${escapeHtml(pair.master)}</td>`;
+      const pairLabel=isNoManagerValue(pair.manager)
+        ? `Только мастер: ${escapeHtml(pair.master)}`
+        : `${escapeHtml(pair.manager)} + ${escapeHtml(pair.master)}`;
+      tr.innerHTML=`<td class="date">${d} ${WD[r.date.getDay()]}</td><td class="pair">${pairLabel}</td>`;
       tb.appendChild(tr);
     });
     t.appendChild(tb); wrap.appendChild(t); return wrap;
@@ -4201,40 +4574,84 @@ body{min-height:100dvh}
       $("newEmployeeWorkDays").value,
       $("newEmployeeOffDays").value
     );
+    updateNewEmployeeCustomFields();
+  }
+
+  function setEmployeeScheduleChange(employee,fromDate,workDays,offDays){
+    employee.scheduleChanges=Array.isArray(employee.scheduleChanges)?employee.scheduleChanges:[];
+    employee.scheduleChanges=employee.scheduleChanges.filter(c=>c.from<fromDate);
+    employee.scheduleChanges.push({
+      from:fromDate,
+      workDays:Math.max(1,Math.min(14,Number(workDays)||2)),
+      offDays:Math.max(1,Math.min(14,Number(offDays)||2)),
+      cycleStart:fromDate
+    });
+    employee.scheduleChanges.sort((a,b)=>a.from.localeCompare(b.from));
+  }
+
+  function newlyCreatedProblems(tempSettings,fromDate,days=60){
+    const before=scheduleProblemsInRange(fromDate,days);
+    const beforeKeys=new Set(before.map(problemPositionKey));
+    const after=problemsForTemporarySettings(tempSettings,fromDate,days);
+    return after.filter(p=>!beforeKeys.has(problemPositionKey(p)));
   }
 
   function vacancyForNewEmployee(role,startDate){
-    const employees=(settings.employeeSchedules||[]).filter(x=>x.role===role && x.isExtra!==true);
-    const changes=(settings.staffChanges||[])
-      .filter(x=>x.date<=startDate)
-      .slice()
-      .sort((a,b)=>a.date.localeCompare(b.date));
+    const visible=employeesForDate(dateObjectFromKey(startDate))
+      .filter(emp=>
+        emp.role===role &&
+        emp.inactive &&
+        (emp.isExtra!==true || !emp.employmentStart || emp.employmentStart<=startDate)
+      );
 
-    const vacancies=[];
+    if(!visible.length) return null;
 
-    employees.forEach(emp=>{
-      const related=changes.filter(x=>x.oldName===emp.name);
-      const latest=related.slice(-1)[0]||null;
-      if(latest && latest.type==="left"){
-        vacancies.push({emp,left:latest});
-      }
+    const leftDateFor=name=>{
+      const left=(settings.staffChanges||[])
+        .filter(x=>x.type==="left" && x.oldName===name && x.date<=startDate)
+        .slice()
+        .sort((a,b)=>b.date.localeCompare(a.date))[0];
+      return left?.date||"";
+    };
+
+    visible.sort((a,b)=>{
+      if((a.isExtra===true)!==(b.isExtra===true)) return a.isExtra===true?1:-1;
+      return leftDateFor(b.name).localeCompare(leftDateFor(a.name));
     });
 
-    vacancies.sort((a,b)=>b.left.date.localeCompare(a.left.date));
-    return vacancies[0]||null;
+    const emp=visible[0];
+    return {
+      emp,
+      left:{date:leftDateFor(emp.name)}
+    };
   }
 
-  function autoGroupForNewEmployee(role,startDate){
-    const [y,m,d]=startDate.split("-").map(Number);
-    const date=new Date(y,m-1,d);
-    const existing=employeesForDate(date).filter(x=>
-      x.role===role &&
-      !x.inactive &&
-      (!x.employmentStart || x.employmentStart<=startDate)
-    );
-    const count0=existing.filter(x=>Number(x.group)!==1).length;
-    const count1=existing.filter(x=>Number(x.group)===1).length;
-    return count0<=count1?0:1;
+  function bestGroupForNewEmployee(role,startDate,workDays,offDays){
+    const baseline=scheduleProblemsInRange(startDate,60);
+    const baselineKeys=new Set(baseline.map(problemPositionKey));
+    const candidates=[0,1].map(group=>{
+      const temp=clone(settings);
+      temp.employeeSchedules=temp.employeeSchedules||[];
+      temp.employeeSchedules.push({
+        id:`placement-preview-${group}`,
+        name:`__placement_${group}__`,
+        role,
+        group,
+        slot:0,
+        workDays,
+        offDays,
+        cycleStart:startDate,
+        employmentStart:startDate,
+        isExtra:true,
+        scheduleChanges:[]
+      });
+      const after=problemsForTemporarySettings(temp,startDate,60);
+      const newCount=after.filter(p=>!baselineKeys.has(problemPositionKey(p))).length;
+      return {group,newCount,total:after.length};
+    });
+
+    candidates.sort((a,b)=>a.newCount-b.newCount || a.total-b.total || a.group-b.group);
+    return candidates[0]||{group:0,newCount:0,total:0};
   }
 
   function refreshNewEmployeePlaceNote(){
@@ -4245,9 +4662,9 @@ body{min-height:100dvh}
     if(!note) return;
 
     if(vacancy){
-      note.innerHTML=`Есть свободное место после <b>${escapeHtml(vacancy.emp.name)}</b>. Новый сотрудник будет поставлен туда автоматически.`;
+      note.innerHTML=`Есть свободное место после <b>${escapeHtml(vacancy.emp.name)}</b>. Новый сотрудник займёт именно это место с выбранной даты.`;
     }else{
-      note.textContent="Свободного места нет. Приложение подберёт группу автоматически и проверит, нет ли пересечений.";
+      note.textContent="Свободного места нет. Приложение само выберет Моба/Нова так, чтобы создать как можно меньше пересечений.";
     }
   }
 
@@ -4278,9 +4695,9 @@ body{min-height:100dvh}
     if(!name){ toast("Напиши имя сотрудника"); return; }
     if(!startDate){ toast("Выбери первый рабочий день"); return; }
 
-    const duplicate=(settings.employeeSchedules||[]).some(x=>x.name.toLowerCase()===name.toLowerCase());
-    if(duplicate){
-      toast("Сотрудник с таким именем уже есть");
+    const activeDuplicate=activeEmployeeNames(startDate).some(n=>n.toLowerCase()===name.toLowerCase());
+    if(activeDuplicate){
+      toast("Сотрудник с таким именем уже работает");
       return;
     }
 
@@ -4288,27 +4705,54 @@ body{min-height:100dvh}
 
     try{
       const vacancy=vacancyForNewEmployee(role,startDate);
-      const group=vacancy ? Number(vacancy.emp.group||0) : autoGroupForNewEmployee(role,startDate);
-      const slot=vacancy ? Number(vacancy.emp.slot||0) : 0;
+      const temp=clone(settings);
+      temp.employeeSchedules=temp.employeeSchedules||[];
+      temp.staffChanges=temp.staffChanges||[];
 
-      settings.employeeSchedules=settings.employeeSchedules||[];
-      settings.employeeSchedules.push({
-        id:`employee-new-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        name,
-        role,
-        group:Number(group)===1?1:0,
-        slot:Number(slot)===1?1:0,
-        workDays,
-        offDays,
-        cycleStart:startDate,
-        employmentStart:startDate,
-        isExtra:true
-      });
+      let placementText="";
 
-      settings=normalizeScheduleSettings(settings);
-      saveSettings();
+      if(vacancy){
+        const slot=temp.employeeSchedules.find(x=>String(x.id)===String(vacancy.emp.id));
+        if(!slot) throw new Error("Не удалось найти свободное место");
 
+        temp.staffChanges.push({
+          id:`replace-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          date:startDate,
+          oldName:vacancy.emp.name,
+          newName:name,
+          type:"replace"
+        });
+        temp.staffChanges.sort((a,b)=>a.date.localeCompare(b.date));
+        setEmployeeScheduleChange(slot,startDate,workDays,offDays);
+        placementText=`место после ${vacancy.emp.name}`;
+      }else{
+        const best=bestGroupForNewEmployee(role,startDate,workDays,offDays);
+        temp.employeeSchedules.push({
+          id:`employee-new-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          name,
+          role,
+          group:Number(best.group)===1?1:0,
+          slot:0,
+          workDays,
+          offDays,
+          cycleStart:startDate,
+          employmentStart:startDate,
+          isExtra:true,
+          scheduleChanges:[]
+        });
+        placementText=best.group===0?"автоматически подобрана группа 1":"автоматически подобрана группа 2";
+      }
+
+      const newProblems=newlyCreatedProblems(temp,startDate,60);
+      if(newProblems.length){
+        const affected=new Set(newProblems.map(p=>`${p.date}|${p.service}`)).size;
+        const ok=confirm(`Этот вариант создаст ${affected} новых смен, которые потребуют внимания в ближайшие 60 дней.\n\nВсё равно добавить сотрудника?`);
+        if(!ok) return;
+      }
+
+      settings=normalizeScheduleSettings(temp);
       if(cloudConfigured()) await saveToCloud(settings);
+      saveSettings();
 
       lastSettingsSignature=stableJson(settings);
       settingsDirty=false;
@@ -4320,33 +4764,45 @@ body{min-height:100dvh}
       if(isEmployeePhoneMode()) renderEmployeePages();
       renderTodayShifts();
 
-      if(startDate<settings.individualScheduleFrom){
-        toast(`${name} добавлен. В личном графике начнёт участвовать с ${settings.individualScheduleFrom}`);
-      }else{
-        toast(`${name} добавлен · ${roleLabel(role)} · ${workDays}/${offDays}`);
-      }
+      toast(`${name} добавлен · ${workDays}/${offDays} · ${placementText}`);
     }catch(e){
       console.error(e);
       settings=previous;
       saveSettings();
-
       toast(e.message||"Не удалось добавить сотрудника");
     }
   }
 
-  function openEmployeeScheduleEditor(id){
+  function updateEmployeeCustomFields(){
+    const custom=$("employeeSchedulePreset").value==="custom";
+    $("employeeWorkDays").closest(".field").classList.toggle("hidden",!custom);
+    $("employeeOffDays").closest(".field").classList.toggle("hidden",!custom);
+  }
+
+  function openEmployeeScheduleEditor(id,effectiveDate=moscowParts().date,displayName=""){
     if(!isAdmin()){ openLoginModal(); return; }
     const emp=(settings.employeeSchedules||[]).find(x=>String(x.id)===String(id));
     if(!emp) return;
 
+    const date=dateObjectFromKey(effectiveDate);
+    if(isBalancedRosterRole(emp.role,date)){
+      toast("Эта должность сейчас распределяется автоматически. Используй «Заменить на день» или «Больше не работает».");
+      return;
+    }
+    const visible=employeesForDate(date).find(x=>String(x.id)===String(id));
+    const cycle=employeeCycleForDate(emp,date);
+
     $("employeeScheduleId").value=emp.id;
-    $("employeeScheduleName").value=emp.name;
+    $("employeeScheduleName").value=displayName || visible?.name || emp.name;
     $("employeeScheduleRole").value=roleLabel(emp.role);
-    $("employeeWorkDays").value=emp.workDays;
-    $("employeeOffDays").value=emp.offDays;
-    $("employeeScheduleStart").value=emp.cycleStart||settings.anchorDate;
-    $("employeeSchedulePreset").value=presetForCycle(emp.workDays,emp.offDays);
-    $("employeePointRule").innerHTML=`Точки: <b>${escapeHtml(settings.service1)} ↔ ${escapeHtml(settings.service2)}</b> каждые <b>${settings.serviceBlockDays} дней</b>.`;
+    $("employeeWorkDays").value=cycle.workDays;
+    $("employeeOffDays").value=cycle.offDays;
+    $("employeeScheduleStart").min=effectiveDate;
+    $("employeeScheduleStart").max="2100-12-31";
+    $("employeeScheduleStart").value=effectiveDate;
+    $("employeeSchedulePreset").value=presetForCycle(cycle.workDays,cycle.offDays);
+    updateEmployeeCustomFields();
+    $("employeePointRule").innerHTML=`Новый цикл начнётся с выбранной даты. Всё, что было раньше, останется без изменений. Для автоматической схемы точки закрепляются на периоды <b>1–15</b> и <b>16–конец месяца</b>.`;
     renderEmployeeSchedulePreview();
     $("employeeScheduleModal").classList.remove("hidden");
   }
@@ -4357,15 +4813,18 @@ body{min-height:100dvh}
 
   function applyEmployeePreset(){
     const value=$("employeeSchedulePreset").value;
-    if(value==="custom") return;
-    const [work,off]=value.split("/").map(Number);
-    $("employeeWorkDays").value=work;
-    $("employeeOffDays").value=off;
+    if(value!=="custom"){
+      const [work,off]=value.split("/").map(Number);
+      $("employeeWorkDays").value=work;
+      $("employeeOffDays").value=off;
+    }
+    updateEmployeeCustomFields();
     renderEmployeeSchedulePreview();
   }
 
   function syncEmployeePresetFromNumbers(){
     $("employeeSchedulePreset").value=presetForCycle($("employeeWorkDays").value,$("employeeOffDays").value);
+    updateEmployeeCustomFields();
     renderEmployeeSchedulePreview();
   }
 
@@ -4377,13 +4836,12 @@ body{min-height:100dvh}
 
     const work=Math.max(1,Math.min(14,Number($("employeeWorkDays").value)||2));
     const off=Math.max(1,Math.min(14,Number($("employeeOffDays").value)||2));
-    const cycleStart=$("employeeScheduleStart").value||settings.anchorDate;
-    const draft={...original,workDays:work,offDays:off,cycleStart};
+    const effectiveDate=$("employeeScheduleStart").value||moscowParts().date;
 
-    const today=moscowParts().date;
-    const startKey=today<settings.individualScheduleFrom ? settings.individualScheduleFrom : today;
-    const [y,m,d]=startKey.split("-").map(Number);
-    const start=new Date(y,m-1,d);
+    const draft=clone(original);
+    setEmployeeScheduleChange(draft,effectiveDate,work,off);
+
+    const start=dateObjectFromKey(effectiveDate);
     const items=[];
 
     for(let i=0;i<14;i++){
@@ -4406,64 +4864,34 @@ body{min-height:100dvh}
     const employee=(settings.employeeSchedules||[]).find(x=>String(x.id)===String(id));
     if(!employee) return;
 
-    const name=$("employeeScheduleName").value.trim();
+    const displayName=$("employeeScheduleName").value.trim()||employee.name;
     const workDays=Math.max(1,Math.min(14,Number($("employeeWorkDays").value)||2));
     const offDays=Math.max(1,Math.min(14,Number($("employeeOffDays").value)||2));
-    const cycleStart=$("employeeScheduleStart").value||settings.anchorDate;
-
-    if(!name){ toast("Напиши имя сотрудника"); return; }
-    if((settings.employeeSchedules||[]).some(x=>String(x.id)!==String(id) && x.name.toLowerCase()===name.toLowerCase())){
-      toast("Такое имя уже есть");
+    const effectiveDate=$("employeeScheduleStart").value||moscowParts().date;
+    const minEffectiveDate=$("employeeScheduleStart").min||"2020-01-01";
+    if(effectiveDate<minEffectiveDate){
+      toast(`Выбери дату не раньше ${minEffectiveDate}`);
       return;
     }
 
     const previous=clone(settings);
-    const oldName=employee.name;
+    const temp=clone(settings);
+    const tempEmployee=(temp.employeeSchedules||[]).find(x=>String(x.id)===String(id));
+    if(!tempEmployee) return;
 
-    const previewSettings=clone(settings);
-    const previewEmployee=(previewSettings.employeeSchedules||[]).find(x=>String(x.id)===String(id));
-    if(previewEmployee){
-      previewEmployee.name=name;
-      previewEmployee.workDays=workDays;
-      previewEmployee.offDays=offDays;
-      previewEmployee.cycleStart=cycleStart;
+    setEmployeeScheduleChange(tempEmployee,effectiveDate,workDays,offDays);
 
-      const realSettings=settings;
-      settings=normalizeScheduleSettings(previewSettings);
-      const previewProblems=monthScheduleProblems(currentIndex);
-      settings=realSettings;
-
-      if(previewProblems.length){
-        const affected=new Set(previewProblems.map(p=>`${p.date}|${p.service}`)).size;
-        const ok=confirm(`После этого изменения в выбранном месяце будет ${affected} смен, которые требуют внимания. Всё равно сохранить?`);
-        if(!ok) return;
-      }
+    const newProblems=newlyCreatedProblems(temp,effectiveDate,60);
+    if(newProblems.length){
+      const affected=new Set(newProblems.map(p=>`${p.date}|${p.service}`)).size;
+      const ok=confirm(`Этот новый график создаст ${affected} новых смен, которые потребуют внимания в ближайшие 60 дней.\n\nВсё равно сохранить?`);
+      if(!ok) return;
     }
 
     try{
-      employee.name=name;
-      employee.workDays=workDays;
-      employee.offDays=offDays;
-      employee.cycleStart=cycleStart;
-
-      if(oldName!==name){
-        (settings.dayOverrides||[]).forEach(x=>{
-          if(x.manager===oldName) x.manager=name;
-          if(x.master===oldName) x.master=name;
-          if(x.replacedName===oldName) x.replacedName=name;
-        });
-        (settings.staffChanges||[]).forEach(x=>{
-          if(x.oldName===oldName) x.oldName=name;
-          if(x.newName===oldName) x.newName=name;
-        });
-        if(loadEmployeeName()===oldName) saveEmployeeName(name);
-      }
-
-      syncLegacyTeamsFromEmployees(settings);
-      settings=normalizeScheduleSettings(settings);
-      saveSettings();
-
+      settings=normalizeScheduleSettings(temp);
       if(cloudConfigured()) await saveToCloud(settings);
+      saveSettings();
 
       lastSettingsSignature=stableJson(settings);
       settingsDirty=false;
@@ -4474,16 +4902,14 @@ body{min-height:100dvh}
       if(!$("schedulePage").classList.contains("hidden")) renderMonth();
       if(isEmployeePhoneMode()) renderEmployeePages();
       renderTodayShifts();
-      toast(`${name}: график ${workDays}/${offDays} сохранён`);
+      toast(`${displayName}: с ${effectiveDate} график ${workDays}/${offDays}`);
     }catch(e){
       console.error(e);
       settings=previous;
       saveSettings();
-
       toast(e.message||"Не удалось сохранить график");
     }
   }
-
 
   function populateSettings(){
     $("anchorDate").value=settings.anchorDate;
@@ -4533,7 +4959,11 @@ body{min-height:100dvh}
   }
 
   function quickReplacementRecord(date,service){
-    return (settings.dayOverrides||[]).find(x=>x.date===date && x.service===service)||null;
+    const key=serviceKeyForName(service);
+    return (settings.dayOverrides||[]).find(x=>
+      x.date===date &&
+      ((x.serviceKey && x.serviceKey===key) || (!x.serviceKey && x.service===service))
+    )||null;
   }
 
   function quickReplacementCandidates(date,role){
@@ -4554,7 +4984,7 @@ body{min-height:100dvh}
         .filter(x=>
           x.role===role &&
           !x.inactive &&
-          (!x.employmentStart || x.employmentStart<=date) &&
+          (x.isExtra!==true || !x.employmentStart || x.employmentStart<=date) &&
           !busy.has(x.name)
         )
         .map(x=>x.name);
@@ -4688,10 +5118,16 @@ body{min-height:100dvh}
 
     current[role]=replacement;
 
-    settings.dayOverrides=(settings.dayOverrides||[]).filter(x=>!(x.date===date && x.service===service));
+    {
+      const serviceKey=serviceKeyForName(service);
+      settings.dayOverrides=(settings.dayOverrides||[]).filter(x=>!(
+        x.date===date &&
+        ((x.serviceKey && x.serviceKey===serviceKey) || (!x.serviceKey && x.service===service))
+      ));
+    }
     settings.dayOverrides.push({
       id:`override-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      date,service,manager:current.manager,master:current.master,
+      date,serviceKey:serviceKeyForName(service),service,manager:current.manager,master:current.master,
       reason,replacedRole:role,replacedName:absent
     });
     settings.dayOverrides.sort((a,b)=>a.date.localeCompare(b.date));
@@ -4708,7 +5144,13 @@ body{min-height:100dvh}
       return;
     }
     const previousSettings=clone(settings);
-    settings.dayOverrides=(settings.dayOverrides||[]).filter(x=>!(x.date===date && x.service===service));
+    {
+      const serviceKey=serviceKeyForName(service);
+      settings.dayOverrides=(settings.dayOverrides||[]).filter(x=>!(
+        x.date===date &&
+        ((x.serviceKey && x.serviceKey===serviceKey) || (!x.serviceKey && x.service===service))
+      ));
+    }
     await persistQuickReplacement(previousSettings,"Вернули обычный график");
   }
 
@@ -4716,14 +5158,52 @@ body{min-height:100dvh}
     const s=readSettingsFromForm();
     if(!validateNames(s)){ toast("Имена сотрудников должны отличаться"); return; }
     if(cloudConfigured() && !isAdmin()){ openLoginModal(); toast("Сначала войди как администратор"); return; }
+
+    const renamed=[];
+    if(s.service1!==settings.service1) renamed.push(settings.service1);
+    if(s.service2!==settings.service2) renamed.push(settings.service2);
+
+    if(renamed.length && isAdmin()){
+      const devicesLoaded=await loadRegisteredDevices();
+      if(!devicesLoaded){
+        toast("Не удалось проверить рабочие устройства. Переименование отменено.");
+        return;
+      }
+      const active=deviceListCache.filter(d=>d.active && renamed.includes(d.service));
+      if(active.length){
+        const names=[...new Set(active.map(d=>d.service))].join(", ");
+        toast(`Сначала отключи рабочее устройство точки: ${names}`);
+        return;
+      }
+
+      const todayRows=(currentShiftRows||[]).filter(r=>
+        renamed.includes(r.service) &&
+        !r.voided_at
+      );
+      if(todayRows.length){
+        toast("Сегодня уже есть запись смены со старым названием точки. Переименуй точку после завершения дня.");
+        return;
+      }
+    }
+
+    const previous=clone(settings);
     try{
-      settings=s; currentIndex=getCurrentMonthIndex(); userSelectedMonth=false; saveSettings();
-      if(cloudConfigured()) await saveToCloud(settings);
+      if(cloudConfigured()) await saveToCloud(s);
+      settings=s;
+      currentIndex=getCurrentMonthIndex();
+      userSelectedMonth=false;
+      saveSettings();
       settingsDirty=false;
+      lastSettingsSignature=stableJson(settings);
       setCloudStatus(cloudConfigured()?"Онлайн":"Локально",cloudConfigured()?"online":"offline");
       toast(cloudConfigured()?"График сохранён для всех":"Сохранено только на этом устройстве");
       switchTab("schedule");
-    }catch(e){ console.error(e); setCloudStatus("Ошибка","offline"); toast(e.message||"Ошибка сохранения"); }
+    }catch(e){
+      console.error(e);
+      settings=previous;
+      setCloudStatus("Ошибка","offline");
+      toast(e.message||"Изменения не сохранены");
+    }
   }
 
   function switchTab(tab){
@@ -4805,11 +5285,55 @@ body{min-height:100dvh}
 
   function importSettings(file){
     const r=new FileReader();
-    r.onload=()=>{
+    r.onload=async()=>{
       try{
         const s=normalizeScheduleSettings(JSON.parse(r.result));
-        settings=s; saveSettings(); currentIndex=getCurrentMonthIndex(); userSelectedMonth=false; populateSettings(); renderMonth(); toast("Резервная копия загружена");
-      }catch(e){ toast("Не удалось открыть файл"); }
+        if(cloudConfigured() && !isAdmin()){
+          openLoginModal();
+          toast("Для импорта войди как администратор");
+          return;
+        }
+        if(!confirm("Заменить текущие настройки данными из резервной копии?")) return;
+
+        const renamed=[];
+        if(s.service1!==settings.service1) renamed.push(settings.service1);
+        if(s.service2!==settings.service2) renamed.push(settings.service2);
+        if(renamed.length && isAdmin()){
+          const devicesLoaded=await loadRegisteredDevices();
+          if(!devicesLoaded){
+            toast("Не удалось проверить рабочие устройства. Импорт отменён.");
+            return;
+          }
+          const active=deviceListCache.filter(d=>d.active && renamed.includes(d.service));
+          if(active.length){
+            const names=[...new Set(active.map(d=>d.service))].join(", ");
+            toast(`Сначала отключи рабочее устройство точки: ${names}`);
+            return;
+          }
+
+          const todayRows=(currentShiftRows||[]).filter(r=>
+            renamed.includes(r.service) &&
+            !r.voided_at
+          );
+          if(todayRows.length){
+            toast("Импорт меняет название точки, но сегодня уже есть запись смены со старым названием. Импорт отменён.");
+            return;
+          }
+        }
+
+        if(cloudConfigured()) await saveToCloud(s);
+        settings=s;
+        saveSettings();
+        currentIndex=getCurrentMonthIndex();
+        userSelectedMonth=false;
+        lastSettingsSignature=stableJson(settings);
+        populateSettings();
+        renderMonth();
+        toast(cloudConfigured()?"Резервная копия загружена для всех":"Резервная копия загружена");
+      }catch(e){
+        console.error(e);
+        toast(e.message||"Не удалось открыть файл");
+      }
     };
     r.readAsText(file);
   }
@@ -4845,7 +5369,9 @@ body{min-height:100dvh}
     const ctx=canvas.getContext("2d");
     ctx.fillStyle="#f4f7fb";ctx.fillRect(0,0,W,H);
     drawText(ctx,`${info.name} ${info.year}`,W/2,72,54,800,"#0f5bd7","center");
-    drawText(ctx,`Смена ${settings.shiftStart}–${settings.shiftEnd} • 1 менеджер + 1 мастер • график 2/2`,W/2,122,25,500,"#64748b","center");
+    const sampleDate=new Date(info.year,info.month,Math.min(20,info.days));
+    const balanced=balancedRosterState(sampleDate);
+    drawText(ctx,`Смена ${settings.shiftStart}–${settings.shiftEnd} • ${settings.service2}: вс только мастер • ${balanced?"закрепление 1–15 / 16–конец":"индивидуальные графики"}`,W/2,122,25,500,"#64748b","center");
 
     const firstEnd=Math.min(15,info.days);
     const serviceTop=[160,1010];
@@ -4882,7 +5408,7 @@ body{min-height:100dvh}
         }
       }
     }
-    drawText(ctx,"И менеджеры, и мастера работают 2/2",W/2,H-42,23,600,"#64748b","center");
+    drawText(ctx,"Актуальный график сотрудников",W/2,H-42,23,600,"#64748b","center");
     return canvas;
   }
 
@@ -4902,9 +5428,6 @@ body{min-height:100dvh}
     }
   }
 
-  async function downloadPhoto(){
-    const blob=await canvasBlob(); downloadBlob(blob); toast("PNG сохранён");
-  }
 
   function downloadBlob(blob){
     const info=monthInfo(currentIndex),url=URL.createObjectURL(blob),a=document.createElement("a");
@@ -5026,7 +5549,6 @@ body{min-height:100dvh}
   $("closeServiceDay").onclick=()=>$("serviceDayModal").classList.add("hidden");
   $("serviceDayModal").addEventListener("click",e=>{ if(e.target===$("serviceDayModal")) $("serviceDayModal").classList.add("hidden"); });
   $("shareBtn").onclick=sharePhoto;
-  $("downloadBtn").onclick=downloadPhoto;
   $("saveSettingsBtn").onclick=saveForm;
   $("forceSyncBtn").onclick=()=>syncFromCloud(true);
   $("logoutBtn").onclick=()=>{ saveAdminSession(null); settingsDirty=false; renderTodayShifts(); applyUserMode(); switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday"); toast("Вы вышли из администратора"); };
@@ -5062,7 +5584,6 @@ body{min-height:100dvh}
     }catch(e){ toast(e.message||"Ошибка сброса"); }
   };
 
-  $("installQuickBtn").onclick=installGrafikApp;
   $("installGrafikBtn").onclick=installGrafikApp;
 
   window.addEventListener("beforeinstallprompt",(event)=>{
