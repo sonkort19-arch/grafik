@@ -365,6 +365,28 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   .service-day-row{grid-template-columns:68px 1fr}
 }
 
+
+/* Бесконечный график */
+.monthnav{grid-template-columns:44px minmax(120px,1fr) 110px 44px}
+.yearselect{width:100%;min-height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 10px;font-weight:800;color:var(--text)}
+.schedule-rule-card{border:1px solid var(--line);border-radius:15px;padding:12px;background:#f8fafc;margin-top:10px}
+.schedule-rule-card b{display:block;color:#24344d;margin-bottom:5px}
+.schedule-rule-card span{font-size:12px;line-height:1.45;color:var(--muted)}
+.change-form{display:grid;grid-template-columns:150px 1fr 1fr auto;gap:8px;align-items:end}
+.override-form{display:grid;grid-template-columns:145px 130px 1fr 1fr auto;gap:8px;align-items:end}
+.change-list{display:grid;gap:8px;margin-top:10px}
+.change-item{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 11px;background:#fff}
+.change-item b{color:#24344d}
+.change-item small{display:block;color:var(--muted);margin-top:3px;line-height:1.35}
+.change-delete{border:1px solid #fecaca;background:#fff;color:#b42318;border-radius:10px;padding:7px 9px;font-weight:800;white-space:nowrap}
+.infinite-note{margin-top:9px;padding:10px 12px;border-radius:12px;background:#ecfdf3;color:#166534;font-size:12px;line-height:1.45}
+@media(max-width:760px){
+  .monthnav{grid-template-columns:42px 1fr 92px 42px}
+  .change-form,.override-form{grid-template-columns:1fr 1fr}
+  .change-form .wide,.override-form .wide{grid-column:1/-1}
+  .change-form button,.override-form button{grid-column:1/-1}
+}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -382,7 +404,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     <div id="scheduleControls">
       <div class="monthnav">
         <button class="navbtn" id="prevBtn" aria-label="Предыдущий месяц">‹</button>
-        <select class="monthselect" id="monthSelect"></select>
+        <select class="monthselect" id="monthSelect" aria-label="Месяц"></select>
+        <select class="yearselect" id="yearSelect" aria-label="Год"></select>
         <button class="navbtn" id="nextBtn" aria-label="Следующий месяц">›</button>
       </div>
       <button class="secondary today-month-btn" id="todayMonthBtn">Сегодня</button>
@@ -542,14 +565,14 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       <div class="section">
         <h2>Основные настройки</h2>
         <div class="grid2">
-          <div class="field"><label>Год начала графика</label><input type="number" id="startYear" min="2020" max="2100"></div>
-          <div class="field"><label>Месяц начала</label><select id="startMonth"></select></div>
+          <div class="field"><label>Точка отсчёта графика 2/2</label><input type="date" id="anchorDate"></div>
+          <div class="field"><label>Сколько дней работать на одной точке</label><input type="number" id="serviceBlockDays" min="1" max="60"></div>
           <div class="field"><label>Название сервиса 1</label><input id="service1"></div>
           <div class="field"><label>Название сервиса 2</label><input id="service2"></div>
           <div class="field"><label>Начало смены</label><input type="time" id="shiftStart"></div>
           <div class="field"><label>Конец смены</label><input type="time" id="shiftEnd"></div>
-          <div class="field"><label>День обмена точками</label><input type="number" id="swapDay" min="2" max="28"></div>
         </div>
+        <div class="infinite-note"><b>График теперь бесконечный.</b> Точка отсчёта нужна только один раз, чтобы сохранить правильную фазу 2/2. После этого можно открыть 2027, 2029, 2035 год — приложение само рассчитает нужный день.</div>
       </div>
 
       <div class="section">
@@ -590,18 +613,43 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
       <div class="section">
         <h2>Логика графика</h2>
-        <div class="switchrow">
-          <div><b>Строгий график 2/2</b><div class="notice" style="margin-top:6px">Цикл не сбрасывается в начале нового месяца.</div></div>
-          <input type="checkbox" id="strict22">
+        <div class="schedule-rule-card">
+          <b>2/2 идёт непрерывно</b>
+          <span>Новый месяц и новый год не сбрасывают цикл. Если сегодня известна смена, приложение может рассчитать любую дату в прошлом или будущем.</span>
         </div>
-        <div class="switchrow">
-          <div><b>Менять сервисы в середине месяца</b><div class="notice" style="margin-top:6px">Пары переходят из Мобы в Нову и наоборот.</div></div>
-          <input type="checkbox" id="swapServices">
+        <div class="schedule-rule-card">
+          <b>Переход между точками идёт по дням, а не по календарю</b>
+          <span>Например, при значении 14 команда работает 14 дней на Моба, затем 14 дней на Нова и снова повторяет цикл. Февраль и месяцы по 30/31 день ничего не ломают.</span>
         </div>
-        <div class="switchrow">
-          <div><b>Менять связку менеджеры ↔ мастера каждый месяц</b><div class="notice" style="margin-top:6px">Чтобы одни и те же люди не работали постоянно вместе.</div></div>
-          <input type="checkbox" id="rotateMasterPairs">
+        <div class="schedule-rule-card">
+          <b>Напарники автоматически меняются по циклу</b>
+          <span>Фаза мастеров периодически переворачивается, поэтому одна и та же связка не закрепляется навсегда.</span>
         </div>
+      </div>
+
+      <div class="section">
+        <h2>Изменения с даты</h2>
+        <div class="notice">Используй, если сотрудник уволился или его постоянно заменили. Старые даты останутся прежними, а с указанного дня график будет считать нового сотрудника.</div>
+        <div class="change-form" style="margin-top:10px">
+          <div class="field"><label>С какой даты</label><input type="date" id="changeDate"></div>
+          <div class="field"><label>Кого заменить</label><select id="changeOld"></select></div>
+          <div class="field"><label>Новый сотрудник</label><input id="changeNew" placeholder="Имя"></div>
+          <button class="primary" id="addStaffChangeBtn">Добавить</button>
+        </div>
+        <div class="change-list" id="staffChangesList"></div>
+      </div>
+
+      <div class="section">
+        <h2>Исключение на конкретный день</h2>
+        <div class="notice">Для разовой подмены. Например, 17 апреля вместо Сергея работает Арсен. Это не меняет остальные дни.</div>
+        <div class="override-form" style="margin-top:10px">
+          <div class="field"><label>Дата</label><input type="date" id="overrideDate"></div>
+          <div class="field"><label>Точка</label><select id="overrideService"></select></div>
+          <div class="field"><label>Менеджер</label><input id="overrideManager" placeholder="Имя"></div>
+          <div class="field"><label>Мастер</label><input id="overrideMaster" placeholder="Имя"></div>
+          <button class="primary" id="addDayOverrideBtn">Добавить</button>
+        </div>
+        <div class="change-list" id="dayOverridesList"></div>
       </div>
 
       <div class="section">
@@ -732,16 +780,16 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   const DEFAULTS = {
     startYear: 2026,
     startMonth: 8,
+    anchorDate: "2026-09-01",
+    serviceBlockDays: 14,
     service1: "Моба",
     service2: "Нова",
     shiftStart: "08:00",
     shiftEnd: "22:00",
-    swapDay: 16,
-    strict22: true,
-    swapServices: true,
-    rotateMasterPairs: true,
     managers: [["Сергей","Арсен"],["Дина","Амалия"]],
-    masters: [["Олег","Асик"],["Ислам","Георгий"]]
+    masters: [["Олег","Асик"],["Ислам","Георгий"]],
+    staffChanges: [],
+    dayOverrides: []
   };
 
   let settings = loadSettings();
@@ -766,6 +814,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
   const $ = id => document.getElementById(id);
   const monthSelect = $("monthSelect");
+  const yearSelect = $("yearSelect");
   const employeeFilter = $("employeeFilter");
 
   function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
@@ -789,7 +838,10 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   }
 
   function allEmployeeNames(){
-    return [...settings.managers.flat(),...settings.masters.flat()];
+    const names=[...settings.managers.flat(),...settings.masters.flat()];
+    (settings.staffChanges||[]).forEach(x=>{ names.push(x.oldName,x.newName); });
+    (settings.dayOverrides||[]).forEach(x=>{ names.push(x.manager,x.master); });
+    return [...new Set(names.filter(Boolean))];
   }
   function loadEmployeeName(){
     try{ return localStorage.getItem(EMPLOYEE_STORAGE_KEY)||""; }catch(e){ return ""; }
@@ -831,8 +883,14 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     if(!name) return [];
     const today=moscowParts().date;
     const list=[];
-    for(let i=0;i<12;i++){
+    const startIdx=getCurrentMonthIndex();
+
+    for(let offset=-1;offset<25 && list.length<limit*2;offset++){
+      const i=startIdx+offset;
+      const mi=monthInfo(i);
+      if(mi.year<2020 || mi.year>2100) continue;
       const rows=buildMonthRows(i);
+
       for(const r of rows){
         const key=dateKeyLocal(r.date);
         if(afterToday ? key<=today : key<today) continue;
@@ -847,6 +905,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     list.sort((a,b)=>a.key.localeCompare(b.key));
     return list.slice(0,limit);
   }
+
   function openEmployeePicker(){
     if(!isEmployeePhoneMode()) return;
     const grid=$("employeePickerGrid");
@@ -1063,11 +1122,43 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     return adminSession ? adminSession.access_token : null;
   }
 
-  function mergeRemoteSettings(remote){
-    const merged=Object.assign(clone(DEFAULTS),remote||{});
+  function normalizeScheduleSettings(raw){
+    const merged=Object.assign(clone(DEFAULTS),raw||{});
     if(!Array.isArray(merged.managers) || merged.managers.length!==2) merged.managers=clone(DEFAULTS.managers);
     if(!Array.isArray(merged.masters) || merged.masters.length!==2) merged.masters=clone(DEFAULTS.masters);
+    if(!Array.isArray(merged.staffChanges)) merged.staffChanges=[];
+    if(!Array.isArray(merged.dayOverrides)) merged.dayOverrides=[];
+
+    if(!merged.anchorDate){
+      const y=Number(merged.startYear)||2026;
+      const m=(Number(merged.startMonth)||0)+1;
+      merged.anchorDate=`${y}-${String(m).padStart(2,"0")}-01`;
+    }
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(String(merged.anchorDate))){
+      merged.anchorDate=DEFAULTS.anchorDate;
+    }
+
+    merged.serviceBlockDays=Math.max(1,Math.min(60,Number(merged.serviceBlockDays)||14));
+
+    const [ay,am]=merged.anchorDate.split("-").map(Number);
+    merged.startYear=ay;
+    merged.startMonth=am-1;
+
+    merged.staffChanges=merged.staffChanges
+      .filter(x=>x && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date||"")) && x.oldName && x.newName)
+      .map(x=>({id:x.id||(`chg-${Date.now()}-${Math.random().toString(36).slice(2)}`),date:String(x.date),oldName:String(x.oldName),newName:String(x.newName)}))
+      .sort((a,b)=>a.date.localeCompare(b.date));
+
+    merged.dayOverrides=merged.dayOverrides
+      .filter(x=>x && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date||"")) && x.service && x.manager && x.master)
+      .map(x=>({id:x.id||(`chg-${Date.now()}-${Math.random().toString(36).slice(2)}`),date:String(x.date),service:String(x.service),manager:String(x.manager),master:String(x.master)}))
+      .sort((a,b)=>a.date.localeCompare(b.date));
+
     return merged;
+  }
+
+  function mergeRemoteSettings(remote){
+    return normalizeScheduleSettings(remote);
   }
 
   async function syncFromCloud(showToast=false){
@@ -1294,10 +1385,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   function expectedForDate(dateStr,serviceName){
     try{
       const [y,m,d]=dateStr.split("-").map(Number);
-      const start=new Date(Number(settings.startYear),Number(settings.startMonth),1);
-      const target=new Date(y,m-1,1);
-      const idx=(target.getFullYear()-start.getFullYear())*12 + (target.getMonth()-start.getMonth());
-      if(idx<0 || idx>11) return null;
+      if(y<2020 || y>2100) return null;
+      const idx=monthIndexForYearMonth(y,m-1);
       const row=daySchedule(idx,d);
       const pair=serviceName===settings.service1 ? row.s1 : serviceName===settings.service2 ? row.s2 : null;
       return pair ? {manager:pair.manager,master:pair.master} : null;
@@ -1662,7 +1751,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     const sv=$("historyService"), emp=$("historyEmployee"); if(!sv||!emp) return;
     const svv=sv.value, ev=emp.value;
     sv.innerHTML=`<option value="">Все сервисы</option><option>${escapeHtml(settings.service1)}</option><option>${escapeHtml(settings.service2)}</option>`;
-    emp.innerHTML='<option value="">Все сотрудники</option>'+settings.managers.flat().map(n=>`<option>${escapeHtml(n)}</option>`).join("");
+    emp.innerHTML='<option value="">Все сотрудники</option>'+allEmployeeNames().map(n=>`<option>${escapeHtml(n)}</option>`).join("");
     if([...sv.options].some(o=>o.value===svv)) sv.value=svv; if([...emp.options].some(o=>o.value===ev)) emp.value=ev;
   }
   async function loadHistory(){
@@ -1795,11 +1884,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
       if(!raw) return clone(DEFAULTS);
-      const s = Object.assign(clone(DEFAULTS), JSON.parse(raw));
-      if(!Array.isArray(s.managers) || s.managers.length!==2) s.managers=clone(DEFAULTS.managers);
-      if(!Array.isArray(s.masters) || s.masters.length!==2) s.masters=clone(DEFAULTS.masters);
-      return s;
-    }catch(e){ return clone(DEFAULTS); }
+      return normalizeScheduleSettings(JSON.parse(raw));
+    }catch(e){ return normalizeScheduleSettings(clone(DEFAULTS)); }
   }
 
   function saveSettings(){
@@ -1822,36 +1908,43 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     return {year:d.getFullYear(), month:d.getMonth()};
   }
 
+  function anchorParts(){
+    const [y,m,d]=String(settings.anchorDate||DEFAULTS.anchorDate).split("-").map(Number);
+    return {year:y,month:m-1,day:d};
+  }
+
   function monthInfo(index){
-    const x=addMonths(Number(settings.startYear), Number(settings.startMonth), index);
+    const a=anchorParts();
+    const x=addMonths(a.year,a.month,index);
     return {index, year:x.year, month:x.month, name:MONTHS[x.month], days:new Date(x.year,x.month+1,0).getDate()};
+  }
+
+  function monthIndexForYearMonth(year,month){
+    const a=anchorParts();
+    return (Number(year)-a.year)*12 + (Number(month)-a.month);
   }
 
   function getCurrentMonthIndex(){
     const p=new Intl.DateTimeFormat("en-US",{timeZone:SHIFT_TIMEZONE,year:"numeric",month:"2-digit"}).formatToParts(new Date());
     const vals=Object.fromEntries(p.filter(x=>x.type!=="literal").map(x=>[x.type,x.value]));
-    const y=Number(vals.year), m=Number(vals.month)-1;
-    return (y-Number(settings.startYear))*12 + (m-Number(settings.startMonth));
-  }
-
-  function annualScheduleIndices(){
-    return Array.from({length:12},(_,i)=>i);
+    return monthIndexForYearMonth(Number(vals.year),Number(vals.month)-1);
   }
 
   function visibleMonthIndices(){
-    const arr=annualScheduleIndices();
-    const cur=getCurrentMonthIndex();
-    if(!arr.includes(cur)) arr.push(cur);
-    return [...new Set(arr)].sort((a,b)=>a-b);
+    const arr=[];
+    for(let y=2020;y<=2100;y++){
+      for(let m=0;m<12;m++) arr.push(monthIndexForYearMonth(y,m));
+    }
+    return arr;
   }
 
   function isAnnualScheduleMonth(index){
-    return index>=0 && index<12;
+    const mi=monthInfo(index);
+    return mi.year>=2020 && mi.year<=2100;
   }
 
   function annualPeriodText(){
-    const first=monthInfo(0), last=monthInfo(11);
-    return `${first.name.toLowerCase()} ${first.year} — ${last.name.toLowerCase()} ${last.year}`;
+    return "бесконечный график";
   }
 
   function todayMonthLabel(){
@@ -1860,16 +1953,17 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   }
 
   function navigateVisibleMonth(direction){
-    const indices=visibleMonthIndices();
-    const pos=Math.max(0,indices.indexOf(currentIndex));
-    const nextPos=Math.max(0,Math.min(indices.length-1,pos+direction));
-    currentIndex=indices[nextPos];
+    const next=currentIndex+direction;
+    const mi=monthInfo(next);
+    if(mi.year<2020 || mi.year>2100) return;
+    currentIndex=next;
     userSelectedMonth=true;
     renderMonth();
   }
 
   function scheduleStartDate(){
-    return new Date(Number(settings.startYear), Number(settings.startMonth), 1);
+    const a=anchorParts();
+    return new Date(a.year,a.month,a.day);
   }
 
   function globalDayIndex(date){
@@ -1879,54 +1973,82 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     return Math.floor((b-a)/86400000);
   }
 
-  function activeFromPair(pair, date, pairOffset=0){
-    if(!settings.strict22){
-      const d=date.getDate()-1;
-      return pair[Math.floor(d/2)%2];
-    }
+  function mod(n,m){ return ((n%m)+m)%m; }
+
+  function activeFromPair(pair,date,pairOffset=0){
     const idx=globalDayIndex(date)+pairOffset;
-    const phase=((idx%4)+4)%4;
+    const phase=mod(idx,4);
     return pair[phase<2?0:1];
   }
 
-  function groupAssignments(monthIndex, day){
-    const firstHalf = day < Number(settings.swapDay);
-    const swap = settings.swapServices && !firstHalf;
+  function dateKeyFromDate(date){
+    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+  }
 
-    // Managers: A in service1 first half, B in service2; swap in second half.
-    let managerGroup1 = swap ? 1 : 0;
-    let managerGroup2 = swap ? 0 : 1;
+  function teamsForDate(date){
+    const teams={
+      managers:clone(settings.managers),
+      masters:clone(settings.masters)
+    };
+    const key=dateKeyFromDate(date);
+    const changes=(settings.staffChanges||[]).filter(x=>x.date<=key).sort((a,b)=>a.date.localeCompare(b.date));
 
-    // Masters rotate monthly so manager teams do not always meet the same master team.
-    const monthlyRotate = settings.rotateMasterPairs && (monthIndex % 2 === 1);
-    let masterGroup1 = monthlyRotate ? 1 : 0;
-    let masterGroup2 = monthlyRotate ? 0 : 1;
-    if(swap){
-      masterGroup1 = monthlyRotate ? 0 : 1;
-      masterGroup2 = monthlyRotate ? 1 : 0;
-    }
+    changes.forEach(ch=>{
+      teams.managers=teams.managers.map(pair=>pair.map(n=>n===ch.oldName?ch.newName:n));
+      teams.masters=teams.masters.map(pair=>pair.map(n=>n===ch.oldName?ch.newName:n));
+    });
+    return teams;
+  }
+
+  function groupAssignments(date){
+    const days=globalDayIndex(date);
+    const blockDays=Math.max(1,Number(settings.serviceBlockDays)||14);
+    const block=Math.floor(days/blockDays);
+
+    // Команды менеджеров и мастеров меняют точки каждые N дней.
+    const serviceFlip=mod(block,2);
+    const managerGroup1=serviceFlip===0?0:1;
+    const managerGroup2=serviceFlip===0?1:0;
+    const masterGroup1=serviceFlip===0?0:1;
+    const masterGroup2=serviceFlip===0?1:0;
+
+    // Каждые два блока переворачиваем фазу мастеров,
+    // чтобы одинаковые личные связки не закреплялись навсегда.
+    const partnerCycle=mod(Math.floor(block/2),2);
+    const masterPhaseFlip=partnerCycle?2:0;
+
     return {
-      s1:{mg:managerGroup1,wg:masterGroup1},
-      s2:{mg:managerGroup2,wg:masterGroup2}
+      s1:{mg:managerGroup1,wg:masterGroup1,masterFlip:masterPhaseFlip},
+      s2:{mg:managerGroup2,wg:masterGroup2,masterFlip:masterPhaseFlip}
     };
   }
 
-  function daySchedule(monthIndex, day){
+  function daySchedule(monthIndex,day){
     const info=monthInfo(monthIndex);
     const date=new Date(info.year,info.month,day);
-    const groups=groupAssignments(monthIndex,day);
+    const teams=teamsForDate(date);
+    const groups=groupAssignments(date);
 
-    // Pair offsets keep opposite 2/2 phases between pair members and vary which master aligns with which manager.
     const mgrOffsets=[0,2];
     const masterOffsets=[0,2];
 
     function one(g){
       return {
-        manager: activeFromPair(settings.managers[g.mg],date,mgrOffsets[g.mg]),
-        master: activeFromPair(settings.masters[g.wg],date,masterOffsets[g.wg]),
+        manager:activeFromPair(teams.managers[g.mg],date,mgrOffsets[g.mg]),
+        master:activeFromPair(teams.masters[g.wg],date,masterOffsets[g.wg]+g.masterFlip)
       };
     }
-    return {date, s1:one(groups.s1), s2:one(groups.s2)};
+
+    const result={date,s1:one(groups.s1),s2:one(groups.s2)};
+    const key=dateKeyFromDate(date);
+    const overrides=(settings.dayOverrides||[]).filter(x=>x.date===key);
+
+    overrides.forEach(o=>{
+      if(o.service===settings.service1) result.s1={manager:o.manager,master:o.master};
+      if(o.service===settings.service2) result.s2={manager:o.manager,master:o.master};
+    });
+
+    return result;
   }
 
   function buildMonthRows(monthIndex){
@@ -1974,12 +2096,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     }).format(new Date());
 
     const work=$("employeeTodayWork");
-    const monthIdx=getCurrentMonthIndex();
-
-    if(!isAnnualScheduleMonth(monthIdx)){
-      work.className="employee-main-status unknown";
-      work.innerHTML=`<b>График на сегодня ещё не задан</b>`;
-    }else if(todayAssignment){
+    if(todayAssignment){
       const partner=todayAssignment.pair.manager===name
         ? todayAssignment.pair.master
         : todayAssignment.pair.manager;
@@ -2008,7 +2125,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     const next=employeeUpcomingShifts(name,{afterToday:true,limit:1})[0];
     $("employeeNextShift").innerHTML=next
       ? `<small>Следующая смена</small><b>${new Intl.DateTimeFormat("ru-RU",{weekday:"short",day:"numeric",month:"long"}).format(next.date)} · ${escapeHtml(next.service)} · ${settings.shiftStart}–${settings.shiftEnd}</b>`
-      : `<small>Следующая смена</small><b>В текущем годовом графике больше смен нет</b>`;
+      : `<small>Следующая смена</small><b>Ближайшие смены не найдены</b>`;
   }
 
   function renderEmployeeMySchedule(){
@@ -2023,14 +2140,13 @@ button,a,input,select,textarea,label{touch-action:manipulation}
         <div class="employee-shift-date"><b>${x.date.getDate()}</b><span>${MONTHS[x.date.getMonth()].slice(0,3)} · ${WD[x.date.getDay()]}</span></div>
         <div class="employee-shift-info"><b>${escapeHtml(x.service)} · ${settings.shiftStart}–${settings.shiftEnd}</b><span>Вместе с ${escapeHtml(partner)}</span></div>
       </div>`;
-    }).join("") : '<div class="notice">В оставшейся части годового графика смен нет.</div>';
+    }).join("") : '<div class="notice">Ближайшие смены не найдены.</div>';
   }
 
   function setEmployeeCalendarMonth(index){
-    const indices=visibleMonthIndices();
-    if(!indices.includes(index)) return;
-    employeeCalendarIndex=index;
     const mi=monthInfo(index);
+    if(mi.year<2020 || mi.year>2100) return;
+    employeeCalendarIndex=index;
     const today=moscowParts().date;
     const [ty,tm]=today.split("-").map(Number);
     if(mi.year===ty && mi.month===tm-1){
@@ -2049,13 +2165,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
     const [y,m,d]=dateStr.split("-").map(Number);
     const date=new Date(y,m-1,d);
-    const idx=(y-Number(settings.startYear))*12 + ((m-1)-Number(settings.startMonth));
     const title=new Intl.DateTimeFormat("ru-RU",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(date);
-
-    if(!isAnnualScheduleMonth(idx)){
-      root.innerHTML=`<b>${escapeHtml(title)}</b><span>На этот месяц годовой график не задан.</span>`;
-      return;
-    }
 
     const assignment=employeeAssignmentForDate(name,dateStr);
     if(!assignment){
@@ -2072,19 +2182,15 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     const name=selectedEmployee();
     if(!name) return;
 
-    const indices=visibleMonthIndices();
-    if(!indices.includes(employeeCalendarIndex)){
+    let info=monthInfo(employeeCalendarIndex);
+    if(info.year<2020 || info.year>2100){
       employeeCalendarIndex=getCurrentMonthIndex();
-      if(!indices.includes(employeeCalendarIndex)) employeeCalendarIndex=indices[0];
+      info=monthInfo(employeeCalendarIndex);
     }
-
-    const pos=indices.indexOf(employeeCalendarIndex);
-    const info=monthInfo(employeeCalendarIndex);
     $("employeeCalendarName").textContent=name;
     $("employeeCalLabel").textContent=`${info.name} ${info.year}`;
-    $("employeeCalPrev").disabled=pos<=0;
-    $("employeeCalNext").disabled=pos>=indices.length-1;
-
+    $("employeeCalPrev").disabled=info.year<=2020 && info.month===0;
+    $("employeeCalNext").disabled=info.year>=2100 && info.month===11;
     const firstDow=(new Date(info.year,info.month,1).getDay()+6)%7;
     const today=moscowParts().date;
     const cells=[];
@@ -2097,15 +2203,10 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       const dateStr=`${info.year}-${String(info.month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
       let cls="off", status="Выходной";
 
-      if(!isAnnualScheduleMonth(employeeCalendarIndex)){
-        cls="out";
-        status="Нет графика";
-      }else{
-        const assignment=employeeAssignmentForDate(name,dateStr);
-        if(assignment){
-          cls="work";
-          status=assignment.service;
-        }
+      const assignment=employeeAssignmentForDate(name,dateStr);
+      if(assignment){
+        cls="work";
+        status=assignment.service;
       }
 
       if(dateStr===today) cls+=" today";
@@ -2136,25 +2237,25 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   }
 
   function renderSelectors(){
-    monthSelect.innerHTML="";
-    const cur=getCurrentMonthIndex();
-    const indices=visibleMonthIndices();
-    indices.forEach(i=>{
-      const mi=monthInfo(i);
-      const o=document.createElement("option");
-      o.value=i;
-      o.textContent=`${mi.name} ${mi.year}${i===cur ? " — текущий месяц" : ""}`;
-      monthSelect.appendChild(o);
-    });
-    if(!indices.includes(currentIndex)) currentIndex=cur;
-    monthSelect.value=String(currentIndex);
+    const info=monthInfo(currentIndex);
 
-    const pos=indices.indexOf(currentIndex);
-    $("prevBtn").disabled=pos<=0;
-    $("nextBtn").disabled=pos>=indices.length-1;
+    monthSelect.innerHTML=MONTHS.map((m,i)=>`<option value="${i}">${m}</option>`).join("");
+    monthSelect.value=String(info.month);
+
+    yearSelect.innerHTML="";
+    for(let y=2020;y<=2100;y++){
+      const o=document.createElement("option");
+      o.value=String(y);
+      o.textContent=String(y);
+      yearSelect.appendChild(o);
+    }
+    yearSelect.value=String(info.year);
+
+    $("prevBtn").disabled=info.year<=2020 && info.month===0;
+    $("nextBtn").disabled=info.year>=2100 && info.month===11;
     $("todayMonthBtn").textContent=`Сегодня • ${todayMonthLabel()}`;
 
-    const names=[...settings.managers.flat(),...settings.masters.flat()];
+    const names=allEmployeeNames();
     const prev=employeeFilter.value;
     employeeFilter.innerHTML='<option value="">Все сотрудники</option>';
     names.forEach(n=>{
@@ -2169,14 +2270,15 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
   function serviceScheduleIndexForDate(dateStr){
     const [y,m]=dateStr.split("-").map(Number);
-    return (y-Number(settings.startYear))*12 + ((m-1)-Number(settings.startMonth));
+    return monthIndexForYearMonth(y,m-1);
   }
 
   function jumpServiceScheduleToDate(dateStr){
     if(!isServiceDeviceMode()) return;
     const idx=serviceScheduleIndexForDate(dateStr);
-    if(!visibleMonthIndices().includes(idx)){
-      toast("На эту дату график не задан");
+    const mi=monthInfo(idx);
+    if(mi.year<2020 || mi.year>2100){
+      toast("Можно выбрать год от 2020 до 2100");
       return;
     }
     currentIndex=idx;
@@ -2194,13 +2296,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     const idx=serviceScheduleIndexForDate(dateStr);
     const info=monthInfo(idx);
     const day=Number(dateStr.slice(-2));
-
-    if(!isAnnualScheduleMonth(idx)){
-      $("serviceDayTitle").textContent=`${day} ${info.name.toLowerCase()} ${info.year}`;
-      $("serviceDayDetail").innerHTML='<div class="service-day-status warn">На эту дату годовой график не задан.</div>';
-      $("serviceDayModal").classList.remove("hidden");
-      return;
-    }
 
     const rows=buildMonthRows(idx);
     const row=rows.find(r=>r.date.getDate()===day);
@@ -2257,7 +2352,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       <div class="service-quick-nav">
         <button type="button" id="serviceJumpToday">Сегодня</button>
         <button type="button" id="serviceJumpTomorrow">Завтра</button>
-        <input type="date" id="serviceJumpDate" aria-label="Выбрать дату">
+        <input type="date" id="serviceJumpDate" min="2020-01-01" max="2100-12-31" aria-label="Выбрать дату">
       </div>
       <div class="service-schedule-scroll" id="serviceScheduleScroll"></div>
     `;
@@ -2301,7 +2396,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   function renderMonth(){
     renderSelectors();
     const info=monthInfo(currentIndex);
-    const inPlan=isAnnualScheduleMonth(currentIndex);
+    const inPlan=info.year>=2020 && info.year<=2100;
     $("monthTitle").textContent=`${info.name} ${info.year}`;
 
     const root=$("servicesRoot");
@@ -2330,9 +2425,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       }
     }else{
       const current = currentIndex===getCurrentMonthIndex();
-      $("monthSubtitle").textContent=current
-        ? `Текущий месяц • годовой график: ${annualPeriodText()}`
-        : `Месяц вне годового графика • план: ${annualPeriodText()}`;
+      $("monthSubtitle").textContent="Выбери год от 2020 до 2100";
       root.innerHTML=isServiceDeviceMode()
         ? `<div class="outside-plan">
             ${current ? '<div class="current-badge">ТЕКУЩИЙ МЕСЯЦ</div>' : ''}
@@ -2364,13 +2457,12 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     const head=document.createElement("div"); head.className="service-head";
     head.innerHTML=`<h2>${escapeHtml(title)}</h2><div class="small">1 менеджер + 1 мастер</div>`;
     card.appendChild(head);
-    const halves=document.createElement("div"); halves.className="halves";
 
-    const swap=Number(settings.swapDay);
-    const first=rows.filter(r=>r.date.getDate()<swap);
-    const second=rows.filter(r=>r.date.getDate()>=swap);
-    halves.appendChild(halfTable(`1–${swap-1} число`,key,first));
-    halves.appendChild(halfTable(`${swap}–${rows.length} число`,key,second));
+    const halves=document.createElement("div"); halves.className="halves";
+    const first=rows.filter(r=>r.date.getDate()<=15);
+    const second=rows.filter(r=>r.date.getDate()>=16);
+    halves.appendChild(halfTable("1–15 число",key,first));
+    halves.appendChild(halfTable(`16–${rows.length} число`,key,second));
     card.appendChild(halves);
     return card;
   }
@@ -2410,7 +2502,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   }
 
   function personalSchedule(){
-    if(!isAnnualScheduleMonth(currentIndex)){ toast("Для этого месяца годовой график не задан"); return; }
     const name=employeeFilter.value || settings.managers[0][0];
     if(!employeeFilter.value){ employeeFilter.value=name; highlightEmployee(); }
     const rows=buildMonthRows(currentIndex), info=monthInfo(currentIndex), list=[];
@@ -2427,32 +2518,94 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
   }
 
+  function renderScheduleEditLists(){
+    const changeOld=$("changeOld");
+    if(changeOld){
+      const previous=changeOld.value;
+      changeOld.innerHTML=allEmployeeNames().map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
+      if([...changeOld.options].some(o=>o.value===previous)) changeOld.value=previous;
+    }
+
+    const serviceSel=$("overrideService");
+    if(serviceSel){
+      const prev=serviceSel.value;
+      serviceSel.innerHTML=`<option value="${escapeHtml(settings.service1)}">${escapeHtml(settings.service1)}</option><option value="${escapeHtml(settings.service2)}">${escapeHtml(settings.service2)}</option>`;
+      if([...serviceSel.options].some(o=>o.value===prev)) serviceSel.value=prev;
+    }
+
+    const changesRoot=$("staffChangesList");
+    if(changesRoot){
+      const changes=(settings.staffChanges||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+      changesRoot.innerHTML=changes.length ? changes.map(x=>`
+        <div class="change-item">
+          <div><b>${escapeHtml(x.date)}</b><small>${escapeHtml(x.oldName)} → ${escapeHtml(x.newName)}</small></div>
+          <button class="change-delete" data-change-id="${escapeHtml(x.id)}">Удалить</button>
+        </div>`).join("") : '<div class="notice">Постоянных изменений пока нет.</div>';
+      changesRoot.querySelectorAll("[data-change-id]").forEach(btn=>{
+        btn.onclick=()=>{
+          settings.staffChanges=(settings.staffChanges||[]).filter(x=>String(x.id)!==String(btn.dataset.changeId));
+          markDirty();
+          renderScheduleEditLists();
+          renderMonth();
+        };
+      });
+    }
+
+    const overridesRoot=$("dayOverridesList");
+    if(overridesRoot){
+      const list=(settings.dayOverrides||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+      overridesRoot.innerHTML=list.length ? list.map(x=>`
+        <div class="change-item">
+          <div><b>${escapeHtml(x.date)} · ${escapeHtml(x.service)}</b><small>${escapeHtml(x.manager)} + ${escapeHtml(x.master)}</small></div>
+          <button class="change-delete" data-override-id="${escapeHtml(x.id)}">Удалить</button>
+        </div>`).join("") : '<div class="notice">Разовых исключений пока нет.</div>';
+      overridesRoot.querySelectorAll("[data-override-id]").forEach(btn=>{
+        btn.onclick=()=>{
+          settings.dayOverrides=(settings.dayOverrides||[]).filter(x=>String(x.id)!==String(btn.dataset.overrideId));
+          markDirty();
+          renderScheduleEditLists();
+          renderMonth();
+        };
+      });
+    }
+  }
+
   function populateSettings(){
-    $("startYear").value=settings.startYear;
-    $("startMonth").innerHTML=MONTHS.map((m,i)=>`<option value="${i}">${m}</option>`).join("");
-    $("startMonth").value=settings.startMonth;
+    $("anchorDate").value=settings.anchorDate;
+    $("serviceBlockDays").value=settings.serviceBlockDays;
     $("service1").value=settings.service1; $("service2").value=settings.service2;
-    $("shiftStart").value=settings.shiftStart; $("shiftEnd").value=settings.shiftEnd; $("swapDay").value=settings.swapDay;
+    $("shiftStart").value=settings.shiftStart; $("shiftEnd").value=settings.shiftEnd;
     $("mA1").value=settings.managers[0][0]; $("mA2").value=settings.managers[0][1];
     $("mB1").value=settings.managers[1][0]; $("mB2").value=settings.managers[1][1];
     $("wA1").value=settings.masters[0][0]; $("wA2").value=settings.masters[0][1];
     $("wB1").value=settings.masters[1][0]; $("wB2").value=settings.masters[1][1];
-    $("strict22").checked=!!settings.strict22; $("swapServices").checked=!!settings.swapServices; $("rotateMasterPairs").checked=!!settings.rotateMasterPairs;
-    renderPinFields(); fillHistoryFilters(); fillDeviceServiceSelect(); updatePushState(); renderDevicePanel();
+
+    if(!$("changeDate").value) $("changeDate").value=moscowParts().date;
+    if(!$("overrideDate").value) $("overrideDate").value=moscowParts().date;
+
+    renderPinFields();
+    fillHistoryFilters();
+    fillDeviceServiceSelect();
+    updatePushState();
+    renderDevicePanel();
+    renderScheduleEditLists();
+    if(!$("overrideManager").value && !$("overrideMaster").value) prefillDayOverride();
   }
 
   function readSettingsFromForm(){
-    return {
-      startYear:Number($("startYear").value)||2026,
-      startMonth:Number($("startMonth").value)||0,
+    const anchor=$("anchorDate").value||DEFAULTS.anchorDate;
+    const [ay,am]=anchor.split("-").map(Number);
+
+    return normalizeScheduleSettings({
+      ...settings,
+      anchorDate:anchor,
+      startYear:ay,
+      startMonth:am-1,
+      serviceBlockDays:Math.max(1,Math.min(60,Number($("serviceBlockDays").value)||14)),
       service1:$("service1").value.trim()||"Моба",
       service2:$("service2").value.trim()||"Нова",
       shiftStart:$("shiftStart").value||"08:00",
       shiftEnd:$("shiftEnd").value||"22:00",
-      swapDay:Math.max(2,Math.min(28,Number($("swapDay").value)||16)),
-      strict22:$("strict22").checked,
-      swapServices:$("swapServices").checked,
-      rotateMasterPairs:$("rotateMasterPairs").checked,
       managers:[
         [$("mA1").value.trim()||"Менеджер 1",$("mA2").value.trim()||"Менеджер 2"],
         [$("mB1").value.trim()||"Менеджер 3",$("mB2").value.trim()||"Менеджер 4"]
@@ -2460,13 +2613,85 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       masters:[
         [$("wA1").value.trim()||"Мастер 1",$("wA2").value.trim()||"Мастер 2"],
         [$("wB1").value.trim()||"Мастер 3",$("wB2").value.trim()||"Мастер 4"]
-      ]
-    };
+      ],
+      staffChanges:settings.staffChanges||[],
+      dayOverrides:settings.dayOverrides||[]
+    });
   }
 
   function validateNames(s){
     const all=[...s.managers.flat(),...s.masters.flat()].map(x=>x.toLowerCase());
     return new Set(all).size===all.length;
+  }
+
+  function addStaffChange(){
+    if(!isAdmin()){ openLoginModal(); return; }
+    const date=$("changeDate").value;
+    const oldName=$("changeOld").value;
+    const newName=$("changeNew").value.trim();
+
+    if(!date || !oldName || !newName){
+      toast("Заполни дату, сотрудника и новое имя");
+      return;
+    }
+    if(oldName===newName){
+      toast("Новое имя должно отличаться");
+      return;
+    }
+
+    settings.staffChanges=settings.staffChanges||[];
+    settings.staffChanges.push({
+      id:`change-${Date.now()}-${(settings.staffChanges||[]).length}-${Math.random().toString(36).slice(2)}`,
+      date,
+      oldName,
+      newName
+    });
+    settings.staffChanges.sort((a,b)=>a.date.localeCompare(b.date));
+    $("changeNew").value="";
+    markDirty();
+    renderScheduleEditLists();
+    renderMonth();
+    toast("Изменение добавлено. Не забудь сохранить настройки.");
+  }
+
+  function addDayOverride(){
+    if(!isAdmin()){ openLoginModal(); return; }
+    const date=$("overrideDate").value;
+    const service=$("overrideService").value;
+    const manager=$("overrideManager").value.trim();
+    const master=$("overrideMaster").value.trim();
+
+    if(!date || !service || !manager || !master){
+      toast("Заполни дату, точку, менеджера и мастера");
+      return;
+    }
+
+    settings.dayOverrides=settings.dayOverrides||[];
+    settings.dayOverrides=settings.dayOverrides.filter(x=>!(x.date===date && x.service===service));
+    settings.dayOverrides.push({
+      id:`override-${Date.now()}-${(settings.dayOverrides||[]).length}-${Math.random().toString(36).slice(2)}`,
+      date,
+      service,
+      manager,
+      master
+    });
+    settings.dayOverrides.sort((a,b)=>a.date.localeCompare(b.date));
+
+    markDirty();
+    renderScheduleEditLists();
+    renderMonth();
+    toast("Подмена добавлена. Не забудь сохранить настройки.");
+  }
+
+  function prefillDayOverride(){
+    const date=$("overrideDate").value;
+    const service=$("overrideService").value;
+    if(!date || !service) return;
+    const p=expectedForDate(date,service);
+    if(p){
+      $("overrideManager").value=p.manager;
+      $("overrideMaster").value=p.master;
+    }
   }
 
   async function saveForm(){
@@ -2565,7 +2790,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     const r=new FileReader();
     r.onload=()=>{
       try{
-        const s=Object.assign(clone(DEFAULTS),JSON.parse(r.result));
+        const s=normalizeScheduleSettings(JSON.parse(r.result));
         settings=s; saveSettings(); currentIndex=getCurrentMonthIndex(); userSelectedMonth=false; populateSettings(); renderMonth(); toast("Резервная копия загружена");
       }catch(e){ toast("Не удалось открыть файл"); }
     };
@@ -2597,7 +2822,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   }
 
   function renderMonthCanvas(){
-    if(!isAnnualScheduleMonth(currentIndex)) throw new Error("Для этого месяца годовой график не задан");
     const info=monthInfo(currentIndex), rows=buildMonthRows(currentIndex);
     const W=1400, H=1900, pad=44, cardW=W-pad*2;
     const canvas=document.createElement("canvas"); canvas.width=W; canvas.height=H;
@@ -2606,7 +2830,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     drawText(ctx,`${info.name} ${info.year}`,W/2,72,54,800,"#0f5bd7","center");
     drawText(ctx,`Смена ${settings.shiftStart}–${settings.shiftEnd} • 1 менеджер + 1 мастер • график 2/2`,W/2,122,25,500,"#64748b","center");
 
-    const firstEnd=Number(settings.swapDay)-1;
+    const firstEnd=Math.min(15,info.days);
     const serviceTop=[160,1010];
     const serviceKeys=["s1","s2"];
     const serviceNames=[settings.service1,settings.service2];
@@ -2618,9 +2842,10 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       drawText(ctx,serviceNames[s],pad+28,y+45,38,800,"#0f5bd7");
       const colGap=22,colW=(cardW-56-colGap)/2;
       const colX=[pad+28,pad+28+colW+colGap];
-      const ranges=[[1,firstEnd],[Number(settings.swapDay),info.days]];
+      const ranges=[[1,firstEnd],[16,info.days]];
       for(let c=0;c<2;c++){
         const [a,b]=ranges[c];
+        if(a>b) continue;
         drawText(ctx,`${a}–${b} число`,colX[c],y+92,24,800,"#0f5bd7");
         const tx=colX[c], ty=y+120, tableW=colW, rowH=38, headH=42;
         canvasRoundRect(ctx,tx,ty,tableW,headH+(b-a+1)*rowH,14,"#ffffff","#dbe5f2");
@@ -2735,19 +2960,22 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     renderMonth();
     window.scrollTo({top:0,behavior:"smooth"});
   };
-  monthSelect.onchange=()=>{ currentIndex=Number(monthSelect.value); userSelectedMonth=true; renderMonth(); };
+  monthSelect.onchange=()=>{
+    currentIndex=monthIndexForYearMonth(Number(yearSelect.value),Number(monthSelect.value));
+    userSelectedMonth=true;
+    renderMonth();
+  };
+  yearSelect.onchange=()=>{
+    currentIndex=monthIndexForYearMonth(Number(yearSelect.value),Number(monthSelect.value));
+    userSelectedMonth=true;
+    renderMonth();
+  };
   employeeFilter.onchange=highlightEmployee;
   $("personalBtn").onclick=personalSchedule;
   $("changeEmployeeMy").onclick=openEmployeePicker;
   $("changeEmployeeCalendar").onclick=openEmployeePicker;
-  $("employeeCalPrev").onclick=()=>{
-    const indices=visibleMonthIndices(),pos=indices.indexOf(employeeCalendarIndex);
-    if(pos>0) setEmployeeCalendarMonth(indices[pos-1]);
-  };
-  $("employeeCalNext").onclick=()=>{
-    const indices=visibleMonthIndices(),pos=indices.indexOf(employeeCalendarIndex);
-    if(pos>=0 && pos<indices.length-1) setEmployeeCalendarMonth(indices[pos+1]);
-  };
+  $("employeeCalPrev").onclick=()=>setEmployeeCalendarMonth(employeeCalendarIndex-1);
+  $("employeeCalNext").onclick=()=>setEmployeeCalendarMonth(employeeCalendarIndex+1);
   $("employeePickerAdmin").onclick=()=>{ $("employeePickerModal").classList.add("hidden"); openLoginModal(); };
   $("refreshBtn").onclick=async()=>{ await syncFromCloud(true); await loadTodayShifts(false); };
   $("loadHistoryBtn").onclick=loadHistory;
@@ -2765,6 +2993,10 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   $("copyPhotoBtn").onclick=copyPhoto;
   $("shareBtn").onclick=sharePhoto;
   $("downloadBtn").onclick=downloadPhoto;
+  $("addStaffChangeBtn").onclick=addStaffChange;
+  $("addDayOverrideBtn").onclick=addDayOverride;
+  $("overrideDate").onchange=prefillDayOverride;
+  $("overrideService").onchange=prefillDayOverride;
   $("saveSettingsBtn").onclick=saveForm;
   $("forceSyncBtn").onclick=()=>syncFromCloud(true);
   $("logoutBtn").onclick=()=>{ saveAdminSession(null); settingsDirty=false; renderTodayShifts(); applyUserMode(); switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday"); toast("Вы вышли из администратора"); };
@@ -2784,7 +3016,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   $("resetBtn").onclick=async()=>{
     if(confirm("Сбросить все настройки и вернуть стандартный график?")){
       if(cloudConfigured() && !isAdmin()){ openLoginModal(); return; }
-      settings=clone(DEFAULTS); saveSettings();
+      settings=normalizeScheduleSettings(clone(DEFAULTS)); saveSettings();
       try{
         if(cloudConfigured()) await saveToCloud(settings);
         settingsDirty=false; currentIndex=getCurrentMonthIndex(); userSelectedMonth=false; populateSettings(); renderMonth();
