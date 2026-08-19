@@ -450,7 +450,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 body.startup-shift-mode{min-height:100vh;padding:0;background:#f4f7fb;overflow:auto}
 body.startup-shift-mode>.app,
 body.startup-shift-mode>.bottom,
-body.startup-shift-mode>#connectionBanner,
 body.startup-shift-mode>.employee-identity-bar{display:none!important}
 body.startup-shift-mode #startupShiftWindow{display:flex!important}
 body.startup-shift-mode .toast{z-index:300}
@@ -460,6 +459,17 @@ body.startup-shift-mode .toast{z-index:300}
 <link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
+<div class="startup-shift-window" id="startupShiftWindow">
+  <div class="startup-shift-card">
+    <div class="startup-shift-logo">
+      <b>MA Смена</b>
+      <span>Рабочий компьютер</span>
+    </div>
+    <div id="startupShiftContent">
+      <div class="startup-shift-loading">Проверяем устройство и сегодняшнюю смену…</div>
+    </div>
+  </div>
+</div>
 <div class="app">
   <header class="topbar" id="topbar">
     <div class="brandrow">
@@ -487,17 +497,6 @@ body.startup-shift-mode .toast{z-index:300}
 
   <div class="connection-banner" id="connectionBanner">Нет связи — данные могут быть неактуальны.</div>
 
-<div class="startup-shift-window" id="startupShiftWindow">
-  <div class="startup-shift-card">
-    <div class="startup-shift-logo">
-      <b>MA Смена</b>
-      <span>Рабочий компьютер</span>
-    </div>
-    <div id="startupShiftContent">
-      <div class="startup-shift-loading">Проверяем устройство и сегодняшнюю смену…</div>
-    </div>
-  </div>
-</div>
 
   <main class="page">
     <div class="employee-identity-bar" id="employeeIdentityBar">
