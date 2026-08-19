@@ -306,6 +306,28 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   .history-stats-grid{grid-template-columns:repeat(2,1fr)}
 }
 
+
+/* Рабочий компьютер точки: только самое нужное */
+.service-device-mode #saveBadge{display:none!important}
+.service-device-mode #schedulePage .filters{display:none!important}
+.service-device-mode #monthSummary,
+.service-device-mode #monthActions,
+.service-device-mode #monthPhotoNotice{display:none!important}
+.service-device-mode .today-workers{display:none!important}
+.service-device-mode .bottom-inner{grid-template-columns:repeat(2,1fr)!important}
+.service-device-mode .bottom-inner .tab.hidden{display:none!important}
+.service-device-mode .shift-card h3{font-size:24px}
+.service-device-mode .shift-card{padding:18px}
+.service-device-mode .shift-status{font-size:15px}
+.service-device-mode .shift-pair{font-size:15px;line-height:1.5}
+.service-device-mode .shift-action{min-height:54px;font-size:17px;font-weight:900}
+.service-device-mode .admin-attention{margin-bottom:12px}
+.service-device-mode #scheduleControls .monthnav{margin-top:0}
+.service-device-mode #scheduleControls .today-month-btn{display:none}
+@media(max-width:760px){
+  .service-device-mode .bottom-inner{grid-template-columns:repeat(2,1fr)!important}
+}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -383,7 +405,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
     <section id="adminTodayPage" class="hidden">
       <div class="admin-attention">
-        <h2>Требует внимания</h2>
+        <h2 id="attentionTitle">Требует внимания</h2>
         <div class="attention-list" id="attentionList"></div>
       </div>
 
@@ -742,6 +764,12 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   function isEmployeePhoneMode(){
     return !isAdmin() && !currentDeviceAccess.allowed && isPhoneLike();
   }
+  function isServiceDeviceMode(){
+    return !isAdmin() && !!(currentDeviceAccess.allowed && currentDeviceAccess.device);
+  }
+  function serviceDeviceName(){
+    return isServiceDeviceMode() ? currentDeviceAccess.device.service : "";
+  }
   function dateKeyLocal(d){
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   }
@@ -862,18 +890,23 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
   function applyUserMode(){
     const employeeMode=isEmployeePhoneMode();
+    const serviceMode=isServiceDeviceMode();
+
     document.body.classList.toggle("employee-phone-mode",employeeMode);
+    document.body.classList.toggle("service-device-mode",serviceMode);
 
     const inner=$("bottomInner");
     const t1=$("bottomTab1"),t2=$("bottomTab2"),t3=$("bottomTab3"),t4=$("bottomTab4");
+    const brand=document.querySelector(".brand");
 
     if(employeeMode){
+      if(brand) brand.textContent="MA График";
       inner.classList.remove("admin-four");
       inner.classList.add("employee-three");
 
-      t1.textContent="Сегодня"; t1.dataset.tab="employeeToday";
-      t2.textContent="Мой график"; t2.dataset.tab="employeeMy";
-      t3.textContent="Календарь"; t3.dataset.tab="employeeCalendar";
+      t1.textContent="Сегодня"; t1.dataset.tab="employeeToday"; t1.classList.remove("hidden");
+      t2.textContent="Мой график"; t2.dataset.tab="employeeMy"; t2.classList.remove("hidden");
+      t3.textContent="Календарь"; t3.dataset.tab="employeeCalendar"; t3.classList.remove("hidden");
       t4.classList.add("hidden");
 
       $("adminBtn").textContent="Админ";
@@ -892,32 +925,62 @@ button,a,input,select,textarea,label{touch-action:manipulation}
          !$("settingsPage").classList.contains("hidden")){
         switchTab(employeeMobileView || "employeeToday");
       }
-    }else{
-      inner.classList.remove("employee-three");
-      inner.classList.add("admin-four");
+      return;
+    }
 
-      t1.textContent="Сегодня"; t1.dataset.tab="adminToday";
-      t2.textContent="График"; t2.dataset.tab="schedule";
-      t3.textContent="История"; t3.dataset.tab="history";
-      t4.textContent="Настройки"; t4.dataset.tab="settings";
-      t4.classList.remove("hidden");
+    if(serviceMode){
+      const service=serviceDeviceName();
+      if(brand) brand.textContent=`${service} · Смена`;
+      inner.classList.remove("admin-four","employee-three");
 
+      t1.textContent="Сегодня"; t1.dataset.tab="adminToday"; t1.classList.remove("hidden");
+      t2.textContent="График"; t2.dataset.tab="schedule"; t2.classList.remove("hidden");
+      t3.classList.add("hidden");
+      t4.classList.add("hidden");
+
+      $("adminBtn").textContent="Админ";
+      if($("attentionTitle")) $("attentionTitle").textContent="Контроль смены";
       $("employeePickerModal").classList.add("hidden");
 
-      const anyVisible =
-        !$("adminTodayPage").classList.contains("hidden") ||
-        !$("schedulePage").classList.contains("hidden") ||
-        !$("historyPage").classList.contains("hidden") ||
-        !$("settingsPage").classList.contains("hidden");
-      if(!anyVisible){
+      if(!$("historyPage").classList.contains("hidden") ||
+         !$("settingsPage").classList.contains("hidden") ||
+         !$("employeeTodayPage").classList.contains("hidden") ||
+         !$("employeeMyPage").classList.contains("hidden") ||
+         !$("employeeCalendarPage").classList.contains("hidden")){
         switchTab("adminToday");
       }
+
+      renderTodayShifts();
+      renderMonth();
+      return;
+    }
+
+    if(brand) brand.textContent="MA График 2/2";
+    if($("attentionTitle")) $("attentionTitle").textContent="Требует внимания";
+    inner.classList.remove("employee-three");
+    inner.classList.add("admin-four");
+
+    t1.textContent="Сегодня"; t1.dataset.tab="adminToday"; t1.classList.remove("hidden");
+    t2.textContent="График"; t2.dataset.tab="schedule"; t2.classList.remove("hidden");
+    t3.textContent="История"; t3.dataset.tab="history"; t3.classList.remove("hidden");
+    t4.textContent="Настройки"; t4.dataset.tab="settings"; t4.classList.remove("hidden");
+
+    $("employeePickerModal").classList.add("hidden");
+
+    const anyVisible =
+      !$("adminTodayPage").classList.contains("hidden") ||
+      !$("schedulePage").classList.contains("hidden") ||
+      !$("historyPage").classList.contains("hidden") ||
+      !$("settingsPage").classList.contains("hidden");
+
+    if(!anyVisible){
+      switchTab("adminToday");
     }
   }
 
   function updateAuthUI(){
     const btn=$("adminBtn"); if(!btn) return;
-    btn.textContent=isAdmin() ? "Админ ✓" : (isEmployeePhoneMode() ? "Админ" : "Администратор");
+    btn.textContent=isAdmin() ? "Админ ✓" : ((isEmployeePhoneMode() || isServiceDeviceMode()) ? "Админ" : "Администратор");
     updateCloudSettingsState();
     if($("todayShiftCards")) renderTodayShifts();
     if($("currentDeviceState")) renderDevicePanel();
@@ -1201,7 +1264,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     if(!root) return;
     const now=moscowParts();
 
-    root.innerHTML=[settings.service1,settings.service2].map(service=>{
+    const services=isServiceDeviceMode() ? [serviceDeviceName()] : [settings.service1,settings.service2];
+    root.innerHTML=services.map(service=>{
       const exp=expectedForDate(now.date,service);
       if(!exp){
         return `<div class="today-worker-card"><b>${escapeHtml(service)}</b><span>График на эту дату не задан.</span></div>`;
@@ -1216,7 +1280,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   function renderTodayShifts(){
     const now=moscowParts();
     $("todayDateLabel").textContent=new Intl.DateTimeFormat("ru-RU",{timeZone:SHIFT_TIMEZONE,weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date());
-    const services=[settings.service1,settings.service2];
+    const services=isServiceDeviceMode() ? [serviceDeviceName()] : [settings.service1,settings.service2];
     const root=$("todayShiftCards"); root.innerHTML="";
     services.forEach(service=>{
       const row=currentShiftRows.find(x=>x.service===service) || null;
@@ -1266,7 +1330,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     const endM=shiftMinutes(settings.shiftEnd);
     const problems=[];
 
-    for(const service of [settings.service1,settings.service2]){
+    const attentionServices=isServiceDeviceMode() ? [serviceDeviceName()] : [settings.service1,settings.service2];
+    for(const service of attentionServices){
       const row=currentShiftRows.find(x=>x.service===service)||null;
       const exp=expectedForDate(now.date,service);
 
@@ -1294,7 +1359,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
     root.innerHTML=problems.length
       ? problems.map(x=>`<div class="attention-item ${x.kind}">${escapeHtml(x.text)}</div>`).join("")
-      : '<div class="attention-item ok">Всё в порядке. Проблем по сегодняшним сменам нет.</div>';
+      : `<div class="attention-item ok">${isServiceDeviceMode() ? escapeHtml(serviceDeviceName()) + ": всё в порядке." : "Всё в порядке. Проблем по сегодняшним сменам нет."}</div>`;
   }
 
   async function loadTodayShifts(showToast=false){
@@ -1382,6 +1447,13 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     try{
       const p=pendingShiftAction;
       if(!adminMode && !canUseShiftService(p.service)) throw new Error("Это устройство не разрешено для этой точки");
+
+      if(!adminMode && p.expected?.manager && employee!==p.expected.manager){
+        const verb=p.action==="open" ? "открываете" : "закрываете";
+        const ok=confirm(`По графику сегодня менеджер ${p.expected.manager}.\n\nВы ${verb} смену как ${employee}. Продолжить?`);
+        if(!ok) return;
+      }
+
       const body={
         op:"shift",
         action:p.action,
@@ -2055,15 +2127,27 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
     if(inPlan){
       const rows=buildMonthRows(currentIndex);
-      $("monthSubtitle").textContent=`Смена ${settings.shiftStart}–${settings.shiftEnd} • оба сервиса работают каждый день`;
-      root.appendChild(serviceCard(settings.service1,"s1",rows));
-      root.appendChild(serviceCard(settings.service2,"s2",rows));
-      renderSummary(rows);
-      $("monthSummary").classList.remove("hidden");
-      $("monthActions").classList.remove("hidden");
-      $("monthPhotoNotice").classList.remove("hidden");
-      $("personalBtn").disabled=false;
-      highlightEmployee();
+      if(isServiceDeviceMode()){
+        const service=serviceDeviceName();
+        const key=service===settings.service1 ? "s1" : "s2";
+        $("monthSubtitle").textContent=`${service} • ${settings.shiftStart}–${settings.shiftEnd}`;
+        root.appendChild(serviceCard(service,key,rows));
+        $("summaryChips").innerHTML="";
+        $("monthSummary").classList.add("hidden");
+        $("monthActions").classList.add("hidden");
+        $("monthPhotoNotice").classList.add("hidden");
+        $("personalBtn").disabled=true;
+      }else{
+        $("monthSubtitle").textContent=`Смена ${settings.shiftStart}–${settings.shiftEnd} • оба сервиса работают каждый день`;
+        root.appendChild(serviceCard(settings.service1,"s1",rows));
+        root.appendChild(serviceCard(settings.service2,"s2",rows));
+        renderSummary(rows);
+        $("monthSummary").classList.remove("hidden");
+        $("monthActions").classList.remove("hidden");
+        $("monthPhotoNotice").classList.remove("hidden");
+        $("personalBtn").disabled=false;
+        highlightEmployee();
+      }
     }else{
       const current = currentIndex===getCurrentMonthIndex();
       $("monthSubtitle").textContent=current
@@ -2214,14 +2298,23 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
   function switchTab(tab){
     const employeeMode=isEmployeePhoneMode();
+    const serviceMode=isServiceDeviceMode();
 
     if(employeeMode && ["adminToday","schedule","history","settings"].includes(tab)){
       tab="employeeToday";
     }
 
+    if(serviceMode && !["adminToday","schedule"].includes(tab)){
+      tab="adminToday";
+    }
+
     if((tab==="settings" || tab==="history") && cloudConfigured() && !isAdmin()){
-      openLoginModal();
-      return;
+      if(serviceMode){
+        tab="adminToday";
+      }else{
+        openLoginModal();
+        return;
+      }
     }
 
     const empToday=tab==="employeeToday";
@@ -2254,6 +2347,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     if(adminToday){
       loadTodayShifts(false);
       renderAdminAttention();
+      renderTodayWorkers();
     }
     if(sett){
       settingsDirty=false;
@@ -2266,7 +2360,10 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       if(!$("historyFrom").value) defaultHistoryDates();
       loadHistory();
     }
-    if(sched) loadTodayShifts(false);
+    if(sched){
+      renderMonth();
+      loadTodayShifts(false);
+    }
 
     window.scrollTo({top:0,behavior:"smooth"});
   }
