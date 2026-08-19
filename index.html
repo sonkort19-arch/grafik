@@ -454,6 +454,19 @@ body.startup-shift-mode>.employee-identity-bar{display:none!important}
 body.startup-shift-mode #startupShiftWindow{display:flex!important}
 body.startup-shift-mode .toast{z-index:300}
 
+
+/* Установка приложений */
+.install-quick-btn{border:1px solid var(--line);background:#fff;border-radius:999px;min-height:34px;padding:0 11px;font-size:12px;font-weight:800;color:var(--blue)}
+.install-app-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.install-app-card{border:1px solid var(--line);border-radius:15px;padding:12px;background:#f8fafc}
+.install-app-card b{display:block;color:#24344d;margin-bottom:5px}
+.install-app-card p{margin:0 0 10px;color:var(--muted);font-size:12px;line-height:1.45}
+.install-app-card button{width:100%}
+.install-app-state{margin-top:10px;font-size:12px;line-height:1.45;color:var(--muted)}
+.install-app-state.ok{color:#166534}
+.install-app-state.warn{color:#9a6700}
+@media(max-width:620px){.install-app-grid{grid-template-columns:1fr}}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -476,6 +489,7 @@ body.startup-shift-mode .toast{z-index:300}
       <div class="brand">MA График 2/2</div>
       <div style="display:flex;align-items:center;gap:8px">
         <div class="badge" id="saveBadge">Загрузка…</div>
+        <button class="install-quick-btn hidden" id="installQuickBtn">Установить</button>
         <button class="authbtn" id="adminBtn">Администратор</button>
       </div>
     </div>
@@ -622,6 +636,23 @@ body.startup-shift-mode .toast{z-index:300}
         <div class="settings-actions">
           <button class="secondary" id="logoutBtn">Выйти из администратора</button>
         </div>
+      </div>
+
+      <div class="section" id="installAppsSection">
+        <h2>Установить приложение</h2>
+        <div class="install-app-grid">
+          <div class="install-app-card">
+            <b>MA График</b>
+            <p>Обычное приложение для графика, календаря, истории и уведомлений сотрудников.</p>
+            <button class="primary" id="installGrafikBtn">Установить MA График</button>
+          </div>
+          <div class="install-app-card">
+            <b>MA Смена</b>
+            <p>Отдельное маленькое приложение для рабочего компьютера: открыть или закрыть смену.</p>
+            <button class="secondary" id="installSmenaBtn">Установить MA Смена</button>
+          </div>
+        </div>
+        <div class="install-app-state" id="installAppState">Проверяем возможность установки…</div>
       </div>
 
       <div class="section">
@@ -902,6 +933,8 @@ body.startup-shift-mode .toast{z-index:300}
   let pendingShiftAction = null;
   let editingShiftRow = null;
   let serviceWorkerRegistration = null;
+  let deferredGrafikInstallPrompt=null;
+  let grafikAppInstalled=false;
   let startupDeviceRetryTimer=null;
   let startupDeviceRetryCount=0;
   let lastShiftSignature = "";
@@ -2135,6 +2168,83 @@ body.startup-shift-mode .toast{z-index:300}
       }
       toast(changed?`PIN сохранены: ${changed}`:"Новые PIN не введены");
     }catch(e){ toast(e.message||"Не удалось сохранить PIN"); }
+  }
+
+
+  function isStandaloneApp(){
+    return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true;
+  }
+
+  function updateInstallUI(){
+    const quick=$("installQuickBtn");
+    const grafik=$("installGrafikBtn");
+    const state=$("installAppState");
+
+    const installed=isStandaloneApp() || grafikAppInstalled;
+
+    if(quick){
+      quick.classList.toggle("hidden",installed || !deferredGrafikInstallPrompt || isStartupShiftMode());
+    }
+
+    if(grafik){
+      if(installed){
+        grafik.textContent="MA График уже установлен";
+        grafik.disabled=true;
+      }else if(deferredGrafikInstallPrompt){
+        grafik.textContent="Установить MA График";
+        grafik.disabled=false;
+      }else{
+        grafik.textContent="Установить MA График";
+        grafik.disabled=false;
+      }
+    }
+
+    if(state){
+      if(installed){
+        state.textContent="MA График уже открыт как установленное приложение.";
+        state.className="install-app-state ok";
+      }else if(deferredGrafikInstallPrompt){
+        state.textContent="Chrome готов установить MA График как обычное приложение Windows.";
+        state.className="install-app-state ok";
+      }else if(/iPhone|iPad|iPod/i.test(navigator.userAgent)){
+        state.textContent="На iPhone: нажми «Поделиться» → «На экран Домой».";
+        state.className="install-app-state warn";
+      }else{
+        state.textContent="Если системное окно установки не появится, открой меню Chrome → «Установить приложение».";
+        state.className="install-app-state";
+      }
+    }
+  }
+
+  async function installGrafikApp(){
+    if(isStandaloneApp() || grafikAppInstalled){
+      toast("MA График уже установлен");
+      return;
+    }
+
+    if(deferredGrafikInstallPrompt){
+      const promptEvent=deferredGrafikInstallPrompt;
+      deferredGrafikInstallPrompt=null;
+      promptEvent.prompt();
+      const choice=await promptEvent.userChoice;
+      if(choice?.outcome==="accepted"){
+        grafikAppInstalled=true;
+        toast("MA График установлен");
+      }
+      updateInstallUI();
+      return;
+    }
+
+    if(/iPhone|iPad|iPod/i.test(navigator.userAgent)){
+      alert("На iPhone:\n\n1. Нажми кнопку «Поделиться» в Safari.\n2. Выбери «На экран Домой».\n3. Нажми «Добавить».");
+      return;
+    }
+
+    alert("Chrome пока не показал системную установку.\n\nОткрой меню Chrome ⋮ и выбери «Установить MA График» или «Установить приложение».");
+  }
+
+  function openSmenaInstallPage(){
+    window.open("./smena-install.html","_blank","noopener");
   }
 
   function urlBase64ToUint8Array(base64String){
@@ -3631,6 +3741,23 @@ body.startup-shift-mode .toast{z-index:300}
     }catch(e){ toast(e.message||"Ошибка сброса"); }
   };
 
+  $("installQuickBtn").onclick=installGrafikApp;
+  $("installGrafikBtn").onclick=installGrafikApp;
+  $("installSmenaBtn").onclick=openSmenaInstallPage;
+
+  window.addEventListener("beforeinstallprompt",(event)=>{
+    event.preventDefault();
+    deferredGrafikInstallPrompt=event;
+    updateInstallUI();
+  });
+
+  window.addEventListener("appinstalled",()=>{
+    grafikAppInstalled=true;
+    deferredGrafikInstallPrompt=null;
+    updateInstallUI();
+    toast("Приложение установлено");
+  });
+
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
   let lastTouchEndForZoom=0;
   document.addEventListener("touchend",(e)=>{
@@ -3664,7 +3791,8 @@ body.startup-shift-mode .toast{z-index:300}
   updateAuthUI();
   applyUserMode();
   switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday");
-  registerServiceWorker().then(updatePushState);
+  registerServiceWorker().then(()=>{ updatePushState(); updateInstallUI(); });
+  updateInstallUI();
   refreshDeviceAccess();
   if(isAdmin()) loadRegisteredDevices();
   loadTodayShifts(false).then(()=>{ if(isStartupShiftMode()) renderStartupShiftWindow(); });
