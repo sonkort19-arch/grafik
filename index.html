@@ -416,6 +416,45 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 .employee-reminder-bad{color:#b42318!important}
 @media(max-width:520px){.employee-reminder-actions{grid-template-columns:1fr}}
 
+
+/* MA Смена — маленькое окно при запуске Windows */
+.startup-shift-window{display:none;min-height:100vh;padding:18px;align-items:flex-start;justify-content:center;background:#f4f7fb}
+.startup-shift-card{width:min(100%,440px);background:#fff;border:1px solid #dbe5f2;border-radius:22px;padding:18px;box-shadow:0 14px 42px rgba(28,64,120,.13);margin-top:10px}
+.startup-shift-logo{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.startup-shift-logo b{font-size:19px;color:#0f5bd7}
+.startup-shift-logo span{font-size:11px;color:#64748b;border:1px solid #dbe5f2;border-radius:999px;padding:6px 8px}
+.startup-shift-date{font-size:12px;color:#64748b;margin-bottom:4px}
+.startup-shift-service{font-size:28px;font-weight:900;color:#162033;margin:0 0 10px}
+.startup-shift-people{display:grid;gap:7px;background:#f8fafc;border:1px solid #e4ebf4;border-radius:14px;padding:12px;margin-bottom:12px}
+.startup-shift-person{display:flex;justify-content:space-between;gap:10px;font-size:13px}
+.startup-shift-person span{color:#64748b}
+.startup-shift-person b{color:#24344d;text-align:right}
+.startup-shift-status{border-radius:14px;padding:11px 12px;font-size:13px;line-height:1.45;font-weight:800;margin-bottom:12px}
+.startup-shift-status.ok{background:#ecfdf3;color:#166534}
+.startup-shift-status.warn{background:#fff8e7;color:#8a5b00}
+.startup-shift-status.bad{background:#fff1f2;color:#b42318}
+.startup-shift-status.info{background:#eef5ff;color:#0f5bd7}
+.startup-shift-form{display:grid;gap:10px}
+.startup-shift-form label{font-size:12px;color:#64748b;font-weight:800}
+.startup-shift-form select,.startup-shift-form input{width:100%;height:46px;border:1px solid #dbe5f2;border-radius:12px;background:#fff;padding:0 12px;font-size:16px;color:#162033}
+.startup-shift-mainbtn{width:100%;min-height:52px;border:0;border-radius:14px;background:#0f5bd7;color:#fff;font-size:16px;font-weight:900;padding:12px}
+.startup-shift-mainbtn.close-action{background:#24344d}
+.startup-shift-mainbtn:disabled{opacity:.55;cursor:not-allowed}
+.startup-shift-close{width:100%;min-height:42px;border:1px solid #dbe5f2;border-radius:12px;background:#fff;color:#42526a;font-weight:800;margin-top:8px}
+.startup-shift-error{min-height:18px;color:#b42318;font-size:12px;font-weight:700;margin-top:8px}
+.startup-shift-loading{text-align:center;padding:28px 8px;color:#64748b;font-weight:800}
+.startup-shift-done{text-align:center;padding:10px 0}
+.startup-shift-done .big-check{font-size:42px;margin-bottom:6px}
+.startup-shift-done b{display:block;font-size:18px;color:#166534;margin-bottom:5px}
+.startup-shift-done span{font-size:12px;color:#64748b}
+body.startup-shift-mode{min-height:100vh;padding:0;background:#f4f7fb;overflow:auto}
+body.startup-shift-mode>.app,
+body.startup-shift-mode>.bottom,
+body.startup-shift-mode>#connectionBanner,
+body.startup-shift-mode>.employee-identity-bar{display:none!important}
+body.startup-shift-mode #startupShiftWindow{display:flex!important}
+body.startup-shift-mode .toast{z-index:300}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -447,6 +486,18 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   </header>
 
   <div class="connection-banner" id="connectionBanner">Нет связи — данные могут быть неактуальны.</div>
+
+<div class="startup-shift-window" id="startupShiftWindow">
+  <div class="startup-shift-card">
+    <div class="startup-shift-logo">
+      <b>MA Смена</b>
+      <span>Рабочий компьютер</span>
+    </div>
+    <div id="startupShiftContent">
+      <div class="startup-shift-loading">Проверяем устройство и сегодняшнюю смену…</div>
+    </div>
+  </div>
+</div>
 
   <main class="page">
     <div class="employee-identity-bar" id="employeeIdentityBar">
@@ -825,6 +876,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   const VAPID_PUBLIC_KEY = "BNa-XTPFzPk8s00Rl5j9uTkBPgYHTM-zMaw6aVXP1HQSfoFfKCy_B4sf0Svcs5Tv7h_ue2-OWQBOQk41MepJOik";
   const SHIFT_POLL_MS = 30000;
   const SHIFT_TIMEZONE = "Europe/Moscow";
+  const STARTUP_SHIFT_MODE = new URLSearchParams(location.search).get("startup")==="1";
 
   const DEFAULTS = {
     anchorDate: "2026-09-01",
@@ -1470,6 +1522,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     renderDevicePanel();
     renderTodayShifts();
     applyUserMode();
+    if(isStartupShiftMode()) renderStartupShiftWindow();
     return currentDeviceAccess;
   }
 
@@ -1583,6 +1636,229 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   function shiftMinutes(time){ const [h,m]=String(time||"00:00").split(":").map(Number); return h*60+m; }
 
 
+
+  function isStartupShiftMode(){
+    return STARTUP_SHIFT_MODE;
+  }
+
+  function russianDateLong(dateStr){
+    try{
+      return new Intl.DateTimeFormat("ru-RU",{
+        timeZone:SHIFT_TIMEZONE,
+        weekday:"long",
+        day:"numeric",
+        month:"long",
+        year:"numeric"
+      }).format(new Date(dateStr+"T12:00:00+03:00"));
+    }catch(e){ return dateStr; }
+  }
+
+  function startupManagerOptions(expectedManager){
+    const names=[...new Set(settings.managers.flat().filter(Boolean))];
+    return names.map(n=>`<option value="${escapeHtml(n)}" ${n===expectedManager?"selected":""}>${escapeHtml(n)}</option>`).join("");
+  }
+
+  function closeStartupShiftWindow(){
+    try{ window.close(); }catch(e){}
+    setTimeout(()=>{
+      const root=$("startupShiftContent");
+      if(root){
+        root.innerHTML=`
+          <div class="startup-shift-done">
+            <div class="big-check">✓</div>
+            <b>Готово</b>
+            <span>Окно можно закрыть.</span>
+          </div>`;
+      }
+    },250);
+  }
+
+  function renderStartupShiftWindow(){
+    if(!isStartupShiftMode()) return;
+    const root=$("startupShiftContent");
+    if(!root) return;
+
+    if(!cloudConfigured()){
+      root.innerHTML=`<div class="startup-shift-status bad">Нет подключения к Supabase. Проверь интернет и настройки сайта.</div>`;
+      return;
+    }
+
+    if(!currentDeviceAccess.allowed || !currentDeviceAccess.device){
+      root.innerHTML=`
+        <div class="startup-shift-status warn">
+          Этот браузер пока не зарегистрирован как рабочий компьютер точки.
+        </div>
+        <div class="startup-shift-loading" style="padding:10px 0">
+          Открой обычный MA График → Админ → Настройки → Рабочее устройство точки и зарегистрируй этот компьютер.
+        </div>
+        <button class="startup-shift-close" id="startupRetryDevice">Проверить ещё раз</button>`;
+      const retry=$("startupRetryDevice");
+      if(retry) retry.onclick=async()=>{
+        root.innerHTML='<div class="startup-shift-loading">Проверяем устройство…</div>';
+        await refreshDeviceAccess();
+        await loadTodayShifts(false);
+        renderStartupShiftWindow();
+      };
+      return;
+    }
+
+    const now=moscowParts();
+    const service=currentDeviceAccess.device.service;
+    const expected=expectedForDate(now.date,service);
+    const row=currentShiftRows.find(x=>x.service===service)||null;
+    const nowM=now.hour*60+now.minute;
+    const startM=shiftMinutes(settings.shiftStart);
+    const endM=shiftMinutes(settings.shiftEnd);
+
+    let action=null;
+    if(!row?.opened_at) action="open";
+    else if(!row?.closed_at && nowM>=endM-30) action="close";
+
+    let statusClass="info";
+    let statusText="";
+    if(!row?.opened_at){
+      if(nowM<startM){
+        const left=startM-nowM;
+        statusClass="info";
+        statusText=`До начала смены ${left} мин. Можно открыть смену заранее.`;
+      }else if(nowM<startM+10){
+        statusClass="warn";
+        statusText="Смена начинается сейчас. Не забудь открыть её.";
+      }else{
+        statusClass="bad";
+        statusText=`Смена не открыта. Опоздание: ${nowM-startM} мин.`;
+      }
+    }else if(!row.closed_at){
+      if(nowM>=endM-30){
+        statusClass=nowM>endM+15?"bad":"warn";
+        statusText=nowM>endM
+          ? `Смена ещё не закрыта. После конца смены прошло ${nowM-endM} мин.`
+          : `Смена открыта. До конца осталось ${endM-nowM} мин.`;
+      }else{
+        statusClass="ok";
+        statusText=`Смена открыта в ${formatMoscowTime(row.opened_at)}. Всё в порядке.`;
+      }
+    }else{
+      statusClass="ok";
+      statusText=`Смена закрыта в ${formatMoscowTime(row.closed_at)}.`;
+    }
+
+    const expectedManager=expected?.manager||"";
+    const expectedMaster=expected?.master||"—";
+
+    let actionBlock="";
+    if(action){
+      const verb=action==="open"?"ОТКРЫТЬ СМЕНУ":"ЗАКРЫТЬ СМЕНУ";
+      const buttonClass=action==="close"?"startup-shift-mainbtn close-action":"startup-shift-mainbtn";
+      actionBlock=`
+        <div class="startup-shift-form">
+          <div>
+            <label>Кто подтверждает</label>
+            <select id="startupShiftEmployee">${startupManagerOptions(expectedManager)}</select>
+          </div>
+          <div>
+            <label>PIN менеджера</label>
+            <input id="startupShiftPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••">
+          </div>
+          <button class="${buttonClass}" id="startupShiftConfirm">${verb}</button>
+        </div>
+        <div class="startup-shift-error" id="startupShiftError"></div>`;
+    }else{
+      actionBlock=`<button class="startup-shift-close" id="startupCloseWindow">Закрыть окно</button>`;
+    }
+
+    root.innerHTML=`
+      <div class="startup-shift-date">${escapeHtml(russianDateLong(now.date))}</div>
+      <div class="startup-shift-service">${escapeHtml(service)}</div>
+
+      <div class="startup-shift-people">
+        <div class="startup-shift-person"><span>Менеджер</span><b>${escapeHtml(expectedManager||"—")}</b></div>
+        <div class="startup-shift-person"><span>Мастер</span><b>${escapeHtml(expectedMaster)}</b></div>
+        <div class="startup-shift-person"><span>Смена</span><b>${escapeHtml(settings.shiftStart)}–${escapeHtml(settings.shiftEnd)}</b></div>
+      </div>
+
+      <div class="startup-shift-status ${statusClass}">${escapeHtml(statusText)}</div>
+      ${actionBlock}
+      ${action ? '<button class="startup-shift-close" id="startupCloseWindow">Закрыть окно</button>' : ''}
+    `;
+
+    const closeBtn=$("startupCloseWindow");
+    if(closeBtn) closeBtn.onclick=closeStartupShiftWindow;
+
+    const pin=$("startupShiftPin");
+    const confirmBtn=$("startupShiftConfirm");
+    if(pin && confirmBtn){
+      pin.focus();
+      pin.addEventListener("keydown",e=>{ if(e.key==="Enter") confirmStartupShiftAction(action,service,expected); });
+      confirmBtn.onclick=()=>confirmStartupShiftAction(action,service,expected);
+    }
+  }
+
+  async function confirmStartupShiftAction(action,service,expected){
+    const employee=$("startupShiftEmployee")?.value||"";
+    const pin=$("startupShiftPin")?.value.trim()||"";
+    const error=$("startupShiftError");
+    const btn=$("startupShiftConfirm");
+
+    if(!/^\d{4}$/.test(pin)){
+      if(error) error.textContent="PIN должен быть из 4 цифр";
+      return;
+    }
+
+    if(expected?.manager && employee!==expected.manager){
+      const verb=action==="open"?"открываете":"закрываете";
+      const ok=confirm(`По графику сегодня менеджер ${expected.manager}.\n\nВы ${verb} смену как ${employee}. Продолжить?`);
+      if(!ok) return;
+    }
+
+    if(btn){
+      btn.disabled=true;
+      btn.textContent="Проверяем…";
+    }
+    if(error) error.textContent="";
+
+    try{
+      if(!canUseShiftService(service)) throw new Error("Этот компьютер не разрешён для этой точки");
+
+      const deviceProof=await signDeviceProof("shift",[action,service,employee]);
+      const result=await shiftFunction({
+        op:"shift",
+        action,
+        service,
+        employee,
+        pin,
+        deviceToken:loadShiftDeviceToken(),
+        deviceProof,
+        expectedManager:expected?.manager||null,
+        expectedMaster:expected?.master||null
+      });
+
+      await loadTodayShifts(false);
+
+      const root=$("startupShiftContent");
+      if(root){
+        const word=action==="open"?"открыта":"закрыта";
+        root.innerHTML=`
+          <div class="startup-shift-done">
+            <div class="big-check">✓</div>
+            <b>Смена ${word}</b>
+            <span>${action==="open"?"Открытие":"Закрытие"}: ${escapeHtml(result.localTime||moscowParts().time)}</span>
+          </div>
+          <button class="startup-shift-close" id="startupCloseAfterSuccess">Закрыть окно</button>`;
+        const c=$("startupCloseAfterSuccess");
+        if(c) c.onclick=closeStartupShiftWindow;
+      }
+
+      setTimeout(()=>{ try{ window.close(); }catch(e){} },2500);
+    }catch(e){
+      if(error) error.textContent=e.message||"Ошибка";
+      if(btn){
+        btn.disabled=false;
+        btn.textContent=action==="open"?"ОТКРЫТЬ СМЕНУ":"ЗАКРЫТЬ СМЕНУ";
+      }
+    }
+  }
+
   function renderTodayShifts(){
     const now=moscowParts();
     $("todayDateLabel").textContent=new Intl.DateTimeFormat("ru-RU",{timeZone:SHIFT_TIMEZONE,weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date());
@@ -1624,6 +1900,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       root.appendChild(card);
     });
     renderAdminAttention();
+    if(isStartupShiftMode()) renderStartupShiftWindow();
   }
 
 
@@ -3329,6 +3606,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   $("settingsPage").addEventListener("input",e=>{ if(!e.target.id.startsWith("managerPin")) markDirty(); });
 
   // Init
+  if(isStartupShiftMode()) document.body.classList.add("startup-shift-mode");
   lastSettingsSignature=stableJson(settings);
   populateSettings();
   defaultHistoryDates();
@@ -3339,7 +3617,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   registerServiceWorker().then(updatePushState);
   refreshDeviceAccess();
   if(isAdmin()) loadRegisteredDevices();
-  loadTodayShifts(false);
+  loadTodayShifts(false).then(()=>{ if(isStartupShiftMode()) renderStartupShiftWindow(); });
   shiftPollTimer=setInterval(()=>loadTodayShifts(false),SHIFT_POLL_MS);
   if(cloudConfigured()){
     syncFromCloud(false);
