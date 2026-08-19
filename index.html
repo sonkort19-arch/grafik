@@ -387,6 +387,10 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   .change-form button,.override-form button{grid-column:1/-1}
 }
 
+
+.service-day-row.selected{outline:2px solid #0f5bd7;outline-offset:-2px;background:#f2f7ff}
+.service-quick-nav button.active{background:#0f5bd7;color:#fff;border-color:#0f5bd7}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -811,6 +815,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   let employeeMobileView = "employeeToday";
   let employeeCalendarIndex = getCurrentMonthIndex();
   let employeeCalendarSelectedDate = moscowParts().date;
+  let serviceScheduleSelectedDate = moscowParts().date;
 
   const $ = id => document.getElementById(id);
   const monthSelect = $("monthSelect");
@@ -2281,6 +2286,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       toast("Можно выбрать год от 2020 до 2100");
       return;
     }
+    serviceScheduleSelectedDate=dateStr;
     currentIndex=idx;
     userSelectedMonth=true;
     renderMonth();
@@ -2339,6 +2345,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     const key=service===settings.service1 ? "s1" : "s2";
     const today=moscowParts().date;
     const tomorrow=addDaysISO(today,1);
+    const selected=serviceScheduleSelectedDate || today;
 
     const wrap=document.createElement("section");
     wrap.className="service-point-schedule";
@@ -2350,9 +2357,9 @@ button,a,input,select,textarea,label{touch-action:manipulation}
         </div>
       </div>
       <div class="service-quick-nav">
-        <button type="button" id="serviceJumpToday">Сегодня</button>
-        <button type="button" id="serviceJumpTomorrow">Завтра</button>
-        <input type="date" id="serviceJumpDate" min="2020-01-01" max="2100-12-31" aria-label="Выбрать дату">
+        <button type="button" id="serviceJumpToday" class="${selected===today?"active":""}">Сегодня</button>
+        <button type="button" id="serviceJumpTomorrow" class="${selected===tomorrow?"active":""}">Завтра</button>
+        <input type="date" id="serviceJumpDate" min="2020-01-01" max="2100-12-31" value="${selected}" aria-label="Выбрать дату">
       </div>
       <div class="service-schedule-scroll" id="serviceScheduleScroll"></div>
     `;
@@ -2362,7 +2369,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       const pair=r[key];
       const dateKey=serviceScheduleDateKey(r.date);
       const isToday=dateKey===today;
-      return `<button type="button" class="service-day-row ${isToday?"today":""}" data-service-date="${dateKey}">
+      const isSelected=dateKey===selected;
+      return `<button type="button" class="service-day-row ${isToday?"today":""} ${isSelected?"selected":""}" data-service-date="${dateKey}">
         <div class="service-day-date">
           <b>${r.date.getDate()}${isToday?'<span class="service-today-tag">Сегодня</span>':""}</b>
           <span>${WD[r.date.getDay()]}</span>
@@ -2374,9 +2382,16 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       </button>`;
     }).join("");
 
-    wrap.querySelector("#serviceJumpToday").onclick=()=>jumpServiceScheduleToDate(today);
-    wrap.querySelector("#serviceJumpTomorrow").onclick=()=>jumpServiceScheduleToDate(tomorrow);
-    wrap.querySelector("#serviceJumpDate").onchange=e=>{
+    const dateInput=wrap.querySelector("#serviceJumpDate");
+    wrap.querySelector("#serviceJumpToday").onclick=()=>{
+      dateInput.value=today;
+      jumpServiceScheduleToDate(today);
+    };
+    wrap.querySelector("#serviceJumpTomorrow").onclick=()=>{
+      dateInput.value=tomorrow;
+      jumpServiceScheduleToDate(tomorrow);
+    };
+    dateInput.onchange=e=>{
       if(e.target.value) jumpServiceScheduleToDate(e.target.value);
     };
     list.querySelectorAll("[data-service-date]").forEach(btn=>{
