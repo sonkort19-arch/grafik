@@ -223,6 +223,49 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 }
 
+
+/* Админ: отдельный экран "Сегодня" */
+.admin-attention{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.admin-attention h2{margin:0 0 10px;color:var(--blue);font-size:20px}
+.attention-list{display:grid;gap:8px}
+.attention-item{border-radius:13px;padding:11px 12px;font-size:13px;line-height:1.4;font-weight:700}
+.attention-item.ok{background:#ecfdf3;color:#166534}
+.attention-item.warn{background:#fff7ed;color:#9a3412}
+.attention-item.bad{background:#fef2f2;color:#991b1b}
+.annul-shift-btn{width:100%;margin-top:8px;border:1px solid #fecaca;background:#fff;color:#b42318;border-radius:12px;min-height:40px;padding:8px 10px;font-weight:800}
+
+/* Сотрудник: личный календарь */
+.employee-calendar-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.employee-calendar-head h2{margin:0;color:var(--blue)}
+.employee-calendar-nav{display:grid;grid-template-columns:42px 1fr 42px;gap:7px;align-items:center;margin-bottom:10px}
+.employee-calendar-nav button{min-height:42px;border:1px solid var(--line);background:#fff;border-radius:11px;font-size:20px;font-weight:800}
+.employee-calendar-label{text-align:center;font-weight:850;color:#24344d}
+.employee-calendar-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+.employee-calendar-week div{text-align:center;font-size:10px;font-weight:800;color:var(--muted);padding:4px 0}
+.employee-calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.employee-cal-cell{position:relative;min-height:66px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px 4px;text-align:left}
+.employee-cal-cell.blank{border-color:transparent;background:transparent}
+.employee-cal-cell.work{background:#ecfdf3;border-color:#bbf7d0}
+.employee-cal-cell.off{background:#f8fafc}
+.employee-cal-cell.out{background:#fff7ed;border-color:#fed7aa}
+.employee-cal-cell.today{outline:2px solid var(--blue);outline-offset:-2px}
+.employee-cal-cell b{display:block;font-size:14px;color:#24344d}
+.employee-cal-cell span{display:block;margin-top:7px;font-size:8px;line-height:1.15;color:#64748b;overflow:hidden}
+.employee-cal-cell.work span{color:#166534;font-weight:800}
+.employee-cal-cell.out span{color:#9a3412}
+.employee-calendar-detail{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+.employee-calendar-detail b{display:block;margin-bottom:5px;font-size:16px}
+.employee-calendar-detail span{font-size:13px;color:var(--muted);line-height:1.45}
+
+/* Навигация: 4 вкладки для рабочего/админ режима, 3 для телефона сотрудника */
+.bottom-inner.admin-four{grid-template-columns:repeat(4,1fr)!important}
+.bottom-inner.employee-three{grid-template-columns:repeat(3,1fr)!important}
+@media(max-width:420px){
+  .bottom-inner.admin-four .tab{font-size:11px;padding-left:4px;padding-right:4px}
+  .employee-cal-cell{min-height:60px;padding:5px 3px}
+  .employee-cal-cell span{font-size:7.5px}
+}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -268,7 +311,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       <div class="section">
         <div class="today-head">
           <div><h2 style="font-size:19px">Состояние точек</h2><div class="today-date" id="employeeTodayDate">—</div></div>
-          <button class="iconbtn" id="employeeRefreshBtn" title="Обновить">↻</button>
         </div>
         <div class="employee-service-list" id="employeeServiceStatus"></div>
       </div>
@@ -285,7 +327,30 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       </div>
     </section>
 
-    <section id="schedulePage">
+    <section id="employeeCalendarPage" class="hidden">
+      <div class="section">
+        <div class="employee-calendar-head">
+          <div><h2>Календарь</h2><div class="employee-name" id="employeeCalendarName">—</div></div>
+          <button class="employee-change" id="changeEmployeeCalendar">Сменить</button>
+        </div>
+        <div class="employee-calendar-nav">
+          <button id="employeeCalPrev" aria-label="Предыдущий месяц">‹</button>
+          <div class="employee-calendar-label" id="employeeCalLabel">—</div>
+          <button id="employeeCalNext" aria-label="Следующий месяц">›</button>
+        </div>
+        <div class="employee-calendar-week">
+          <div>ПН</div><div>ВТ</div><div>СР</div><div>ЧТ</div><div>ПТ</div><div>СБ</div><div>ВС</div>
+        </div>
+        <div class="employee-calendar-grid" id="employeeCalendarGrid"></div>
+        <div class="employee-calendar-detail" id="employeeCalendarDetail"></div>
+      </div>
+    </section>
+
+    <section id="adminTodayPage" class="hidden">
+      <div class="admin-attention">
+        <h2>Требует внимания</h2>
+        <div class="attention-list" id="attentionList"></div>
+      </div>
       <div class="today-board">
         <div class="today-head">
           <div><h2>Сегодня</h2><div class="today-date" id="todayDateLabel">—</div></div>
@@ -293,6 +358,9 @@ button,a,input,select,textarea,label{touch-action:manipulation}
         </div>
         <div class="shift-cards" id="todayShiftCards"></div>
       </div>
+    </section>
+
+    <section id="schedulePage">
       <div class="month-title">
         <h1 id="monthTitle"></h1>
         <p id="monthSubtitle"></p>
@@ -322,7 +390,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
         </div>
         <div class="history-toolbar">
           <select id="historyEmployee"><option value="">Все сотрудники</option></select>
-          <select id="historyProblem"><option value="">Все смены</option><option value="late">Только опоздания</option><option value="unclosed">Только незакрытые</option></select>
+          <select id="historyProblem"><option value="">Все смены</option><option value="late">Только опоздания</option><option value="unclosed">Только незакрытые</option><option value="voided">Аннулированные</option></select>
           <button class="primary" id="loadHistoryBtn">Показать</button>
         </div>
         <div class="history-list" id="historyList"></div>
@@ -447,10 +515,11 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 </div>
 
 <nav class="bottom">
-  <div class="bottom-inner">
-    <button class="tab active" id="bottomTab1" data-tab="schedule">График</button>
-    <button class="tab" id="bottomTab2" data-tab="history">История</button>
-    <button class="tab" id="bottomTab3" data-tab="settings">Настройки</button>
+  <div class="bottom-inner admin-four" id="bottomInner">
+    <button class="tab active" id="bottomTab1" data-tab="adminToday">Сегодня</button>
+    <button class="tab" id="bottomTab2" data-tab="schedule">График</button>
+    <button class="tab" id="bottomTab3" data-tab="history">История</button>
+    <button class="tab" id="bottomTab4" data-tab="settings">Настройки</button>
   </div>
 </nav>
 
@@ -576,6 +645,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   let currentDeviceAccess = {allowed:false,device:null};
   let deviceListCache = [];
   let employeeMobileView = "employeeToday";
+  let employeeCalendarIndex = getCurrentMonthIndex();
+  let employeeCalendarSelectedDate = moscowParts().date;
 
   const $ = id => document.getElementById(id);
   const monthSelect = $("monthSelect");
@@ -739,25 +810,54 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     const employeeMode=isEmployeePhoneMode();
     document.body.classList.toggle("employee-phone-mode",employeeMode);
 
-    const t1=$("bottomTab1"),t2=$("bottomTab2"),t3=$("bottomTab3");
+    const inner=$("bottomInner");
+    const t1=$("bottomTab1"),t2=$("bottomTab2"),t3=$("bottomTab3"),t4=$("bottomTab4");
+
     if(employeeMode){
+      inner.classList.remove("admin-four");
+      inner.classList.add("employee-three");
+
       t1.textContent="Сегодня"; t1.dataset.tab="employeeToday";
       t2.textContent="Мой график"; t2.dataset.tab="employeeMy";
-      t3.textContent="Весь график"; t3.dataset.tab="schedule";
+      t3.textContent="Календарь"; t3.dataset.tab="employeeCalendar";
+      t4.classList.add("hidden");
+
       $("adminBtn").textContent="Админ";
       ensureEmployeeSelected();
       renderEmployeePages();
-      const visible = !$("employeeTodayPage").classList.contains("hidden") ||
-                      !$("employeeMyPage").classList.contains("hidden") ||
-                      !$("schedulePage").classList.contains("hidden");
-      if(!visible || (!$("historyPage").classList.contains("hidden")) || (!$("settingsPage").classList.contains("hidden"))){
+
+      const visible =
+        !$("employeeTodayPage").classList.contains("hidden") ||
+        !$("employeeMyPage").classList.contains("hidden") ||
+        !$("employeeCalendarPage").classList.contains("hidden");
+
+      if(!visible ||
+         !$("adminTodayPage").classList.contains("hidden") ||
+         !$("schedulePage").classList.contains("hidden") ||
+         !$("historyPage").classList.contains("hidden") ||
+         !$("settingsPage").classList.contains("hidden")){
         switchTab(employeeMobileView || "employeeToday");
       }
     }else{
-      t1.textContent="График"; t1.dataset.tab="schedule";
-      t2.textContent="История"; t2.dataset.tab="history";
-      t3.textContent="Настройки"; t3.dataset.tab="settings";
+      inner.classList.remove("employee-three");
+      inner.classList.add("admin-four");
+
+      t1.textContent="Сегодня"; t1.dataset.tab="adminToday";
+      t2.textContent="График"; t2.dataset.tab="schedule";
+      t3.textContent="История"; t3.dataset.tab="history";
+      t4.textContent="Настройки"; t4.dataset.tab="settings";
+      t4.classList.remove("hidden");
+
       $("employeePickerModal").classList.add("hidden");
+
+      const anyVisible =
+        !$("adminTodayPage").classList.contains("hidden") ||
+        !$("schedulePage").classList.contains("hidden") ||
+        !$("historyPage").classList.contains("hidden") ||
+        !$("settingsPage").classList.contains("hidden");
+      if(!anyVisible){
+        switchTab("adminToday");
+      }
     }
   }
 
@@ -1074,12 +1174,55 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       const employeeMode=isEmployeePhoneMode();
       const deviceNote=action!=="done" && !allowed && !isAdmin() && !employeeMode?`<div class="shift-device-note">С телефона сотрудника открыть или закрыть смену нельзя.</div>`:"";
       const actionHtml=employeeMode ? "" : `<button class="${action==="open"?"primary":"secondary"} shift-action" ${(!allowed || action==="done")?"disabled":""}>${btnText}</button>`;
-      card.innerHTML=`<h3>${escapeHtml(service)}</h3><div class="shift-status ${cls}"><span class="dot"></span>${label}</div><div class="shift-pair"><b>По графику:</b> ${pairText}</div><div class="shift-meta">${meta}</div>${deviceNote}${actionHtml}${isAdmin() && row ? `<button class="reset-shift-btn">Сбросить смену</button>` : ""}`;
+      card.innerHTML=`<h3>${escapeHtml(service)}</h3><div class="shift-status ${cls}"><span class="dot"></span>${label}</div><div class="shift-pair"><b>По графику:</b> ${pairText}</div><div class="shift-meta">${meta}</div>${deviceNote}${actionHtml}${isAdmin() && row ? `<button class="annul-shift-btn">Аннулировать смену</button>` : ""}`;
       if(allowed && !employeeMode) card.querySelector(".shift-action").onclick=()=>openShiftAction(service,action,exp);
-      const resetBtn=card.querySelector(".reset-shift-btn");
-      if(resetBtn) resetBtn.onclick=()=>resetTodayShift(service,now.date);
+      const annulBtn=card.querySelector(".annul-shift-btn");
+      if(annulBtn) annulBtn.onclick=()=>annulTodayShift(service,now.date);
       root.appendChild(card);
     });
+    renderAdminAttention();
+  }
+
+
+  function renderAdminAttention(){
+    const root=$("attentionList");
+    if(!root) return;
+
+    const now=moscowParts();
+    const nowM=now.hour*60+now.minute;
+    const startM=shiftMinutes(settings.shiftStart);
+    const endM=shiftMinutes(settings.shiftEnd);
+    const problems=[];
+
+    for(const service of [settings.service1,settings.service2]){
+      const row=currentShiftRows.find(x=>x.service===service)||null;
+      const exp=expectedForDate(now.date,service);
+
+      if(nowM>=startM+10 && !row?.opened_at){
+        problems.push({kind:"bad",text:`${service}: смена не открыта после ${settings.shiftStart}.`});
+        continue;
+      }
+
+      if(row?.opened_at && (row.open_late_minutes||0)>0){
+        problems.push({kind:"warn",text:`${service}: открыта с опозданием на ${row.open_late_minutes} мин.`});
+      }
+
+      if(row?.opened_by && exp?.manager && row.opened_by!==exp.manager){
+        problems.push({kind:"warn",text:`${service}: открыл ${row.opened_by}, по графику менеджер ${exp.manager}.`});
+      }
+
+      if(nowM>=endM+15 && row?.opened_at && !row?.closed_at){
+        problems.push({kind:"bad",text:`${service}: смена не закрыта после ${settings.shiftEnd}.`});
+      }
+
+      if(row?.closed_at && (row.early_close_minutes||0)>0){
+        problems.push({kind:"warn",text:`${service}: смена закрыта раньше графика на ${row.early_close_minutes} мин.`});
+      }
+    }
+
+    root.innerHTML=problems.length
+      ? problems.map(x=>`<div class="attention-item ${x.kind}">${escapeHtml(x.text)}</div>`).join("")
+      : '<div class="attention-item ok">Всё в порядке. Проблем по сегодняшним сменам нет.</div>';
   }
 
   async function loadTodayShifts(showToast=false){
@@ -1087,7 +1230,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     const now=moscowParts();
     const date=now.date;
     try{
-      const res=await authFetch(`/rest/v1/${SHIFT_TABLE}?shift_date=eq.${date}&select=*&order=service.asc`,{method:"GET"});
+      const res=await authFetch(`/rest/v1/${SHIFT_TABLE}?shift_date=eq.${date}&voided_at=is.null&select=*&order=service.asc`,{method:"GET"});
       if(!res.ok) throw new Error(await res.text());
       const newRows=await res.json();
 
@@ -1109,6 +1252,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       }else{
         currentShiftRows=newRows;
         if(isEmployeePhoneMode()) renderEmployeePages();
+        renderAdminAttention();
       }
 
       if(showToast) toast("Статус смен обновлён");
@@ -1118,17 +1262,23 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     }
   }
 
-  async function resetTodayShift(service,date){
+  async function annulTodayShift(service,date){
     if(!isAdmin()){ openLoginModal(); return; }
-    if(!confirm(`Сбросить сегодняшнюю смену "${service}"?\n\nЗапись открытия и закрытия будет удалена. После этого кнопку "Открыть смену" можно будет нажать заново.`)) return;
+    if(!confirm(`Аннулировать смену «${service}» за ${date}?\n\nОна останется в истории с отметкой «Аннулирована», а после этого смену можно будет открыть заново.`)) return;
     try{
-      await shiftFunction({op:"reset-shift",service,date},{admin:true});
+      await shiftFunction({
+        op:"annul-shift",
+        service,
+        date,
+        reason:"Аннулировано администратором из приложения"
+      },{admin:true});
+      lastShiftSignature="";
       await loadTodayShifts(false);
       if(!$("historyPage").classList.contains("hidden")) await loadHistory();
-      toast(`${service}: смена сброшена`);
+      toast(`${service}: смена аннулирована`);
     }catch(e){
       console.error(e);
-      toast(e.message || "Не удалось сбросить смену");
+      toast(e.message || "Не удалось аннулировать смену");
     }
   }
 
@@ -1252,21 +1402,72 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       const res=await authFetch(q,{method:"GET",headers:{Authorization:"Bearer "+token}}); if(!res.ok) throw new Error(await res.text());
       let rows=await res.json();
       if(employee) rows=rows.filter(r=>r.opened_by===employee||r.closed_by===employee||r.expected_manager===employee);
-      if(problem==="late") rows=rows.filter(r=>(r.open_late_minutes||0)>0);
-      if(problem==="unclosed") rows=rows.filter(r=>r.opened_at&&!r.closed_at);
+      if(problem==="late") rows=rows.filter(r=>!r.voided_at && (r.open_late_minutes||0)>0);
+      if(problem==="unclosed") rows=rows.filter(r=>!r.voided_at && r.opened_at&&!r.closed_at);
+      if(problem==="voided") rows=rows.filter(r=>!!r.voided_at);
       renderHistory(rows);
     }catch(e){ console.error(e); root.innerHTML='<div class="history-empty">Не удалось загрузить историю.</div>'; }
   }
   function renderHistory(rows){
-    const root=$("historyList"); if(!rows.length){ root.innerHTML='<div class="history-empty">За выбранный период записей нет.</div>'; return; }
+    const root=$("historyList");
+    if(!rows.length){
+      root.innerHTML='<div class="history-empty">За выбранный период записей нет.</div>';
+      return;
+    }
+
     root.innerHTML=rows.map(r=>{
-      const openLate=(r.open_late_minutes||0)>0?`<span class="tag late">+${r.open_late_minutes} мин</span>`:'<span class="tag ok">вовремя</span>';
-      const closeTag=r.closed_at?'<span class="tag ok">закрыта</span>':'<span class="tag bad">не закрыта</span>';
-      const mismatch=r.opened_by&&r.expected_manager&&r.opened_by!==r.expected_manager?`<div class="mismatch">По графику был: ${escapeHtml(r.expected_manager)}</div>`:"";
-      return `<div class="history-item"><div class="history-top"><div><span class="history-service">${escapeHtml(r.service)}</span><span class="history-date"> · ${r.shift_date}</span></div>${isAdmin()?`<button class="edit-shift-btn" data-id="${r.id}">Исправить</button>`:""}</div><div class="history-grid"><div class="history-cell"><b>Открытие ${openLate}</b>${escapeHtml(r.opened_by||"—")} · ${formatMoscowTime(r.opened_at)}${mismatch}</div><div class="history-cell"><b>Закрытие ${closeTag}</b>${escapeHtml(r.closed_by||"—")} · ${formatMoscowTime(r.closed_at)}</div></div></div>`;
+      const voided=!!r.voided_at;
+
+      if(voided){
+        return `<div class="history-item">
+          <div class="history-top">
+            <div>
+              <span class="history-service">${escapeHtml(r.service)}</span>
+              <span class="history-date"> · ${r.shift_date}</span>
+              <span class="tag bad">аннулирована</span>
+            </div>
+          </div>
+          <div class="history-grid">
+            <div class="history-cell">
+              <b>Была открыта</b>
+              ${escapeHtml(r.opened_by||"—")} · ${formatMoscowTime(r.opened_at)}
+            </div>
+            <div class="history-cell">
+              <b>Аннулирована</b>
+              ${formatMoscowTime(r.voided_at)}<br>
+              <span>${escapeHtml(r.void_reason||"Аннулировано администратором")}</span>
+            </div>
+          </div>
+        </div>`;
+      }
+
+      const openLate=(r.open_late_minutes||0)>0
+        ? `<span class="tag late">+${r.open_late_minutes} мин</span>`
+        : '<span class="tag ok">вовремя</span>';
+      const closeTag=r.closed_at
+        ? '<span class="tag ok">закрыта</span>'
+        : '<span class="tag bad">не закрыта</span>';
+      const mismatch=r.opened_by&&r.expected_manager&&r.opened_by!==r.expected_manager
+        ? `<div class="mismatch">По графику был: ${escapeHtml(r.expected_manager)}</div>`
+        : "";
+
+      return `<div class="history-item">
+        <div class="history-top">
+          <div><span class="history-service">${escapeHtml(r.service)}</span><span class="history-date"> · ${r.shift_date}</span></div>
+          ${isAdmin()?`<button class="edit-shift-btn" data-id="${r.id}">Исправить</button>`:""}
+        </div>
+        <div class="history-grid">
+          <div class="history-cell"><b>Открытие ${openLate}</b>${escapeHtml(r.opened_by||"—")} · ${formatMoscowTime(r.opened_at)}${mismatch}</div>
+          <div class="history-cell"><b>Закрытие ${closeTag}</b>${escapeHtml(r.closed_by||"—")} · ${formatMoscowTime(r.closed_at)}</div>
+        </div>
+      </div>`;
     }).join("");
-    root.querySelectorAll(".edit-shift-btn").forEach(b=>b.onclick=()=>openEditShift(rows.find(r=>String(r.id)===b.dataset.id)));
+
+    root.querySelectorAll(".edit-shift-btn").forEach(b=>{
+      b.onclick=()=>openEditShift(rows.find(r=>String(r.id)===b.dataset.id));
+    });
   }
+
   function openEditShift(row){
     if(!row) return; editingShiftRow=row; $("editShiftId").value=row.id; $("editShiftInfo").textContent=`${row.service} · ${row.shift_date}`;
     $("editOpenedBy").value=row.opened_by||""; $("editOpenedTime").value=row.opened_at?formatMoscowTime(row.opened_at):""; $("editClosedBy").value=row.closed_by||""; $("editClosedTime").value=row.closed_at?formatMoscowTime(row.closed_at):"";
@@ -1509,10 +1710,113 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     }).join("") : '<div class="notice">В оставшейся части годового графика смен нет.</div>';
   }
 
+  function setEmployeeCalendarMonth(index){
+    const indices=visibleMonthIndices();
+    if(!indices.includes(index)) return;
+    employeeCalendarIndex=index;
+    const mi=monthInfo(index);
+    const today=moscowParts().date;
+    const [ty,tm]=today.split("-").map(Number);
+    if(mi.year===ty && mi.month===tm-1){
+      employeeCalendarSelectedDate=today;
+    }else{
+      employeeCalendarSelectedDate=`${mi.year}-${String(mi.month+1).padStart(2,"0")}-01`;
+    }
+    renderEmployeeCalendar();
+  }
+
+  function renderEmployeeCalendarDetail(dateStr){
+    const root=$("employeeCalendarDetail");
+    if(!root) return;
+    const name=selectedEmployee();
+    if(!name){ root.innerHTML=""; return; }
+
+    const [y,m,d]=dateStr.split("-").map(Number);
+    const date=new Date(y,m-1,d);
+    const idx=(y-Number(settings.startYear))*12 + ((m-1)-Number(settings.startMonth));
+    const title=new Intl.DateTimeFormat("ru-RU",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(date);
+
+    if(!isAnnualScheduleMonth(idx)){
+      root.innerHTML=`<b>${escapeHtml(title)}</b><span>На этот месяц годовой график не задан.</span>`;
+      return;
+    }
+
+    const assignment=employeeAssignmentForDate(name,dateStr);
+    if(!assignment){
+      root.innerHTML=`<b>${escapeHtml(title)} — выходной</b><span>По графику смены нет.</span>`;
+      return;
+    }
+
+    const partner=assignment.pair.manager===name ? assignment.pair.master : assignment.pair.manager;
+    root.innerHTML=`<b>${escapeHtml(title)} — работаю</b><span>${escapeHtml(assignment.service)} · ${settings.shiftStart}–${settings.shiftEnd}<br>Напарник: ${escapeHtml(partner)}</span>`;
+  }
+
+  function renderEmployeeCalendar(){
+    if(!isEmployeePhoneMode()) return;
+    const name=selectedEmployee();
+    if(!name) return;
+
+    const indices=visibleMonthIndices();
+    if(!indices.includes(employeeCalendarIndex)){
+      employeeCalendarIndex=getCurrentMonthIndex();
+      if(!indices.includes(employeeCalendarIndex)) employeeCalendarIndex=indices[0];
+    }
+
+    const pos=indices.indexOf(employeeCalendarIndex);
+    const info=monthInfo(employeeCalendarIndex);
+    $("employeeCalendarName").textContent=name;
+    $("employeeCalLabel").textContent=`${info.name} ${info.year}`;
+    $("employeeCalPrev").disabled=pos<=0;
+    $("employeeCalNext").disabled=pos>=indices.length-1;
+
+    const firstDow=(new Date(info.year,info.month,1).getDay()+6)%7;
+    const today=moscowParts().date;
+    const cells=[];
+
+    for(let i=0;i<firstDow;i++){
+      cells.push('<div class="employee-cal-cell blank"></div>');
+    }
+
+    for(let day=1;day<=info.days;day++){
+      const dateStr=`${info.year}-${String(info.month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+      let cls="off", status="Выходной";
+
+      if(!isAnnualScheduleMonth(employeeCalendarIndex)){
+        cls="out";
+        status="Нет графика";
+      }else{
+        const assignment=employeeAssignmentForDate(name,dateStr);
+        if(assignment){
+          cls="work";
+          status=assignment.service;
+        }
+      }
+
+      if(dateStr===today) cls+=" today";
+      cells.push(`<button class="employee-cal-cell ${cls}" data-date="${dateStr}"><b>${day}</b><span>${escapeHtml(status)}</span></button>`);
+    }
+
+    $("employeeCalendarGrid").innerHTML=cells.join("");
+    $("employeeCalendarGrid").querySelectorAll("[data-date]").forEach(btn=>{
+      btn.onclick=()=>{
+        employeeCalendarSelectedDate=btn.dataset.date;
+        renderEmployeeCalendarDetail(employeeCalendarSelectedDate);
+      };
+    });
+
+    const selected=employeeCalendarSelectedDate;
+    const selectedPrefix=`${info.year}-${String(info.month+1).padStart(2,"0")}-`;
+    if(!selected || !selected.startsWith(selectedPrefix)){
+      employeeCalendarSelectedDate=`${info.year}-${String(info.month+1).padStart(2,"0")}-01`;
+    }
+    renderEmployeeCalendarDetail(employeeCalendarSelectedDate);
+  }
+
   function renderEmployeePages(){
     if(!isEmployeePhoneMode()) return;
     renderEmployeeToday();
     renderEmployeeMySchedule();
+    renderEmployeeCalendar();
   }
 
   function renderSelectors(){
@@ -1714,9 +2018,10 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   function switchTab(tab){
     const employeeMode=isEmployeePhoneMode();
 
-    if(employeeMode && (tab==="history" || tab==="settings")){
+    if(employeeMode && ["adminToday","schedule","history","settings"].includes(tab)){
       tab="employeeToday";
     }
+
     if((tab==="settings" || tab==="history") && cloudConfigured() && !isAdmin()){
       openLoginModal();
       return;
@@ -1724,24 +2029,46 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
     const empToday=tab==="employeeToday";
     const empMy=tab==="employeeMy";
-    const sched=tab==="schedule", hist=tab==="history", sett=tab==="settings";
+    const empCal=tab==="employeeCalendar";
+    const adminToday=tab==="adminToday";
+    const sched=tab==="schedule";
+    const hist=tab==="history";
+    const sett=tab==="settings";
 
     $("employeeTodayPage").classList.toggle("hidden",!empToday);
     $("employeeMyPage").classList.toggle("hidden",!empMy);
+    $("employeeCalendarPage").classList.toggle("hidden",!empCal);
+    $("adminTodayPage").classList.toggle("hidden",!adminToday);
     $("schedulePage").classList.toggle("hidden",!sched);
     $("historyPage").classList.toggle("hidden",!hist);
     $("settingsPage").classList.toggle("hidden",!sett);
     $("scheduleControls").classList.toggle("hidden",!sched);
 
-    document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+    document.querySelectorAll(".tab").forEach(b=>{
+      if(!b.classList.contains("hidden")) b.classList.toggle("active",b.dataset.tab===tab);
+    });
 
-    if(employeeMode && (empToday || empMy || sched)){
+    if(employeeMode && (empToday || empMy || empCal)){
       employeeMobileView=tab;
       ensureEmployeeSelected();
       renderEmployeePages();
     }
-    if(sett){ settingsDirty=false; populateSettings(); updateCloudSettingsState(); updatePushState(); }
-    if(hist){ fillHistoryFilters(); if(!$("historyFrom").value) defaultHistoryDates(); loadHistory(); }
+
+    if(adminToday){
+      loadTodayShifts(false);
+      renderAdminAttention();
+    }
+    if(sett){
+      settingsDirty=false;
+      populateSettings();
+      updateCloudSettingsState();
+      updatePushState();
+    }
+    if(hist){
+      fillHistoryFilters();
+      if(!$("historyFrom").value) defaultHistoryDates();
+      loadHistory();
+    }
     if(sched) loadTodayShifts(false);
 
     window.scrollTo({top:0,behavior:"smooth"});
@@ -1913,7 +2240,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     try{
       await loginAdmin(email,password);
       await loadRegisteredDevices();
-      closeLoginModal(); toast("Вход выполнен"); switchTab("settings");
+      closeLoginModal(); toast("Вход выполнен"); switchTab("adminToday");
     }catch(e){ $("loginError").textContent=e.message || "Не удалось войти"; }
     finally{ $("loginBtn").disabled=false; $("loginBtn").textContent="Войти"; }
   }
@@ -1932,7 +2259,15 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   $("personalBtn").onclick=personalSchedule;
   $("changeEmployeeToday").onclick=openEmployeePicker;
   $("changeEmployeeMy").onclick=openEmployeePicker;
-  $("employeeRefreshBtn").onclick=async()=>{ await syncFromCloud(false); await loadTodayShifts(true); renderEmployeePages(); };
+  $("changeEmployeeCalendar").onclick=openEmployeePicker;
+  $("employeeCalPrev").onclick=()=>{
+    const indices=visibleMonthIndices(),pos=indices.indexOf(employeeCalendarIndex);
+    if(pos>0) setEmployeeCalendarMonth(indices[pos-1]);
+  };
+  $("employeeCalNext").onclick=()=>{
+    const indices=visibleMonthIndices(),pos=indices.indexOf(employeeCalendarIndex);
+    if(pos>=0 && pos<indices.length-1) setEmployeeCalendarMonth(indices[pos+1]);
+  };
   $("employeePickerAdmin").onclick=()=>{ $("employeePickerModal").classList.add("hidden"); openLoginModal(); };
   $("refreshBtn").onclick=async()=>{ await syncFromCloud(true); await loadTodayShifts(false); };
   $("refreshShiftsBtn").onclick=()=>loadTodayShifts(true);
@@ -1948,7 +2283,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   $("downloadBtn").onclick=downloadPhoto;
   $("saveSettingsBtn").onclick=saveForm;
   $("forceSyncBtn").onclick=()=>syncFromCloud(true);
-  $("logoutBtn").onclick=()=>{ saveAdminSession(null); settingsDirty=false; renderTodayShifts(); applyUserMode(); switchTab(isEmployeePhoneMode()?"employeeToday":"schedule"); toast("Вы вышли из администратора"); };
+  $("logoutBtn").onclick=()=>{ saveAdminSession(null); settingsDirty=false; renderTodayShifts(); applyUserMode(); switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday"); toast("Вы вышли из администратора"); };
   $("closeLogin").onclick=closeLoginModal;
   $("cancelLogin").onclick=closeLoginModal;
   $("loginBtn").onclick=handleLogin;
@@ -1989,7 +2324,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     const nowEmployee=isEmployeePhoneMode();
     if(wasEmployee!==nowEmployee){
       applyUserMode();
-      switchTab(nowEmployee?"employeeToday":"schedule");
+      switchTab(nowEmployee?"employeeToday":"adminToday");
     }
   });
   $("settingsPage").addEventListener("input",e=>{ if(!e.target.id.startsWith("managerPin")) markDirty(); });
@@ -2001,7 +2336,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   renderMonth();
   updateAuthUI();
   applyUserMode();
-  if(isEmployeePhoneMode()) switchTab("employeeToday");
+  switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday");
   registerServiceWorker().then(updatePushState);
   refreshDeviceAccess();
   if(isAdmin()) loadRegisteredDevices();
