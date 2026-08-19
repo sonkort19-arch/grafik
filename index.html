@@ -54,11 +54,7 @@ button{cursor:pointer}
 .schedule .pair{font-weight:650}
 .highlight{background:#fff7d6!important}
 .today td{box-shadow:inset 3px 0 0 var(--blue)}
-.summary{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:14px}
-.summary h3{margin:0 0 10px;color:var(--blue)}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{background:#f8fafc;border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:12px}
-.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:14px 0}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
 .actions button{font-size:13px;padding:10px 8px}
 .section{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow)}
 .section h2{margin:0 0 12px;color:var(--blue);font-size:22px}
@@ -69,9 +65,6 @@ button{cursor:pointer}
 .field input,.field select{width:100%;min-height:44px;border:1px solid var(--line);border-radius:12px;padding:0 12px;background:#fff;color:var(--text)}
 .pairbox{border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:10px;background:#fbfdff}
 .pairbox strong{display:block;margin-bottom:8px;color:#334155}
-.switchrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
-.switchrow:last-child{border-bottom:0}
-.switchrow input{width:22px;height:22px}
 .notice{font-size:12px;line-height:1.45;color:var(--muted);background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px}
 .settings-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .bottom{
@@ -111,13 +104,12 @@ button{cursor:pointer}
  .schedule th,.schedule td{padding:8px 7px}
 }
 @media print{
- .topbar,.bottom,.actions,.filters,.summary,.settings-only{display:none!important}
+ .topbar,.bottom,.actions,.filters,.settings-only{display:none!important}
  body{padding:0;background:#fff}
  .page{padding:0}
  .service-card{box-shadow:none;break-inside:avoid}
 }
 
-.cloudline{margin-top:6px!important;font-size:12px!important}
 .online{color:#0b7a3e!important}.offline{color:#b42318!important}.syncing{color:#8a5a00!important}
 .filters{grid-template-columns:1fr 1fr 46px!important}
 .iconbtn{border:1px solid var(--line);background:#fff;border-radius:12px;min-height:42px;font-size:20px;font-weight:800;color:var(--blue)}
@@ -137,7 +129,7 @@ button{cursor:pointer}
 .shift-status.wait{background:#f1f5f9;color:#475569}.shift-status.open{background:#e8f7ee;color:#13713e}.shift-status.late{background:#fff3d6;color:#8a5a00}
 .shift-status.closed{background:#eef2f7;color:#475569}.shift-status.missing{background:#fdecec;color:#a61b1b}
 .dot{width:8px;height:8px;border-radius:50%;background:currentColor}.shift-pair{font-size:13px;line-height:1.4;margin-bottom:9px}.shift-meta{font-size:12px;color:var(--muted);line-height:1.45;min-height:35px}
-.shift-action{width:100%;margin-top:10px}.shift-action[disabled]{opacity:.5;cursor:not-allowed}.reset-shift-btn{width:100%;margin-top:8px;border:1px solid #fecaca;background:#fff;color:#b42318;border-radius:12px;min-height:40px;padding:8px 10px;font-weight:800}.mismatch{color:#b45309;font-weight:800}
+.shift-action{width:100%;margin-top:10px}.shift-action[disabled]{opacity:.5;cursor:not-allowed}.mismatch{color:#b45309;font-weight:800}
 .history-toolbar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}.history-toolbar input,.history-toolbar select{width:100%;min-height:42px;border:1px solid var(--line);border-radius:12px;padding:0 10px;background:#fff}
 .history-list{display:grid;gap:10px}.history-item{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}.history-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
 .history-service{font-weight:850;color:var(--blue)}.history-date{font-size:12px;color:var(--muted)}.history-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.history-cell{background:#f8fafc;border-radius:11px;padding:9px;font-size:12px;line-height:1.45}
@@ -201,7 +193,6 @@ button{cursor:pointer}
 .employee-picker-btn{min-height:50px;border:1px solid var(--line);background:#fff;border-radius:13px;font-weight:800;color:#24344d}
 .employee-picker-btn:active{transform:scale(.99)}
 .employee-mode-note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:10px}
-.employee-change{border:1px solid var(--line);background:#fff;border-radius:11px;padding:8px 10px;font-weight:700;color:var(--blue);white-space:nowrap}
 .employee-phone-mode #schedulePage .today-board{display:none}
 .employee-phone-mode #monthActions,.employee-phone-mode #monthPhotoNotice{display:none!important}
 .employee-phone-mode .shift-action,.employee-phone-mode .shift-device-note{display:none!important}
@@ -272,12 +263,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 /* Финальная доводка админского режима */
 .connection-banner{display:none;margin:10px 14px 0;padding:10px 12px;border-radius:12px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;font-size:13px;font-weight:800}
 .connection-banner.show{display:block}
-.today-workers{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow)}
-.today-workers h2{margin:0 0 10px;color:var(--blue);font-size:20px}
-.today-workers-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.today-worker-card{border:1px solid var(--line);border-radius:14px;padding:11px;background:#f8fafc}
-.today-worker-card b{display:block;color:#24344d;margin-bottom:5px}
-.today-worker-card span{display:block;font-size:13px;color:#53627a;line-height:1.45}
 
 .history-quick{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
 .history-quick::-webkit-scrollbar{display:none}
@@ -300,9 +285,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 .history-status-line.warn{color:#9a3412}
 .history-status-line.bad{color:#991b1b}
 
-.settings-danger-note{margin-top:8px;font-size:12px;color:#9a3412}
 @media(max-width:620px){
-  .today-workers-grid{grid-template-columns:1fr}
   .history-stats-grid{grid-template-columns:repeat(2,1fr)}
 }
 
@@ -310,10 +293,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 /* Рабочий компьютер точки: только самое нужное */
 .service-device-mode #saveBadge{display:none!important}
 .service-device-mode #scheduleControls .filters{display:none!important}
-.service-device-mode #monthSummary,
 .service-device-mode #monthActions,
 .service-device-mode #monthPhotoNotice{display:none!important}
-.service-device-mode .today-workers{display:none!important}
 .service-device-mode .bottom-inner{grid-template-columns:repeat(2,1fr)!important}
 .service-device-mode .bottom-inner .tab.hidden{display:none!important}
 .service-device-mode .shift-card h3{font-size:24px}
@@ -369,9 +350,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 /* Бесконечный график */
 .monthnav{grid-template-columns:44px minmax(120px,1fr) 110px 44px}
 .yearselect{width:100%;min-height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 10px;font-weight:800;color:var(--text)}
-.schedule-rule-card{border:1px solid var(--line);border-radius:15px;padding:12px;background:#f8fafc;margin-top:10px}
-.schedule-rule-card b{display:block;color:#24344d;margin-bottom:5px}
-.schedule-rule-card span{font-size:12px;line-height:1.45;color:var(--muted)}
 .change-form{display:grid;grid-template-columns:150px 1fr 1fr auto;gap:8px;align-items:end}
 .override-form{display:grid;grid-template-columns:145px 130px 1fr 1fr auto;gap:8px;align-items:end}
 .change-list{display:grid;gap:8px;margin-top:10px}
@@ -390,6 +368,38 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
 .service-day-row.selected{outline:2px solid #0f5bd7;outline-offset:-2px;background:#f2f7ff}
 .service-quick-nav button.active{background:#0f5bd7;color:#fff;border-color:#0f5bd7}
+
+
+/* Финальная чистка интерфейса */
+.employee-identity-bar{display:none;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px 12px;margin-bottom:12px;box-shadow:var(--shadow)}
+.employee-identity-bar b{color:#24344d}
+.employee-identity-bar span{display:block;font-size:11px;color:var(--muted);margin-bottom:2px}
+.employee-phone-mode .employee-identity-bar{display:flex}
+.employee-identity-change{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;font-weight:800;color:var(--blue)}
+.admin-attention.hidden-clean{display:none!important}
+.history-custom-wrap{margin-bottom:10px}
+.history-custom-toggle{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 11px;font-weight:800;color:#42526a;white-space:nowrap}
+.history-custom-range{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-top:8px}
+.history-filters-clean{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.advanced-settings{border:1px solid var(--line);border-radius:16px;background:#fff;margin-top:12px;overflow:hidden}
+.advanced-settings>summary{cursor:pointer;list-style:none;padding:14px 15px;font-weight:900;color:#24344d}
+.advanced-settings>summary::-webkit-details-marker{display:none}
+.advanced-settings[open]>summary{border-bottom:1px solid var(--line)}
+.advanced-inner{padding:14px}
+.advanced-block{border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px;background:#f8fafc}
+.advanced-block:last-child{margin-bottom:0}
+.advanced-block h3{margin:0 0 8px;color:#24344d}
+.danger-zone{border-color:#fecaca;background:#fff7f7}
+.danger-zone h3{color:#991b1b}
+.help-details{border:1px solid var(--line);border-radius:12px;background:#fff;margin-top:10px}
+.help-details summary{cursor:pointer;padding:10px 12px;font-weight:800;color:#0f5bd7}
+.help-details div{padding:0 12px 12px;font-size:12px;line-height:1.5;color:var(--muted)}
+.group-title{font-weight:900;color:#24344d;margin-bottom:8px}
+.schedule-save-bar{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
+.device-security-note{margin-top:8px;padding:9px 10px;border-radius:11px;background:#ecfdf3;color:#166534;font-size:12px;line-height:1.45}
+@media(max-width:700px){
+  .history-custom-range,.history-filters-clean{grid-template-columns:1fr}
+}
 
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -424,13 +434,16 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   <div class="connection-banner" id="connectionBanner">Нет связи — данные могут быть неактуальны.</div>
 
   <main class="page">
+    <div class="employee-identity-bar" id="employeeIdentityBar">
+      <div><span>Сотрудник</span><b id="employeeIdentityName">—</b></div>
+      <button class="employee-identity-change" id="changeEmployeeGlobal">Сменить</button>
+    </div>
     <section id="employeeTodayPage" class="hidden">
       <div class="employee-hero">
         <div class="employee-hero-top">
           <div>
             <h2>Сегодня</h2>
             <div class="today-date" id="employeeTodayDate">—</div>
-            <div class="employee-name" id="employeeTodayName">—</div>
           </div>
         </div>
         <div class="employee-main-status unknown" id="employeeTodayWork">Загрузка…</div>
@@ -441,8 +454,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     <section id="employeeMyPage" class="hidden">
       <div class="section">
         <div class="employee-my-head">
-          <div><h2>Мой график</h2><div class="employee-name" id="employeeMyName">—</div></div>
-          <button class="employee-change" id="changeEmployeeMy">Сменить</button>
+          <div><h2>Мой график</h2></div>
         </div>
         <div class="employee-shift-list" id="employeeShiftList"></div>
       </div>
@@ -451,8 +463,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     <section id="employeeCalendarPage" class="hidden">
       <div class="section">
         <div class="employee-calendar-head">
-          <div><h2>Календарь</h2><div class="employee-name" id="employeeCalendarName">—</div></div>
-          <button class="employee-change" id="changeEmployeeCalendar">Сменить</button>
+          <div><h2>Календарь</h2></div>
         </div>
         <div class="employee-calendar-nav">
           <button id="employeeCalPrev" aria-label="Предыдущий месяц">‹</button>
@@ -468,14 +479,9 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     </section>
 
     <section id="adminTodayPage" class="hidden">
-      <div class="admin-attention">
+      <div class="admin-attention" id="attentionBox">
         <h2 id="attentionTitle">Требует внимания</h2>
         <div class="attention-list" id="attentionList"></div>
-      </div>
-
-      <div class="today-workers">
-        <h2>Сегодня работают</h2>
-        <div class="today-workers-grid" id="todayWorkersGrid"></div>
       </div>
 
       <div class="today-board">
@@ -490,16 +496,10 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       <div class="month-title">
         <h1 id="monthTitle"></h1>
         <p id="monthSubtitle"></p>
-        <p id="cloudStatusLine" class="cloudline"></p>
       </div>
       <div id="servicesRoot"></div>
-      <div class="summary" id="monthSummary">
-        <h3>Рабочих дней в этом месяце</h3>
-        <div class="chips" id="summaryChips"></div>
-      </div>
       <div class="actions" id="monthActions">
-        <button class="primary" id="copyPhotoBtn">Копировать фото месяца</button>
-        <button class="secondary" id="shareBtn">Поделиться фото</button>
+        <button class="primary" id="shareBtn">Поделиться фото</button>
         <button class="secondary" id="downloadBtn">Скачать PNG</button>
       </div>
       <div class="notice" id="monthPhotoNotice">Фото строится прямо внутри приложения, поэтому таблица остаётся чёткой. На iPhone кнопка «Поделиться фото» обычно удобнее всего: можно сразу сохранить в «Фото» или отправить в WhatsApp.</div>
@@ -514,16 +514,19 @@ button,a,input,select,textarea,label{touch-action:manipulation}
           <button data-range="yesterday">Вчера</button>
           <button data-range="7days">7 дней</button>
           <button data-range="month" class="active">Месяц</button>
+          <button class="history-custom-toggle" id="historyCustomBtn">Другой период</button>
         </div>
-        <div class="history-toolbar" style="margin-top:2px">
-          <input type="date" id="historyFrom" aria-label="С даты">
-          <input type="date" id="historyTo" aria-label="По дату">
+        <div class="history-custom-wrap">
+          <div class="history-custom-range hidden" id="historyCustomRange">
+            <input type="date" id="historyFrom" aria-label="С даты">
+            <input type="date" id="historyTo" aria-label="По дату">
+            <button class="primary" id="loadHistoryBtn">Показать</button>
+          </div>
+        </div>
+        <div class="history-filters-clean">
           <select id="historyService"><option value="">Все сервисы</option></select>
-        </div>
-        <div class="history-toolbar">
           <select id="historyEmployee"><option value="">Все сотрудники</option></select>
           <select id="historyProblem"><option value="">Все смены</option><option value="late">Только опоздания</option><option value="unclosed">Только незакрытые</option><option value="voided">Аннулированные</option></select>
-          <button class="primary" id="loadHistoryBtn">Показать</button>
         </div>
         <div class="history-stats" id="historyStats"></div>
         <div class="history-list" id="historyList"></div>
@@ -532,67 +535,65 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
     <section id="settingsPage" class="hidden">
       <div class="section">
-        <h2>Общий онлайн-график</h2>
+        <h2>Администратор</h2>
         <div id="cloudSettingsState"></div>
-        <div class="notice">Сотрудники открывают одну и ту же ссылку только для просмотра. Изменять общий график может только администратор после входа.</div>
         <div class="settings-actions">
-          <button class="secondary" id="forceSyncBtn">Загрузить из облака</button>
           <button class="secondary" id="logoutBtn">Выйти из администратора</button>
         </div>
       </div>
 
       <div class="section">
-        <h2>Контроль открытия смен</h2>
+        <h2>Контроль смен</h2>
         <div class="push-box">
-          <b>Push-уведомления на мой телефон</b>
+          <b>Уведомления на мой телефон</b>
           <div class="push-state" id="pushState">Проверяем поддержку уведомлений…</div>
           <button class="primary" id="enablePushBtn">Включить уведомления</button>
         </div>
+
         <h3>PIN менеджеров</h3>
-        <div class="notice">PIN нужен менеджеру только для кнопок «Открыть смену» и «Закрыть смену». PIN не показывается сотрудникам и не хранится в HTML.</div>
+        <div class="notice">PIN используется только на рабочем устройстве точки при открытии и закрытии смены.</div>
         <div id="pinFields" style="margin-top:10px"></div>
         <button class="secondary" id="savePinsBtn" style="width:100%;margin-top:10px">Сохранить новые PIN</button>
 
-        <h3 style="margin-top:20px">Устройство сервиса</h3>
-        <div class="notice">Менеджер сможет открыть или закрыть смену только на зарегистрированном устройстве своей точки. С телефона сотрудника кнопка будет заблокирована. Администратор может управлять сменой с любого устройства.</div>
+        <h3 style="margin-top:20px">Рабочее устройство точки</h3>
+        <div class="notice">Менеджер подтверждает смену только на зарегистрированном устройстве своей точки. Администратор может управлять сменой со своего телефона.</div>
         <div class="device-box">
           <div class="grid2">
-            <div class="field" style="margin:0"><label>Для какой точки это устройство</label><select id="deviceService"></select></div>
+            <div class="field" style="margin:0"><label>Точка</label><select id="deviceService"></select></div>
             <div class="field" style="margin:0"><label>Название устройства</label><input id="deviceLabel" placeholder="Например: компьютер Моба"></div>
           </div>
           <button class="primary" id="pairDeviceBtn" style="width:100%;margin-top:10px">Разрешить это устройство</button>
           <div class="device-state" id="currentDeviceState">Проверяем это устройство…</div>
+          <div class="device-security-note">Защита усилена: разрешение привязывается к закрытому криптографическому ключу этого браузера.</div>
           <div id="deviceList" class="device-list"></div>
         </div>
       </div>
 
       <div class="section">
-        <h2>Основные настройки</h2>
+        <h2>График</h2>
         <div class="grid2">
-          <div class="field"><label>Точка отсчёта графика 2/2</label><input type="date" id="anchorDate"></div>
-          <div class="field"><label>Сколько дней работать на одной точке</label><input type="number" id="serviceBlockDays" min="1" max="60"></div>
-          <div class="field"><label>Название сервиса 1</label><input id="service1"></div>
-          <div class="field"><label>Название сервиса 2</label><input id="service2"></div>
+          <div class="field"><label>Название точки 1</label><input id="service1"></div>
+          <div class="field"><label>Название точки 2</label><input id="service2"></div>
           <div class="field"><label>Начало смены</label><input type="time" id="shiftStart"></div>
           <div class="field"><label>Конец смены</label><input type="time" id="shiftEnd"></div>
         </div>
-        <div class="infinite-note"><b>График теперь бесконечный.</b> Точка отсчёта нужна только один раз, чтобы сохранить правильную фазу 2/2. После этого можно открыть 2027, 2029, 2035 год — приложение само рассчитает нужный день.</div>
+        <div class="infinite-note"><b>График на любую дату.</b> Можно открыть нужный месяц и год до 2100 года — приложение само рассчитывает цикл 2/2.</div>
       </div>
 
       <div class="section">
         <h2>Менеджеры</h2>
         <div class="pairbox">
-          <strong>Пара менеджеров A</strong>
+          <div class="group-title">Группа менеджеров 1</div>
           <div class="grid2">
-            <div class="field"><label>Менеджер A1</label><input id="mA1"></div>
-            <div class="field"><label>Менеджер A2</label><input id="mA2"></div>
+            <div class="field"><label>Сотрудник 1</label><input id="mA1"></div>
+            <div class="field"><label>Сотрудник 2</label><input id="mA2"></div>
           </div>
         </div>
         <div class="pairbox">
-          <strong>Пара менеджеров B</strong>
+          <div class="group-title">Группа менеджеров 2</div>
           <div class="grid2">
-            <div class="field"><label>Менеджер B1</label><input id="mB1"></div>
-            <div class="field"><label>Менеджер B2</label><input id="mB2"></div>
+            <div class="field"><label>Сотрудник 1</label><input id="mB1"></div>
+            <div class="field"><label>Сотрудник 2</label><input id="mB2"></div>
           </div>
         </div>
       </div>
@@ -600,40 +601,24 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       <div class="section">
         <h2>Мастера</h2>
         <div class="pairbox">
-          <strong>Пара мастеров A</strong>
+          <div class="group-title">Группа мастеров 1</div>
           <div class="grid2">
-            <div class="field"><label>Мастер A1</label><input id="wA1"></div>
-            <div class="field"><label>Мастер A2</label><input id="wA2"></div>
+            <div class="field"><label>Сотрудник 1</label><input id="wA1"></div>
+            <div class="field"><label>Сотрудник 2</label><input id="wA2"></div>
           </div>
         </div>
         <div class="pairbox">
-          <strong>Пара мастеров B</strong>
+          <div class="group-title">Группа мастеров 2</div>
           <div class="grid2">
-            <div class="field"><label>Мастер B1</label><input id="wB1"></div>
-            <div class="field"><label>Мастер B2</label><input id="wB2"></div>
+            <div class="field"><label>Сотрудник 1</label><input id="wB1"></div>
+            <div class="field"><label>Сотрудник 2</label><input id="wB2"></div>
           </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2>Логика графика</h2>
-        <div class="schedule-rule-card">
-          <b>2/2 идёт непрерывно</b>
-          <span>Новый месяц и новый год не сбрасывают цикл. Если сегодня известна смена, приложение может рассчитать любую дату в прошлом или будущем.</span>
-        </div>
-        <div class="schedule-rule-card">
-          <b>Переход между точками идёт по дням, а не по календарю</b>
-          <span>Например, при значении 14 команда работает 14 дней на Моба, затем 14 дней на Нова и снова повторяет цикл. Февраль и месяцы по 30/31 день ничего не ломают.</span>
-        </div>
-        <div class="schedule-rule-card">
-          <b>Напарники автоматически меняются по циклу</b>
-          <span>Фаза мастеров периодически переворачивается, поэтому одна и та же связка не закрепляется навсегда.</span>
         </div>
       </div>
 
       <div class="section">
         <h2>Изменения с даты</h2>
-        <div class="notice">Используй, если сотрудник уволился или его постоянно заменили. Старые даты останутся прежними, а с указанного дня график будет считать нового сотрудника.</div>
+        <div class="notice">Для постоянной замены сотрудника с определённой даты. Прошлые даты не меняются.</div>
         <div class="change-form" style="margin-top:10px">
           <div class="field"><label>С какой даты</label><input type="date" id="changeDate"></div>
           <div class="field"><label>Кого заменить</label><select id="changeOld"></select></div>
@@ -644,8 +629,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       </div>
 
       <div class="section">
-        <h2>Исключение на конкретный день</h2>
-        <div class="notice">Для разовой подмены. Например, 17 апреля вместо Сергея работает Арсен. Это не меняет остальные дни.</div>
+        <h2>Разовая подмена</h2>
+        <div class="notice">Для одного конкретного дня. Остальные даты графика не меняются.</div>
         <div class="override-form" style="margin-top:10px">
           <div class="field"><label>Дата</label><input type="date" id="overrideDate"></div>
           <div class="field"><label>Точка</label><select id="overrideService"></select></div>
@@ -657,15 +642,41 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       </div>
 
       <div class="section">
-        <h2>Резервная копия</h2>
-        <div class="settings-actions">
-          <button class="secondary" id="exportBtn">Экспорт настроек</button>
-          <button class="secondary" id="importBtn">Импорт настроек</button>
-        </div>
-        <input type="file" id="importFile" accept="application/json" class="hidden">
-        <div class="settings-actions">
+        <details class="advanced-settings" id="advancedSettings">
+          <summary>Дополнительно</summary>
+          <div class="advanced-inner">
+            <div class="advanced-block">
+              <h3>Служебные параметры графика</h3>
+              <div class="notice">Меняй только если действительно перестраиваешь цикл. Эти значения влияют на будущие даты.</div>
+              <div class="grid2" style="margin-top:10px">
+                <div class="field"><label>Точка отсчёта цикла 2/2</label><input type="date" id="anchorDate"></div>
+                <div class="field"><label>Дней на одной точке</label><input type="number" id="serviceBlockDays" min="1" max="60"></div>
+              </div>
+              <details class="help-details">
+                <summary>Как считается график?</summary>
+                <div>Цикл 2/2 не сбрасывается при смене месяца или года. Команды переходят между точками через заданное количество дней, а напарники периодически меняются автоматически.</div>
+              </details>
+            </div>
+
+            <div class="advanced-block">
+              <h3>Облако и резервная копия</h3>
+              <div class="settings-actions">
+                <button class="secondary" id="forceSyncBtn">Загрузить данные заново</button>
+                <button class="secondary" id="exportBtn">Экспорт настроек</button>
+                <button class="secondary" id="importBtn">Импорт настроек</button>
+              </div>
+              <input type="file" id="importFile" accept="application/json" class="hidden">
+            </div>
+
+            <div class="advanced-block danger-zone">
+              <h3>Опасные действия</h3>
+              <div class="notice">Полный сброс перестроит настройки графика. Для подтверждения нужно будет ввести слово СБРОСИТЬ.</div>
+              <button class="danger" id="resetBtn" style="width:100%;margin-top:8px">Сбросить все настройки</button>
+            </div>
+          </div>
+        </details>
+        <div class="schedule-save-bar">
           <button class="primary" id="saveSettingsBtn">Сохранить настройки</button>
-          <button class="danger" id="resetBtn">Сбросить всё</button>
         </div>
       </div>
     </section>
@@ -693,7 +704,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     </div>
     <div class="employee-picker-grid" id="employeePickerGrid"></div>
     <div class="employee-mode-note">Выбор сотрудника не даёт права открывать смену. Для открытия всё равно нужен компьютер/планшет сервиса и PIN.</div>
-    <button class="secondary" id="employeePickerAdmin" style="width:100%;margin-top:12px">Я администратор</button>
   </div>
 </div>
 
@@ -773,6 +783,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   const CLOUD_ROW_ID = "main";
   const AUTH_STORAGE_KEY = "ma_schedule_admin_session_v1";
   const DEVICE_STORAGE_KEY = "ma_shift_device_token_v1";
+  const DEVICE_KEY_DB = "ma_shift_device_keys_v1";
+  const DEVICE_KEY_STORE = "keys";
   const EMPLOYEE_STORAGE_KEY = "ma_employee_name_v1";
   const SYNC_INTERVAL_MS = 30000;
   const SHIFT_TABLE = "ma_shifts";
@@ -782,8 +794,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   const SHIFT_TIMEZONE = "Europe/Moscow";
 
   const DEFAULTS = {
-    startYear: 2026,
-    startMonth: 8,
     anchorDate: "2026-09-01",
     serviceBlockDays: 14,
     service1: "Моба",
@@ -836,6 +846,117 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       if(token) localStorage.setItem(DEVICE_STORAGE_KEY,token);
       else localStorage.removeItem(DEVICE_STORAGE_KEY);
     }catch(e){}
+  }
+
+  function openDeviceKeyDB(){
+    return new Promise((resolve,reject)=>{
+      const req=indexedDB.open(DEVICE_KEY_DB,1);
+      req.onupgradeneeded=()=>{
+        const db=req.result;
+        if(!db.objectStoreNames.contains(DEVICE_KEY_STORE)) db.createObjectStore(DEVICE_KEY_STORE);
+      };
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>reject(req.error);
+    });
+  }
+
+  async function loadDeviceKeyRecord(){
+    try{
+      const db=await openDeviceKeyDB();
+      return await new Promise((resolve,reject)=>{
+        const tx=db.transaction(DEVICE_KEY_STORE,"readonly");
+        const req=tx.objectStore(DEVICE_KEY_STORE).get("main");
+        req.onsuccess=()=>resolve(req.result||null);
+        req.onerror=()=>reject(req.error);
+      });
+    }catch(e){
+      console.error("device key read",e);
+      return null;
+    }
+  }
+
+  async function saveDeviceKeyRecord(record){
+    const db=await openDeviceKeyDB();
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(DEVICE_KEY_STORE,"readwrite");
+      tx.objectStore(DEVICE_KEY_STORE).put(record,"main");
+      tx.oncomplete=()=>resolve();
+      tx.onerror=()=>reject(tx.error);
+    });
+  }
+
+  async function clearDeviceKeyRecord(){
+    try{
+      const db=await openDeviceKeyDB();
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction(DEVICE_KEY_STORE,"readwrite");
+        tx.objectStore(DEVICE_KEY_STORE).delete("main");
+        tx.oncomplete=()=>resolve();
+        tx.onerror=()=>reject(tx.error);
+      });
+    }catch(e){
+      console.error("device key clear",e);
+    }
+  }
+
+  function bytesToBase64Url(bytes){
+    let s="";
+    new Uint8Array(bytes).forEach(b=>s+=String.fromCharCode(b));
+    return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  }
+
+  async function createDeviceKeyRecord(){
+    if(!window.crypto?.subtle) throw new Error("Этот браузер не поддерживает защищённую привязку устройства");
+
+    const generated=await crypto.subtle.generateKey(
+      {name:"ECDSA",namedCurve:"P-256"},
+      true,
+      ["sign","verify"]
+    );
+
+    const publicJwk=await crypto.subtle.exportKey("jwk",generated.publicKey);
+    const privateJwk=await crypto.subtle.exportKey("jwk",generated.privateKey);
+
+    const privateKey=await crypto.subtle.importKey(
+      "jwk",
+      privateJwk,
+      {name:"ECDSA",namedCurve:"P-256"},
+      false,
+      ["sign"]
+    );
+
+    const publicKey=await crypto.subtle.importKey(
+      "jwk",
+      publicJwk,
+      {name:"ECDSA",namedCurve:"P-256"},
+      true,
+      ["verify"]
+    );
+
+    const record={privateKey,publicKey,publicJwk,createdAt:Date.now()};
+    await saveDeviceKeyRecord(record);
+    return record;
+  }
+
+  async function signDeviceProof(kind,fields=[]){
+    const token=loadShiftDeviceToken();
+    const record=await loadDeviceKeyRecord();
+    if(!token || !record?.privateKey){
+      throw new Error("Это устройство нужно заново зарегистрировать администратором");
+    }
+
+    const timestamp=Date.now();
+    const message=[kind,...fields.map(x=>String(x??"")),String(timestamp),token].join("|");
+    const signature=await crypto.subtle.sign(
+      {name:"ECDSA",hash:"SHA-256"},
+      record.privateKey,
+      new TextEncoder().encode(message)
+    );
+
+    return {
+      timestamp,
+      signature:bytesToBase64Url(signature)
+    };
   }
   function canUseShiftService(service){
     if(isAdmin()) return true;
@@ -970,27 +1091,14 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   }
 
   function updateCloudStatusLine(){
-    const el=$("cloudStatusLine");
-    if(!cloudConfigured()){
-      el.textContent="Облако не подключено — данные пока сохраняются только на этом устройстве.";
-      el.className="cloudline offline";
-      return;
-    }
-    if(lastCloudUpdatedAt){
-      const dt=new Date(lastCloudUpdatedAt);
-      el.textContent=`Общий график • обновлён ${dt.toLocaleString("ru-RU")}`;
-      el.className="cloudline online";
-    }else{
-      el.textContent="Общий график подключён • получение данных…";
-      el.className="cloudline syncing";
-    }
+    // Техническую строку под месяцем убрали из интерфейса.
   }
 
   function updateCloudSettingsState(){
     const el=$("cloudSettingsState");
     if(!el) return;
     if(!cloudConfigured()){
-      el.innerHTML='<div class="cloud-warning"><b>Supabase ещё не подключён.</b><br>Нужно один раз вставить Project URL и publishable key в HTML перед загрузкой в Vercel.</div>';
+      el.innerHTML='<div class="cloud-warning"><b>Supabase ещё не подключён.</b><br>Облачное подключение не настроено.</div>';
     }else if(isAdmin()){
       el.innerHTML='<div class="cloud-ok"><b>Облако подключено.</b><br>Ты вошёл как администратор. Сохранение меняет график для всех устройств.</div>';
     }else{
@@ -1135,19 +1243,15 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     if(!Array.isArray(merged.dayOverrides)) merged.dayOverrides=[];
 
     if(!merged.anchorDate){
-      const y=Number(merged.startYear)||2026;
-      const m=(Number(merged.startMonth)||0)+1;
-      merged.anchorDate=`${y}-${String(m).padStart(2,"0")}-01`;
+      const oldYear=Number(raw?.startYear)||2026;
+      const oldMonth=(Number(raw?.startMonth)||0)+1;
+      merged.anchorDate=`${oldYear}-${String(oldMonth).padStart(2,"0")}-01`;
     }
     if(!/^\d{4}-\d{2}-\d{2}$/.test(String(merged.anchorDate))){
       merged.anchorDate=DEFAULTS.anchorDate;
     }
 
     merged.serviceBlockDays=Math.max(1,Math.min(60,Number(merged.serviceBlockDays)||14));
-
-    const [ay,am]=merged.anchorDate.split("-").map(Number);
-    merged.startYear=ay;
-    merged.startMonth=am-1;
 
     merged.staffChanges=merged.staffChanges
       .filter(x=>x && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date||"")) && x.oldName && x.newName)
@@ -1288,18 +1392,38 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       renderTodayShifts();
       return currentDeviceAccess;
     }
+
     try{
-      const data=await shiftFunction({op:"device-status",deviceToken:token});
+      const keyRecord=await loadDeviceKeyRecord();
+      if(!keyRecord?.privateKey){
+        saveShiftDeviceToken("");
+        await clearDeviceKeyRecord();
+        currentDeviceAccess={allowed:false,device:null};
+        renderDevicePanel();
+        renderTodayShifts();
+        applyUserMode();
+        return currentDeviceAccess;
+      }
+
+      const deviceProof=await signDeviceProof("status");
+      const data=await shiftFunction({
+        op:"device-status",
+        deviceToken:token,
+        deviceProof
+      });
+
       if(data.allowed && data.device){
         currentDeviceAccess={allowed:true,device:data.device};
       }else{
         saveShiftDeviceToken("");
+        await clearDeviceKeyRecord();
         currentDeviceAccess={allowed:false,device:null};
       }
     }catch(e){
       console.error("device-status",e);
       currentDeviceAccess={allowed:false,device:null};
     }
+
     renderDevicePanel();
     renderTodayShifts();
     applyUserMode();
@@ -1344,7 +1468,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     list.innerHTML=active.length ? active.map(d=>`
       <div class="device-item">
         <div><b>${escapeHtml(d.service)}</b> · ${escapeHtml(d.label||"Устройство")}
-          <small>Активно${d.last_seen_at ? ` · было в сети ${formatMoscowDate(d.last_seen_at)} ${formatMoscowTime(d.last_seen_at)}` : ""}</small>
+          <small>${Number(d.key_version||0)>=2 ? "Защищено" : "Старая регистрация"}${d.last_seen_at ? ` · было в сети ${formatMoscowDate(d.last_seen_at)} ${formatMoscowTime(d.last_seen_at)}` : ""}</small>
         </div>
         <button class="device-revoke" data-device-id="${escapeHtml(d.id)}">Отключить</button>
       </div>`).join("") : '<div class="device-state">Активных устройств пока нет.</div>';
@@ -1356,18 +1480,33 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
   async function pairCurrentDevice(){
     if(!isAdmin()){ openLoginModal(); return; }
+
     const service=$("deviceService").value;
     const label=$("deviceLabel").value.trim() || `Устройство ${service}`;
+
     if(!confirm(`Разрешить это устройство для точки «${service}»?\n\nПредыдущее активное устройство этой точки будет отключено.`)) return;
+
     try{
-      const data=await shiftFunction({op:"pair-device",service,label},{admin:true});
+      await clearDeviceKeyRecord();
+      const keyRecord=await createDeviceKeyRecord();
+
+      const data=await shiftFunction({
+        op:"pair-device",
+        service,
+        label,
+        publicKeyJwk:keyRecord.publicJwk
+      },{admin:true});
+
       saveShiftDeviceToken(data.deviceToken);
       currentDeviceAccess={allowed:true,device:data.device};
+
       await loadRegisteredDevices();
       renderTodayShifts();
-      toast(`${service}: это устройство разрешено`);
+      toast(`${service}: устройство защищённо зарегистрировано`);
     }catch(e){
       console.error(e);
+      saveShiftDeviceToken("");
+      await clearDeviceKeyRecord();
       toast(e.message||"Не удалось разрешить устройство");
     }
   }
@@ -1400,23 +1539,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
   function shiftMinutes(time){ const [h,m]=String(time||"00:00").split(":").map(Number); return h*60+m; }
 
-  function renderTodayWorkers(){
-    const root=$("todayWorkersGrid");
-    if(!root) return;
-    const now=moscowParts();
-
-    const services=isServiceDeviceMode() ? [serviceDeviceName()] : [settings.service1,settings.service2];
-    root.innerHTML=services.map(service=>{
-      const exp=expectedForDate(now.date,service);
-      if(!exp){
-        return `<div class="today-worker-card"><b>${escapeHtml(service)}</b><span>График на эту дату не задан.</span></div>`;
-      }
-      return `<div class="today-worker-card">
-        <b>${escapeHtml(service)}</b>
-        <span>Менеджер: <strong>${escapeHtml(exp.manager)}</strong><br>Мастер: <strong>${escapeHtml(exp.master)}</strong><br>${settings.shiftStart}–${settings.shiftEnd}</span>
-      </div>`;
-    }).join("");
-  }
 
   function renderTodayShifts(){
     const now=moscowParts();
@@ -1442,7 +1564,9 @@ button,a,input,select,textarea,label{touch-action:manipulation}
         meta=`Начало смены в ${settings.shiftStart}`;
       }
       const card=document.createElement("div"); card.className="shift-card";
-      const pairText=exp ? `${escapeHtml(exp.manager)} + ${escapeHtml(exp.master)}` : "График на эту дату не задан";
+      const pairText=exp
+        ? `Менеджер: <strong>${escapeHtml(exp.manager)}</strong><br>Мастер: <strong>${escapeHtml(exp.master)}</strong><br>${settings.shiftStart}–${settings.shiftEnd}`
+        : "График на эту дату не рассчитан";
       const action=(!row || !row.opened_at) ? "open" : (!row.closed_at ? "close" : "done");
       const allowed=action!=="done" && canUseShiftService(service);
       let btnText=action==="open"?"Открыть смену":action==="close"?"Закрыть смену":"Смена закрыта";
@@ -1450,14 +1574,13 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       const employeeMode=isEmployeePhoneMode();
       const deviceNote=action!=="done" && !allowed && !isAdmin() && !employeeMode?`<div class="shift-device-note">С телефона сотрудника открыть или закрыть смену нельзя.</div>`:"";
       const actionHtml=employeeMode ? "" : `<button class="${action==="open"?"primary":"secondary"} shift-action" ${(!allowed || action==="done")?"disabled":""}>${btnText}</button>`;
-      card.innerHTML=`<h3>${escapeHtml(service)}</h3><div class="shift-status ${cls}"><span class="dot"></span>${label}</div><div class="shift-pair"><b>По графику:</b> ${pairText}</div><div class="shift-meta">${meta}</div>${deviceNote}${actionHtml}${isAdmin() && row ? `<button class="annul-shift-btn">Аннулировать смену</button>` : ""}`;
+      card.innerHTML=`<h3>${escapeHtml(service)}</h3><div class="shift-status ${cls}"><span class="dot"></span>${label}</div><div class="shift-pair">${pairText}</div><div class="shift-meta">${meta}</div>${deviceNote}${actionHtml}${isAdmin() && row ? `<button class="annul-shift-btn">Аннулировать смену</button>` : ""}`;
       if(allowed && !employeeMode) card.querySelector(".shift-action").onclick=()=>openShiftAction(service,action,exp);
       const annulBtn=card.querySelector(".annul-shift-btn");
       if(annulBtn) annulBtn.onclick=()=>annulTodayShift(service,now.date);
       root.appendChild(card);
     });
     renderAdminAttention();
-    renderTodayWorkers();
   }
 
 
@@ -1498,9 +1621,14 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       }
     }
 
-    root.innerHTML=problems.length
-      ? problems.map(x=>`<div class="attention-item ${x.kind}">${escapeHtml(x.text)}</div>`).join("")
-      : `<div class="attention-item ok">${isServiceDeviceMode() ? escapeHtml(serviceDeviceName()) + ": всё в порядке." : "Всё в порядке. Проблем по сегодняшним сменам нет."}</div>`;
+    const box=$("attentionBox");
+    if(problems.length){
+      root.innerHTML=problems.map(x=>`<div class="attention-item ${x.kind}">${escapeHtml(x.text)}</div>`).join("");
+      if(box) box.classList.remove("hidden-clean");
+    }else{
+      root.innerHTML="";
+      if(box) box.classList.add("hidden-clean");
+    }
   }
 
   async function loadTodayShifts(showToast=false){
@@ -1567,7 +1695,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     }
     pendingShiftAction={service,action,expected};
     $("shiftActionTitle").textContent=action==="open"?`Открыть смену — ${service}`:`Закрыть смену — ${service}`;
-    $("shiftActionInfo").innerHTML=expected?`По графику сегодня: <b>${escapeHtml(expected.manager)} + ${escapeHtml(expected.master)}</b>`:"На эту дату нет строки в годовом графике. Смену всё равно можно открыть вручную.";
+    $("shiftActionInfo").innerHTML=expected?`По графику сегодня: <b>${escapeHtml(expected.manager)} + ${escapeHtml(expected.master)}</b>`:"На эту дату автоматический график не найден. Смену можно подтвердить вручную.";
     const names=settings.managers.flat();
     $("shiftEmployee").innerHTML=names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
     if(expected && names.includes(expected.manager)) $("shiftEmployee").value=expected.manager;
@@ -1595,6 +1723,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
         if(!ok) return;
       }
 
+      const deviceProof=adminMode ? null : await signDeviceProof("shift",[p.action,p.service,employee]);
       const body={
         op:"shift",
         action:p.action,
@@ -1602,6 +1731,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
         employee,
         pin:adminMode?"":pin,
         deviceToken:adminMode?"":loadShiftDeviceToken(),
+        deviceProof,
         expectedManager:p.expected?.manager||null,
         expectedMaster:p.expected?.master||null
       };
@@ -1693,6 +1823,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     document.querySelectorAll("#historyQuick [data-range]").forEach(b=>{
       b.classList.toggle("active",b.dataset.range===range);
     });
+    if($("historyCustomRange")) $("historyCustomRange").classList.add("hidden");
+    if($("historyCustomBtn")) $("historyCustomBtn").classList.remove("active");
 
     if(load) loadHistory();
   }
@@ -1935,22 +2067,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     return monthIndexForYearMonth(Number(vals.year),Number(vals.month)-1);
   }
 
-  function visibleMonthIndices(){
-    const arr=[];
-    for(let y=2020;y<=2100;y++){
-      for(let m=0;m<12;m++) arr.push(monthIndexForYearMonth(y,m));
-    }
-    return arr;
-  }
 
-  function isAnnualScheduleMonth(index){
-    const mi=monthInfo(index);
-    return mi.year>=2020 && mi.year<=2100;
-  }
 
-  function annualPeriodText(){
-    return "бесконечный график";
-  }
 
   function todayMonthLabel(){
     const idx=getCurrentMonthIndex(), mi=monthInfo(idx);
@@ -2092,7 +2210,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     const now=moscowParts();
     const todayAssignment=employeeAssignmentForDate(name,now.date);
 
-    $("employeeTodayName").textContent=name;
     $("employeeTodayDate").textContent=new Intl.DateTimeFormat("ru-RU",{
       timeZone:SHIFT_TIMEZONE,
       weekday:"long",
@@ -2137,7 +2254,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     if(!isEmployeePhoneMode()) return;
     const name=selectedEmployee();
     if(!name) return;
-    $("employeeMyName").textContent=name;
     const list=employeeUpcomingShifts(name,{afterToday:false,limit:20});
     $("employeeShiftList").innerHTML=list.length ? list.map(x=>{
       const partner=x.pair.manager===name ? x.pair.master : x.pair.manager;
@@ -2192,7 +2308,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       employeeCalendarIndex=getCurrentMonthIndex();
       info=monthInfo(employeeCalendarIndex);
     }
-    $("employeeCalendarName").textContent=name;
     $("employeeCalLabel").textContent=`${info.name} ${info.year}`;
     $("employeeCalPrev").disabled=info.year<=2020 && info.month===0;
     $("employeeCalNext").disabled=info.year>=2100 && info.month===11;
@@ -2234,8 +2349,14 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     renderEmployeeCalendarDetail(employeeCalendarSelectedDate);
   }
 
+  function renderEmployeeIdentity(){
+    const name=selectedEmployee();
+    if($("employeeIdentityName")) $("employeeIdentityName").textContent=name||"Не выбран";
+  }
+
   function renderEmployeePages(){
     if(!isEmployeePhoneMode()) return;
+    renderEmployeeIdentity();
     renderEmployeeToday();
     renderEmployeeMySchedule();
     renderEmployeeCalendar();
@@ -2422,8 +2543,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       if(isServiceDeviceMode()){
         $("monthSubtitle").textContent="";
         root.appendChild(renderServicePointSchedule(rows));
-        $("summaryChips").innerHTML="";
-        $("monthSummary").classList.add("hidden");
         $("monthActions").classList.add("hidden");
         $("monthPhotoNotice").classList.add("hidden");
         $("personalBtn").disabled=true;
@@ -2431,8 +2550,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
         $("monthSubtitle").textContent=`Смена ${settings.shiftStart}–${settings.shiftEnd} • оба сервиса работают каждый день`;
         root.appendChild(serviceCard(settings.service1,"s1",rows));
         root.appendChild(serviceCard(settings.service2,"s2",rows));
-        renderSummary(rows);
-        $("monthSummary").classList.remove("hidden");
         $("monthActions").classList.remove("hidden");
         $("monthPhotoNotice").classList.remove("hidden");
         $("personalBtn").disabled=false;
@@ -2455,8 +2572,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
             <p><b>Годовой график начинается с ${escapeHtml(monthInfo(0).name)} ${monthInfo(0).year}.</b></p>
             <p>Блок <b>«Сегодня»</b> выше продолжает работать: смену можно открыть, закрыть и посмотреть её состояние.</p>
           </div>`;
-      $("summaryChips").innerHTML="";
-      $("monthSummary").classList.add("hidden");
       $("monthActions").classList.add("hidden");
       $("monthPhotoNotice").classList.add("hidden");
       $("personalBtn").disabled=true;
@@ -2500,14 +2615,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     t.appendChild(tb); wrap.appendChild(t); return wrap;
   }
 
-  function renderSummary(rows){
-    const counts={};
-    [...settings.managers.flat(),...settings.masters.flat()].forEach(n=>counts[n]=0);
-    rows.forEach(r=>{
-      [r.s1.manager,r.s1.master,r.s2.manager,r.s2.master].forEach(n=>{ if(counts[n]!=null) counts[n]++; });
-    });
-    $("summaryChips").innerHTML=Object.entries(counts).map(([n,c])=>`<span class="chip"><b>${escapeHtml(n)}</b>: ${c}</span>`).join("");
-  }
 
   function highlightEmployee(){
     const name=employeeFilter.value;
@@ -2609,13 +2716,9 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
   function readSettingsFromForm(){
     const anchor=$("anchorDate").value||DEFAULTS.anchorDate;
-    const [ay,am]=anchor.split("-").map(Number);
-
     return normalizeScheduleSettings({
       ...settings,
       anchorDate:anchor,
-      startYear:ay,
-      startMonth:am-1,
       serviceBlockDays:Math.max(1,Math.min(60,Number($("serviceBlockDays").value)||14)),
       service1:$("service1").value.trim()||"Моба",
       service2:$("service2").value.trim()||"Нова",
@@ -2774,8 +2877,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     if(adminToday){
       loadTodayShifts(false);
       renderAdminAttention();
-      renderTodayWorkers();
-    }
+      }
     if(sett){
       settingsDirty=false;
       populateSettings();
@@ -2889,21 +2991,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     return await new Promise(res=>c.toBlob(res,"image/png",1));
   }
 
-  async function copyPhoto(){
-    try{
-      const blob=await canvasBlob();
-      if(navigator.clipboard && window.ClipboardItem){
-        await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);
-        toast("Фото месяца скопировано");
-      }else{
-        downloadBlob(blob);
-        toast("Копирование не поддерживается — PNG сохранён");
-      }
-    }catch(e){
-      try{ const blob=await canvasBlob(); downloadBlob(blob); }catch(_){}
-      toast("Не удалось скопировать — PNG сохранён");
-    }
-  }
 
   async function sharePhoto(){
     const blob=await canvasBlob(), info=monthInfo(currentIndex);
@@ -2987,15 +3074,21 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   };
   employeeFilter.onchange=highlightEmployee;
   $("personalBtn").onclick=personalSchedule;
-  $("changeEmployeeMy").onclick=openEmployeePicker;
-  $("changeEmployeeCalendar").onclick=openEmployeePicker;
+  $("changeEmployeeGlobal").onclick=openEmployeePicker;
   $("employeeCalPrev").onclick=()=>setEmployeeCalendarMonth(employeeCalendarIndex-1);
   $("employeeCalNext").onclick=()=>setEmployeeCalendarMonth(employeeCalendarIndex+1);
-  $("employeePickerAdmin").onclick=()=>{ $("employeePickerModal").classList.add("hidden"); openLoginModal(); };
   $("refreshBtn").onclick=async()=>{ await syncFromCloud(true); await loadTodayShifts(false); };
   $("loadHistoryBtn").onclick=loadHistory;
   document.querySelectorAll("#historyQuick [data-range]").forEach(btn=>{
     btn.onclick=()=>setHistoryQuickRange(btn.dataset.range,true);
+  });
+  $("historyCustomBtn").onclick=()=>{
+    $("historyCustomRange").classList.toggle("hidden");
+    document.querySelectorAll("#historyQuick [data-range]").forEach(b=>b.classList.remove("active"));
+    $("historyCustomBtn").classList.toggle("active",!$("historyCustomRange").classList.contains("hidden"));
+  };
+  ["historyService","historyEmployee","historyProblem"].forEach(id=>{
+    $(id).onchange=()=>loadHistory();
   });
   $("savePinsBtn").onclick=saveManagerPins;
   $("pairDeviceBtn").onclick=pairCurrentDevice;
@@ -3005,7 +3098,6 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   $("serviceDayModal").addEventListener("click",e=>{ if(e.target===$("serviceDayModal")) $("serviceDayModal").classList.add("hidden"); });
   $("closePersonal").onclick=()=>$("personalModal").classList.add("hidden");
   $("personalModal").addEventListener("click",e=>{ if(e.target===$("personalModal")) $("personalModal").classList.add("hidden"); });
-  $("copyPhotoBtn").onclick=copyPhoto;
   $("shareBtn").onclick=sharePhoto;
   $("downloadBtn").onclick=downloadPhoto;
   $("addStaffChangeBtn").onclick=addStaffChange;
@@ -3029,16 +3121,24 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   $("importBtn").onclick=()=>$("importFile").click();
   $("importFile").onchange=e=>{ if(e.target.files[0]) importSettings(e.target.files[0]); e.target.value=""; };
   $("resetBtn").onclick=async()=>{
-    if(confirm("Сбросить все настройки и вернуть стандартный график?")){
-      if(cloudConfigured() && !isAdmin()){ openLoginModal(); return; }
-      settings=normalizeScheduleSettings(clone(DEFAULTS)); saveSettings();
-      try{
-        if(cloudConfigured()) await saveToCloud(settings);
-        settingsDirty=false; currentIndex=getCurrentMonthIndex(); userSelectedMonth=false; populateSettings(); renderMonth();
-        toast(cloudConfigured()?"Общий график сброшен":"Настройки сброшены");
-      }catch(e){ toast(e.message||"Ошибка сброса"); }
-    }
+    if(cloudConfigured() && !isAdmin()){ openLoginModal(); return; }
+    const word=prompt("Опасное действие. Чтобы полностью сбросить настройки графика, введи слово СБРОСИТЬ");
+    if(word!=="СБРОСИТЬ"){ if(word!==null) toast("Сброс отменён"); return; }
+    if(!confirm("Последняя проверка: действительно сбросить все настройки графика?")) return;
+
+    settings=normalizeScheduleSettings(clone(DEFAULTS));
+    saveSettings();
+    try{
+      if(cloudConfigured()) await saveToCloud(settings);
+      settingsDirty=false;
+      currentIndex=getCurrentMonthIndex();
+      userSelectedMonth=false;
+      populateSettings();
+      renderMonth();
+      toast(cloudConfigured()?"Настройки графика сброшены для всех":"Настройки сброшены");
+    }catch(e){ toast(e.message||"Ошибка сброса"); }
   };
+
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
   let lastTouchEndForZoom=0;
   document.addEventListener("touchend",(e)=>{
