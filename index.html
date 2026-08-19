@@ -268,6 +268,44 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
 
 .employee-own-shift-status{display:block;margin-top:9px;padding-top:9px;border-top:1px solid rgba(0,0,0,.08);font-weight:800;font-size:13px}
+
+/* Финальная доводка админского режима */
+.connection-banner{display:none;margin:10px 14px 0;padding:10px 12px;border-radius:12px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;font-size:13px;font-weight:800}
+.connection-banner.show{display:block}
+.today-workers{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.today-workers h2{margin:0 0 10px;color:var(--blue);font-size:20px}
+.today-workers-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.today-worker-card{border:1px solid var(--line);border-radius:14px;padding:11px;background:#f8fafc}
+.today-worker-card b{display:block;color:#24344d;margin-bottom:5px}
+.today-worker-card span{display:block;font-size:13px;color:#53627a;line-height:1.45}
+
+.history-quick{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+.history-quick::-webkit-scrollbar{display:none}
+.history-quick button{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 11px;font-weight:800;color:#42526a}
+.history-quick button.active{background:#eaf2ff;color:#0f5bd7;border-color:#bfdbfe}
+
+.history-stats{margin-top:12px;margin-bottom:12px}
+.history-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.history-stat{border:1px solid var(--line);border-radius:13px;padding:10px;background:#fff;text-align:center}
+.history-stat b{display:block;font-size:20px;color:#24344d}
+.history-stat span{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+.discipline-title{font-weight:850;color:#24344d;margin:13px 0 7px}
+.discipline-list{display:grid;gap:7px}
+.discipline-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:9px 10px;background:#fff}
+.discipline-row b{font-size:13px}
+.discipline-row span{font-size:11px;color:var(--muted);text-align:right}
+.history-source{margin-top:5px;font-size:11px;color:#64748b}
+.history-status-line{margin-bottom:8px;font-size:12px;font-weight:800}
+.history-status-line.ok{color:#166534}
+.history-status-line.warn{color:#9a3412}
+.history-status-line.bad{color:#991b1b}
+
+.settings-danger-note{margin-top:8px;font-size:12px;color:#9a3412}
+@media(max-width:620px){
+  .today-workers-grid{grid-template-columns:1fr}
+  .history-stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -296,6 +334,8 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       </div>
     </div>
   </header>
+
+  <div class="connection-banner" id="connectionBanner">Нет связи — данные могут быть неактуальны.</div>
 
   <main class="page">
     <section id="employeeTodayPage" class="hidden">
@@ -346,10 +386,15 @@ button,a,input,select,textarea,label{touch-action:manipulation}
         <h2>Требует внимания</h2>
         <div class="attention-list" id="attentionList"></div>
       </div>
+
+      <div class="today-workers">
+        <h2>Сегодня работают</h2>
+        <div class="today-workers-grid" id="todayWorkersGrid"></div>
+      </div>
+
       <div class="today-board">
         <div class="today-head">
-          <div><h2>Сегодня</h2><div class="today-date" id="todayDateLabel">—</div></div>
-          <button class="iconbtn" id="refreshShiftsBtn" title="Обновить смены">↻</button>
+          <div><h2>Состояние смен</h2><div class="today-date" id="todayDateLabel">—</div></div>
         </div>
         <div class="shift-cards" id="todayShiftCards"></div>
       </div>
@@ -377,8 +422,14 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     <section id="historyPage" class="hidden">
       <div class="section">
         <h2>История смен</h2>
-        <div class="notice" id="historyNotice">История доступна администратору: открытие, закрытие, опоздания и кто подтвердил смену.</div>
-        <div class="history-toolbar" style="margin-top:12px">
+        <div class="notice" id="historyNotice">История доступна администратору: открытие, закрытие, опоздания, аннулирование и кто подтвердил смену.</div>
+        <div class="history-quick" id="historyQuick">
+          <button data-range="today">Сегодня</button>
+          <button data-range="yesterday">Вчера</button>
+          <button data-range="7days">7 дней</button>
+          <button data-range="month" class="active">Месяц</button>
+        </div>
+        <div class="history-toolbar" style="margin-top:2px">
           <input type="date" id="historyFrom" aria-label="С даты">
           <input type="date" id="historyTo" aria-label="По дату">
           <select id="historyService"><option value="">Все сервисы</option></select>
@@ -388,6 +439,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
           <select id="historyProblem"><option value="">Все смены</option><option value="late">Только опоздания</option><option value="unclosed">Только незакрытые</option><option value="voided">Аннулированные</option></select>
           <button class="primary" id="loadHistoryBtn">Показать</button>
         </div>
+        <div class="history-stats" id="historyStats"></div>
         <div class="history-list" id="historyList"></div>
       </div>
     </section>
@@ -769,6 +821,13 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     badge.textContent=text;
     badge.classList.remove("online","offline","syncing");
     if(kind) badge.classList.add(kind);
+
+    const banner=$("connectionBanner");
+    if(banner){
+      const shouldShow=cloudConfigured() && (kind==="offline" || navigator.onLine===false);
+      banner.classList.toggle("show",shouldShow);
+      banner.textContent="Нет связи — данные могут быть неактуальны.";
+    }
   }
 
   function updateCloudStatusLine(){
@@ -1137,6 +1196,23 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
   function shiftMinutes(time){ const [h,m]=String(time||"00:00").split(":").map(Number); return h*60+m; }
 
+  function renderTodayWorkers(){
+    const root=$("todayWorkersGrid");
+    if(!root) return;
+    const now=moscowParts();
+
+    root.innerHTML=[settings.service1,settings.service2].map(service=>{
+      const exp=expectedForDate(now.date,service);
+      if(!exp){
+        return `<div class="today-worker-card"><b>${escapeHtml(service)}</b><span>График на эту дату не задан.</span></div>`;
+      }
+      return `<div class="today-worker-card">
+        <b>${escapeHtml(service)}</b>
+        <span>Менеджер: <strong>${escapeHtml(exp.manager)}</strong><br>Мастер: <strong>${escapeHtml(exp.master)}</strong><br>${settings.shiftStart}–${settings.shiftEnd}</span>
+      </div>`;
+    }).join("");
+  }
+
   function renderTodayShifts(){
     const now=moscowParts();
     $("todayDateLabel").textContent=new Intl.DateTimeFormat("ru-RU",{timeZone:SHIFT_TIMEZONE,weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date());
@@ -1176,6 +1252,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       root.appendChild(card);
     });
     renderAdminAttention();
+    renderTodayWorkers();
   }
 
 
@@ -1331,7 +1408,11 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 
   async function saveManagerPins(){
     if(!isAdmin()){ openLoginModal(); return; }
-    const names=settings.managers.flat(); let changed=0;
+    const names=settings.managers.flat();
+    const filled=names.filter((_,i)=>$(`managerPin${i}`).value.trim()).length;
+    if(!filled){ toast("Новые PIN не введены"); return; }
+    if(!confirm(`Изменить PIN у ${filled} менеджер${filled===1?"а":"ов"}?\n\nСтарые PIN перестанут работать сразу.`)) return;
+    let changed=0;
     try{
       for(let i=0;i<names.length;i++){
         const pin=$(`managerPin${i}`).value.trim(); if(!pin) continue;
@@ -1376,8 +1457,87 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     }catch(e){ console.error(e); toast(e.message||"Не удалось включить push"); }
   }
 
+  function monthStartISO(dateStr){
+    const [y,m]=dateStr.split("-").map(Number);
+    return `${y}-${String(m).padStart(2,"0")}-01`;
+  }
+
+  function setHistoryQuickRange(range,load=true){
+    const today=moscowParts().date;
+    let from=today,to=today;
+
+    if(range==="yesterday"){
+      from=to=addDaysISO(today,-1);
+    }else if(range==="7days"){
+      from=addDaysISO(today,-6);
+    }else if(range==="month"){
+      from=monthStartISO(today);
+    }
+
+    $("historyFrom").value=from;
+    $("historyTo").value=to;
+
+    document.querySelectorAll("#historyQuick [data-range]").forEach(b=>{
+      b.classList.toggle("active",b.dataset.range===range);
+    });
+
+    if(load) loadHistory();
+  }
+
+  function historySourceText(row,kind){
+    const source=kind==="open" ? row.opened_source : row.closed_source;
+    const employee=kind==="open" ? row.opened_by : row.closed_by;
+    if(!source) return "";
+
+    if(String(source).startsWith("admin:")){
+      return `${kind==="open"?"Открыто":"Закрыто"} администратором за ${employee||"сотрудника"}`;
+    }
+    if(String(source).startsWith("device:")){
+      const label=String(source).slice("device:".length);
+      return `Подтверждено на устройстве: ${label}`;
+    }
+    return "";
+  }
+
+  function renderHistoryStats(rows){
+    const root=$("historyStats");
+    if(!root) return;
+
+    const active=rows.filter(r=>!r.voided_at);
+    const total=active.length;
+    const late=active.filter(r=>(r.open_late_minutes||0)>0).length;
+    const ontime=active.filter(r=>r.opened_at && (r.open_late_minutes||0)===0).length;
+    const early=active.filter(r=>(r.early_close_minutes||0)>0).length;
+    const voided=rows.filter(r=>!!r.voided_at).length;
+
+    const byEmployee={};
+    active.forEach(r=>{
+      const name=r.opened_by||r.expected_manager||"Не указан";
+      if(!byEmployee[name]) byEmployee[name]={total:0,late:0,ontime:0};
+      byEmployee[name].total++;
+      if((r.open_late_minutes||0)>0) byEmployee[name].late++;
+      else if(r.opened_at) byEmployee[name].ontime++;
+    });
+
+    const people=Object.entries(byEmployee)
+      .sort((a,b)=>b[1].total-a[1].total)
+      .map(([name,s])=>`<div class="discipline-row"><b>${escapeHtml(name)}</b><span>${s.ontime} вовремя · ${s.late} опозд.</span></div>`)
+      .join("");
+
+    root.innerHTML=`
+      <div class="history-stats-grid">
+        <div class="history-stat"><b>${total}</b><span>смен</span></div>
+        <div class="history-stat"><b>${ontime}</b><span>вовремя</span></div>
+        <div class="history-stat"><b>${late}</b><span>опозданий</span></div>
+        <div class="history-stat"><b>${early}</b><span>ранних закрытий</span></div>
+      </div>
+      ${voided?`<div class="history-status-line warn" style="margin-top:9px">Аннулировано смен: ${voided}</div>`:""}
+      ${people?`<div class="discipline-title">Дисциплина по менеджерам</div><div class="discipline-list">${people}</div>`:""}
+    `;
+  }
+
   function defaultHistoryDates(){
-    const t=moscowParts().date; $("historyTo").value=t; $("historyFrom").value=addDaysISO(t,-30);
+    setHistoryQuickRange("month",false);
   }
   function fillHistoryFilters(){
     const sv=$("historyService"), emp=$("historyEmployee"); if(!sv||!emp) return;
@@ -1387,7 +1547,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     if([...sv.options].some(o=>o.value===svv)) sv.value=svv; if([...emp.options].some(o=>o.value===ev)) emp.value=ev;
   }
   async function loadHistory(){
-    const root=$("historyList"); if(!isAdmin()){ root.innerHTML='<div class="history-empty">Войди как администратор, чтобы смотреть историю.</div>'; return; }
+    const root=$("historyList"); if(!isAdmin()){ root.innerHTML='<div class="history-empty">Войди как администратор, чтобы смотреть историю.</div>'; if($("historyStats")) $("historyStats").innerHTML=""; return; }
     const from=$("historyFrom").value,to=$("historyTo").value,service=$("historyService").value,employee=$("historyEmployee").value,problem=$("historyProblem").value;
     const token=await getAdminToken(); if(!token){ openLoginModal(); return; }
     let q=`/rest/v1/${SHIFT_TABLE}?select=*&order=shift_date.desc,service.asc&limit=300`;
@@ -1400,8 +1560,9 @@ button,a,input,select,textarea,label{touch-action:manipulation}
       if(problem==="late") rows=rows.filter(r=>!r.voided_at && (r.open_late_minutes||0)>0);
       if(problem==="unclosed") rows=rows.filter(r=>!r.voided_at && r.opened_at&&!r.closed_at);
       if(problem==="voided") rows=rows.filter(r=>!!r.voided_at);
+      renderHistoryStats(rows);
       renderHistory(rows);
-    }catch(e){ console.error(e); root.innerHTML='<div class="history-empty">Не удалось загрузить историю.</div>'; }
+    }catch(e){ console.error(e); root.innerHTML='<div class="history-empty">Не удалось загрузить историю.</div>'; if($("historyStats")) $("historyStats").innerHTML=""; }
   }
   function renderHistory(rows){
     const root=$("historyList");
@@ -1419,41 +1580,66 @@ button,a,input,select,textarea,label{touch-action:manipulation}
             <div>
               <span class="history-service">${escapeHtml(r.service)}</span>
               <span class="history-date"> · ${r.shift_date}</span>
-              <span class="tag bad">аннулирована</span>
             </div>
           </div>
+          <div class="history-status-line bad">АННУЛИРОВАНА</div>
           <div class="history-grid">
             <div class="history-cell">
               <b>Была открыта</b>
               ${escapeHtml(r.opened_by||"—")} · ${formatMoscowTime(r.opened_at)}
+              ${historySourceText(r,"open")?`<div class="history-source">${escapeHtml(historySourceText(r,"open"))}</div>`:""}
             </div>
             <div class="history-cell">
-              <b>Аннулирована</b>
-              ${formatMoscowTime(r.voided_at)}<br>
-              <span>${escapeHtml(r.void_reason||"Аннулировано администратором")}</span>
+              <b>Аннулирование</b>
+              ${formatMoscowTime(r.voided_at)}
+              <div class="history-source">Кем: ${escapeHtml(r.voided_by||"Администратор")}</div>
+              <div class="history-source">${escapeHtml(r.void_reason||"Причина не указана")}</div>
             </div>
           </div>
         </div>`;
       }
 
-      const openLate=(r.open_late_minutes||0)>0
-        ? `<span class="tag late">+${r.open_late_minutes} мин</span>`
+      const late=(r.open_late_minutes||0)>0;
+      const early=(r.early_close_minutes||0)>0;
+      const unclosed=r.opened_at&&!r.closed_at;
+
+      let statusText="СМЕНА ЗАКРЫТА";
+      let statusClass="ok";
+      if(unclosed){ statusText="СМЕНА НЕ ЗАКРЫТА"; statusClass="bad"; }
+      else if(late || early){ statusText="ЕСТЬ НАРУШЕНИЕ"; statusClass="warn"; }
+
+      const openLate=late
+        ? `<span class="tag late">опоздание +${r.open_late_minutes} мин</span>`
         : '<span class="tag ok">вовремя</span>';
       const closeTag=r.closed_at
-        ? '<span class="tag ok">закрыта</span>'
+        ? (early ? `<span class="tag late">раньше на ${r.early_close_minutes} мин</span>` : '<span class="tag ok">закрыта</span>')
         : '<span class="tag bad">не закрыта</span>';
+
       const mismatch=r.opened_by&&r.expected_manager&&r.opened_by!==r.expected_manager
-        ? `<div class="mismatch">По графику был: ${escapeHtml(r.expected_manager)}</div>`
+        ? `<div class="mismatch">По графику менеджер: ${escapeHtml(r.expected_manager)}</div>`
         : "";
+
+      const openSource=historySourceText(r,"open");
+      const closeSource=historySourceText(r,"close");
 
       return `<div class="history-item">
         <div class="history-top">
           <div><span class="history-service">${escapeHtml(r.service)}</span><span class="history-date"> · ${r.shift_date}</span></div>
           ${isAdmin()?`<button class="edit-shift-btn" data-id="${r.id}">Исправить</button>`:""}
         </div>
+        <div class="history-status-line ${statusClass}">${statusText}</div>
         <div class="history-grid">
-          <div class="history-cell"><b>Открытие ${openLate}</b>${escapeHtml(r.opened_by||"—")} · ${formatMoscowTime(r.opened_at)}${mismatch}</div>
-          <div class="history-cell"><b>Закрытие ${closeTag}</b>${escapeHtml(r.closed_by||"—")} · ${formatMoscowTime(r.closed_at)}</div>
+          <div class="history-cell">
+            <b>Открытие ${openLate}</b>
+            ${escapeHtml(r.opened_by||"—")} · ${formatMoscowTime(r.opened_at)}
+            ${mismatch}
+            ${openSource?`<div class="history-source">${escapeHtml(openSource)}</div>`:""}
+          </div>
+          <div class="history-cell">
+            <b>Закрытие ${closeTag}</b>
+            ${escapeHtml(r.closed_by||"—")} · ${formatMoscowTime(r.closed_at)}
+            ${closeSource?`<div class="history-source">${escapeHtml(closeSource)}</div>`:""}
+          </div>
         </div>
       </div>`;
     }).join("");
@@ -2280,8 +2466,10 @@ button,a,input,select,textarea,label{touch-action:manipulation}
   };
   $("employeePickerAdmin").onclick=()=>{ $("employeePickerModal").classList.add("hidden"); openLoginModal(); };
   $("refreshBtn").onclick=async()=>{ await syncFromCloud(true); await loadTodayShifts(false); };
-  $("refreshShiftsBtn").onclick=()=>loadTodayShifts(true);
   $("loadHistoryBtn").onclick=loadHistory;
+  document.querySelectorAll("#historyQuick [data-range]").forEach(btn=>{
+    btn.onclick=()=>setHistoryQuickRange(btn.dataset.range,true);
+  });
   $("savePinsBtn").onclick=saveManagerPins;
   $("pairDeviceBtn").onclick=pairCurrentDevice;
   $("enablePushBtn").onclick=enablePush;
@@ -2328,6 +2516,9 @@ button,a,input,select,textarea,label{touch-action:manipulation}
     }
     lastTouchEndForZoom=now;
   },{passive:false});
+
+  window.addEventListener("online",()=>{ setCloudStatus(cloudConfigured()?"Онлайн":"Локально",cloudConfigured()?"online":"offline"); syncFromCloud(false); loadTodayShifts(false); });
+  window.addEventListener("offline",()=>{ setCloudStatus("Нет связи","offline"); });
 
   window.addEventListener("resize",()=>{
     const wasEmployee=document.body.classList.contains("employee-phone-mode");
