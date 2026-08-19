@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f5bd7">
+<title>Установить MA Смена</title>
+<link rel="manifest" href="./smena.webmanifest">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<style>
+:root{--bg:#f4f7fb;--text:#162033;--muted:#64748b;--blue:#0f5bd7;--line:#dbe5f2}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text)}
+body{padding:24px}
+.wrap{max-width:520px;margin:35px auto}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:0 12px 36px rgba(28,64,120,.10)}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.icon{width:58px;height:58px;border-radius:16px;background:var(--blue);color:#fff;font-weight:900;font-size:22px;display:flex;align-items:center;justify-content:center}
+h1{margin:0;font-size:24px;color:var(--blue)}
+.sub{margin:4px 0 0;color:var(--muted);font-size:13px}
+.info{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px;font-size:13px;line-height:1.55;margin-bottom:14px}
+button{width:100%;min-height:52px;border-radius:14px;border:1px solid var(--line);font-size:16px;font-weight:900;cursor:pointer}
+.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.secondary{margin-top:8px;background:#fff;color:var(--text)}
+.state{font-size:12px;line-height:1.45;color:var(--muted);margin-top:12px;text-align:center}
+.state.ok{color:#166534}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="logo">
+      <div class="icon">MA</div>
+      <div>
+        <h1>MA Смена</h1>
+        <div class="sub">Приложение для рабочего компьютера</div>
+      </div>
+    </div>
+
+    <div class="info">
+      После установки MA Смена будет открываться отдельным окном без вкладок браузера.
+      Она использует тот же сайт и ту же регистрацию рабочего компьютера.
+    </div>
+
+    <button class="primary" id="installBtn">Установить MA Смена</button>
+    <button class="secondary" id="testBtn">Открыть MA Смена без установки</button>
+    <div class="state" id="state">Подготавливаем установку…</div>
+  </div>
+</div>
+
+<script>
+let deferredPrompt=null;
+const installBtn=document.getElementById("installBtn");
+const state=document.getElementById("state");
+
+function standalone(){
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true;
+}
+
+function render(){
+  if(standalone()){
+    installBtn.disabled=true;
+    installBtn.textContent="MA Смена уже установлена";
+    state.textContent="Приложение уже запущено в отдельном режиме.";
+    state.className="state ok";
+    return;
+  }
+  if(deferredPrompt){
+    installBtn.disabled=false;
+    installBtn.textContent="Установить MA Смена";
+    state.textContent="Chrome готов установить приложение.";
+    state.className="state ok";
+  }else{
+    installBtn.disabled=false;
+    state.textContent="Если кнопка не вызовет окно установки: Chrome ⋮ → «Установить приложение».";
+    state.className="state";
+  }
+}
+
+window.addEventListener("beforeinstallprompt",(event)=>{
+  event.preventDefault();
+  deferredPrompt=event;
+  render();
+});
+
+window.addEventListener("appinstalled",()=>{
+  deferredPrompt=null;
+  installBtn.disabled=true;
+  installBtn.textContent="MA Смена установлена";
+  state.textContent="Готово. Приложение появится в меню Пуск и среди приложений Chrome.";
+  state.className="state ok";
+});
+
+installBtn.addEventListener("click",async()=>{
+  if(standalone()) return;
+  if(deferredPrompt){
+    const p=deferredPrompt;
+    deferredPrompt=null;
+    p.prompt();
+    const result=await p.userChoice;
+    if(result.outcome==="accepted"){
+      state.textContent="Установка выполнена.";
+      state.className="state ok";
+    }
+    render();
+    return;
+  }
+  alert("Если системное окно не появилось:\n\nОткрой меню Chrome ⋮ → «Установить приложение».");
+});
+
+document.getElementById("testBtn").addEventListener("click",()=>{
+  location.href="./?startup=1";
+});
+
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("./sw.js").catch(()=>{});
+}
+render();
+</script>
+</body>
+</html>
