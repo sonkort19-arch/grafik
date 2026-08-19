@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f5bd7">
-<title>MA График — Смены онлайн</title>
+<title>MA График</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230f5bd7'/%3E%3Ctext x='50' y='63' text-anchor='middle' font-size='42' font-family='Arial' font-weight='700' fill='white'%3EMA%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -1055,6 +1055,8 @@ body{min-height:100dvh}
   const MONTHS = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
   const WD = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
   const STORAGE_KEY = "ma_schedule_22_v2";
+  const DEVICE_VIEW_CACHE_KEY = "ma_device_view_cache_v1";
+  const TODAY_SHIFT_CACHE_KEY = "ma_today_shift_cache_v1";
 
   // === ОБЩИЙ ОНЛАЙН-ГРАФИК ===
   // Вставь сюда данные Supabase перед загрузкой файла в Vercel.
@@ -1097,6 +1099,10 @@ body{min-height:100dvh}
   let lastCloudUpdatedAt = null;
   let syncTimer = null;
   let shiftPollTimer = null;
+  let cloudSyncPromise = null;
+  let todayShiftRequestPromise = null;
+  let lastCloudFetchAt = 0;
+  let lastTodayShiftFetchAt = 0;
   let currentShiftRows = [];
   let pendingShiftAction = null;
   let editingShiftRow = null;
@@ -1123,6 +1129,51 @@ body{min-height:100dvh}
 
   function stableJson(value){
     try{ return JSON.stringify(value); }catch(e){ return ""; }
+  }
+
+  function loadCachedDeviceView(){
+    try{
+      const raw=JSON.parse(localStorage.getItem(DEVICE_VIEW_CACHE_KEY)||"null");
+      if(!raw?.device?.service || !loadShiftDeviceToken()) return null;
+      if(Date.now()-Number(raw.savedAt||0)>1000*60*60*24*30) return null;
+      return {allowed:true,device:raw.device,verified:false,cached:true};
+    }catch(e){ return null; }
+  }
+
+  function saveCachedDeviceView(device){
+    try{
+      if(device?.service){
+        localStorage.setItem(DEVICE_VIEW_CACHE_KEY,JSON.stringify({
+          savedAt:Date.now(),
+          device:{
+            id:device.id||"",
+            service:String(device.service),
+            label:device.label?String(device.label):""
+          }
+        }));
+      }else{
+        localStorage.removeItem(DEVICE_VIEW_CACHE_KEY);
+      }
+    }catch(e){}
+  }
+
+  function loadCachedTodayShifts(){
+    try{
+      const raw=JSON.parse(localStorage.getItem(TODAY_SHIFT_CACHE_KEY)||"null");
+      const today=moscowParts().date;
+      if(raw?.date!==today || !Array.isArray(raw.rows)) return [];
+      return raw.rows;
+    }catch(e){ return []; }
+  }
+
+  function saveCachedTodayShifts(date,rows){
+    try{
+      localStorage.setItem(TODAY_SHIFT_CACHE_KEY,JSON.stringify({
+        date,
+        savedAt:Date.now(),
+        rows:Array.isArray(rows)?rows:[]
+      }));
+    }catch(e){}
   }
 
   function loadShiftDeviceToken(){
@@ -1247,7 +1298,12 @@ body{min-height:100dvh}
   }
   function canUseShiftService(service){
     if(isAdmin()) return true;
-    return !!(currentDeviceAccess.allowed && currentDeviceAccess.device && currentDeviceAccess.device.service===service);
+    return !!(
+      currentDeviceAccess.allowed &&
+      currentDeviceAccess.device &&
+      currentDeviceAccess.device.service===service &&
+      currentDeviceAccess.verified!==false
+    );
   }
 
   function allEmployeeNames(){
@@ -1463,7 +1519,6 @@ body{min-height:100dvh}
       }
 
       renderTodayShifts();
-      renderMonth();
       return;
     }
 
@@ -1572,58 +1627,73 @@ body{min-height:100dvh}
 
   async function syncFromCloud(showToast=false){
     if(!cloudConfigured()){
-      setCloudStatus("Локально","offline"); updateCloudSettingsState();
-      if(showToast) toast("Supabase ещё не подключён"); return false;
-    }
-    if(settingsDirty && !$("settingsPage").classList.contains("hidden")){
-      if(showToast) toast("Есть несохранённые изменения"); return false;
+      setCloudStatus("Локально","offline");
+      updateCloudSettingsState();
+      if(showToast) toast("Supabase ещё не подключён");
+      return false;
     }
 
-    // При тихой фоновой проверке не меняем надпись "Онлайн" на
-    // "Синхронизация…", чтобы верхняя часть страницы не дёргалась.
-    if(showToast) setCloudStatus("Синхронизация…","syncing");
+    if(settingsDirty && !$("settingsPage").classList.contains("hidden")){
+      if(showToast) toast("Есть несохранённые изменения");
+      return false;
+    }
+
+    const nowMs=Date.now();
+    if(!showToast && nowMs-lastCloudFetchAt<15000) return true;
+    if(cloudSyncPromise) return cloudSyncPromise;
+
+    cloudSyncPromise=(async()=>{
+      if(showToast) setCloudStatus("Синхронизация…","syncing");
+
+      try{
+        const res=await authFetch(`/rest/v1/${CLOUD_TABLE}?id=eq.${encodeURIComponent(CLOUD_ROW_ID)}&select=settings,updated_at`,{method:"GET"});
+        if(!res.ok) throw new Error(await res.text());
+        const rows=await res.json();
+        lastCloudFetchAt=Date.now();
+
+        if(rows && rows[0] && rows[0].settings && Object.keys(rows[0].settings).length){
+          const remoteSettings=mergeRemoteSettings(rows[0].settings);
+          const remoteSignature=stableJson(remoteSettings);
+          const localSignature=stableJson(settings);
+          const settingsChanged=remoteSignature!==localSignature;
+
+          lastCloudUpdatedAt=rows[0].updated_at || lastCloudUpdatedAt;
+
+          if(settingsChanged){
+            const y=window.scrollY;
+            settings=remoteSettings;
+            localStorage.setItem(STORAGE_KEY,JSON.stringify(settings));
+            lastSettingsSignature=remoteSignature;
+            if(!userSelectedMonth) currentIndex=getCurrentMonthIndex();
+
+            if(!$("settingsPage").classList.contains("hidden")) populateSettings();
+            if(!$("schedulePage").classList.contains("hidden")) renderMonth();
+            if(isEmployeePhoneMode()) renderEmployeePages();
+            if(!$("adminTodayPage").classList.contains("hidden")) renderTodayShifts();
+
+            if(isEmployeePhoneMode() && !selectedEmployee()) openEmployeePicker();
+            restoreScrollAfterRender(y);
+          }else{
+            lastSettingsSignature=remoteSignature;
+          }
+        }
+
+        setCloudStatus("Онлайн","online");
+        updateCloudSettingsState();
+        if(showToast) toast("Общий график обновлён");
+        return true;
+      }catch(e){
+        console.error(e);
+        setCloudStatus("Нет связи","offline");
+        if(showToast) toast("Не удалось загрузить общий график");
+        return false;
+      }
+    })();
 
     try{
-      const res=await authFetch(`/rest/v1/${CLOUD_TABLE}?id=eq.${encodeURIComponent(CLOUD_ROW_ID)}&select=settings,updated_at`,{method:"GET"});
-      if(!res.ok) throw new Error(await res.text());
-      const rows=await res.json();
-
-      if(rows && rows[0] && rows[0].settings && Object.keys(rows[0].settings).length){
-        const remoteSettings=mergeRemoteSettings(rows[0].settings);
-        const remoteSignature=stableJson(remoteSettings);
-        const localSignature=stableJson(settings);
-        const settingsChanged=remoteSignature!==localSignature;
-
-        lastCloudUpdatedAt=rows[0].updated_at || lastCloudUpdatedAt;
-
-        if(settingsChanged){
-          const y=window.scrollY;
-          settings=remoteSettings;
-          localStorage.setItem(STORAGE_KEY,JSON.stringify(settings));
-          lastSettingsSignature=remoteSignature;
-          if(!userSelectedMonth) currentIndex=getCurrentMonthIndex();
-          populateSettings();
-          renderMonth();
-          if(isEmployeePhoneMode() && !selectedEmployee()) openEmployeePicker();
-          restoreScrollAfterRender(y);
-        }else{
-          lastSettingsSignature=remoteSignature;
-          // Ничего не перерисовываем: данные те же.
-         
-        }
-      }
-
-      setCloudStatus("Онлайн","online");
-     
-      updateCloudSettingsState();
-      if(showToast) toast("Общий график обновлён");
-      return true;
-    }catch(e){
-      console.error(e);
-      setCloudStatus("Нет связи","offline");
-     
-      if(showToast) toast("Не удалось загрузить общий график");
-      return false;
+      return await cloudSyncPromise;
+    }finally{
+      cloudSyncPromise=null;
     }
   }
 
@@ -1687,7 +1757,8 @@ body{min-height:100dvh}
     const token=loadShiftDeviceToken();
 
     if(!token){
-      currentDeviceAccess={allowed:false,device:null};
+      saveCachedDeviceView(null);
+      currentDeviceAccess={allowed:false,device:null,verified:false};
       renderDevicePanel();
       renderTodayShifts();
       applyUserMode();
@@ -1702,7 +1773,8 @@ body{min-height:100dvh}
       // При запуске Windows Chrome/IndexedDB/интернет могут быть ещё не готовы.
       // Раньше временный сбой мог стереть локальную привязку устройства.
       if(!keyRecord?.privateKey){
-        currentDeviceAccess={allowed:false,device:null};
+        saveCachedDeviceView(null);
+        currentDeviceAccess={allowed:false,device:null,verified:false};
         renderDevicePanel();
         renderTodayShifts();
         applyUserMode();
@@ -1718,16 +1790,19 @@ body{min-height:100dvh}
       });
 
       if(data.allowed && data.device){
-        currentDeviceAccess={allowed:true,device:data.device};
+        currentDeviceAccess={allowed:true,device:data.device,verified:true,cached:false};
+        saveCachedDeviceView(data.device);
       }else{
-        // Сервер не подтвердил устройство, но локальную регистрацию
-        // не уничтожаем. Администратор сам может перепривязать/отключить.
-        currentDeviceAccess={allowed:false,device:null};
+        // Сервер явно не подтвердил устройство — кеш больше не используем.
+        saveCachedDeviceView(null);
+        currentDeviceAccess={allowed:false,device:null,verified:false};
       }
     }catch(e){
       console.error("device-status",e);
-      // Временная ошибка сети/Chrome не должна сбрасывать привязку.
-      currentDeviceAccess={allowed:false,device:null};
+      // При временной ошибке оставляем кешированный режим точки,
+      // но открытие/закрытие смены будет недоступно до серверной проверки.
+      const cached=loadCachedDeviceView();
+      currentDeviceAccess=cached || {allowed:false,device:null,verified:false};
     }
 
     renderDevicePanel();
@@ -1757,7 +1832,9 @@ body{min-height:100dvh}
     if(currentDeviceAccess.allowed && currentDeviceAccess.device){
       const d=currentDeviceAccess.device;
       state.className="device-state ok";
-      state.innerHTML=`<b>Это устройство разрешено.</b><br>${escapeHtml(d.service)} · ${escapeHtml(d.label||"Устройство сервиса")}`;
+      state.innerHTML=currentDeviceAccess.verified===false
+        ? `<b>Устройство найдено.</b><br>${escapeHtml(d.service)} · проверяем доступ…`
+        : `<b>Это устройство разрешено.</b><br>${escapeHtml(d.service)} · ${escapeHtml(d.label||"Устройство сервиса")}`;
     }else{
       state.className="device-state bad";
       state.innerHTML='<b>Это устройство не зарегистрировано.</b><br>Сотрудник с этого телефона или компьютера не сможет открыть/закрыть смену.';
@@ -1805,7 +1882,8 @@ body{min-height:100dvh}
       },{admin:true});
 
       saveShiftDeviceToken(data.deviceToken);
-      currentDeviceAccess={allowed:true,device:data.device};
+      currentDeviceAccess={allowed:true,device:data.device,verified:true,cached:false};
+      saveCachedDeviceView(data.device);
 
       await loadRegisteredDevices();
       renderTodayShifts();
@@ -1825,7 +1903,8 @@ body{min-height:100dvh}
       await shiftFunction({op:"revoke-device",id},{admin:true});
       if(currentDeviceAccess.device && String(currentDeviceAccess.device.id)===String(id)){
         saveShiftDeviceToken("");
-        currentDeviceAccess={allowed:false,device:null};
+        saveCachedDeviceView(null);
+        currentDeviceAccess={allowed:false,device:null,verified:false};
       }
       await loadRegisteredDevices();
       renderTodayShifts();
@@ -2202,40 +2281,58 @@ body{min-height:100dvh}
     }
   }
 
-  async function loadTodayShifts(showToast=false){
-    if(!cloudConfigured()) return;
-    const now=moscowParts();
-    const date=now.date;
-    try{
-      const res=await authFetch(`/rest/v1/${SHIFT_TABLE}?shift_date=eq.${date}&voided_at=is.null&select=*&order=service.asc`,{method:"GET"});
-      if(!res.ok) throw new Error(await res.text());
-      const newRows=await res.json();
+  async function loadTodayShifts(showToast=false,force=false){
+    if(!cloudConfigured()) return false;
 
-      // Включаем в сигнатуру только моменты, которые реально могут
-      // поменять карточку без изменения БД: до/после начала и конца смены.
-      const mins=now.hour*60+now.minute;
-      const startMins=shiftMinutes(settings.shiftStart);
-      const endMins=shiftMinutes(settings.shiftEnd);
-      const timePhase=mins<startMins ? "before" : (mins<endMins ? "during" : "after");
-      const signature=`${date}|${timePhase}|${stableJson(newRows)}`;
+    const nowMs=Date.now();
+    if(!force && !showToast && nowMs-lastTodayShiftFetchAt<8000) return true;
+    if(todayShiftRequestPromise) return todayShiftRequestPromise;
 
-      if(signature!==lastShiftSignature){
-        lastShiftSignature=signature;
-        currentShiftRows=newRows;
-        const y=window.scrollY;
-        renderTodayShifts();
-        renderEmployeePages();
-        restoreScrollAfterRender(y);
-      }else{
-        currentShiftRows=newRows;
-        if(isEmployeePhoneMode()) renderEmployeePages();
-        renderAdminAttention();
+    todayShiftRequestPromise=(async()=>{
+      const now=moscowParts();
+      const date=now.date;
+
+      try{
+        const res=await authFetch(`/rest/v1/${SHIFT_TABLE}?shift_date=eq.${date}&voided_at=is.null&select=*&order=service.asc`,{method:"GET"});
+        if(!res.ok) throw new Error(await res.text());
+        const newRows=await res.json();
+        lastTodayShiftFetchAt=Date.now();
+        saveCachedTodayShifts(date,newRows);
+
+        const mins=now.hour*60+now.minute;
+        const startMins=shiftMinutes(settings.shiftStart);
+        const endMins=shiftMinutes(settings.shiftEnd);
+        const timePhase=mins<startMins ? "before" : (mins<endMins ? "during" : "after");
+        const signature=`${date}|${timePhase}|${stableJson(newRows)}`;
+
+        if(signature!==lastShiftSignature){
+          lastShiftSignature=signature;
+          currentShiftRows=newRows;
+          const y=window.scrollY;
+
+          if(!$("adminTodayPage").classList.contains("hidden")) renderTodayShifts();
+          if(isEmployeePhoneMode() && employeeMobileView==="employeeToday") renderEmployeePages();
+          renderAdminAttention();
+
+          restoreScrollAfterRender(y);
+        }else{
+          currentShiftRows=newRows;
+          renderAdminAttention();
+        }
+
+        if(showToast) toast("Статус смен обновлён");
+        return true;
+      }catch(e){
+        console.error(e);
+        if(showToast) toast("Не удалось обновить смены");
+        return false;
       }
+    })();
 
-      if(showToast) toast("Статус смен обновлён");
-    }catch(e){
-      console.error(e);
-      if(showToast) toast("Не удалось обновить смены");
+    try{
+      return await todayShiftRequestPromise;
+    }finally{
+      todayShiftRequestPromise=null;
     }
   }
 
@@ -3111,10 +3208,19 @@ body{min-height:100dvh}
   function renderEmployeePages(){
     if(!isEmployeePhoneMode()) return;
     renderEmployeeIdentity();
+
+    if(employeeMobileView==="employeeMy"){
+      renderEmployeeMySchedule();
+      updateEmployeeReminderState();
+      return;
+    }
+
+    if(employeeMobileView==="employeeCalendar"){
+      renderEmployeeCalendar();
+      return;
+    }
+
     renderEmployeeToday();
-    renderEmployeeMySchedule();
-    renderEmployeeCalendar();
-    updateEmployeeReminderState();
   }
 
   function renderSelectors(){
@@ -3332,8 +3438,7 @@ body{min-height:100dvh}
       $("personalBtn").disabled=true;
     }
 
-    renderTodayShifts();
-    renderEmployeePages();
+    if(!$("adminTodayPage").classList.contains("hidden")) renderTodayShifts();
   }
 
   function serviceCard(title,key,rows){
@@ -3687,7 +3792,7 @@ body{min-height:100dvh}
     try{
       settings=s; currentIndex=getCurrentMonthIndex(); userSelectedMonth=false; saveSettings();
       if(cloudConfigured()) await saveToCloud(settings);
-      settingsDirty=false; renderMonth();
+      settingsDirty=false;
       setCloudStatus(cloudConfigured()?"Онлайн":"Локально",cloudConfigured()?"online":"offline");
       toast(cloudConfigured()?"График сохранён для всех":"Сохранено только на этом устройстве");
       switchTab("schedule");
@@ -3743,9 +3848,10 @@ body{min-height:100dvh}
     }
 
     if(adminToday){
-      loadTodayShifts(false);
+      renderTodayShifts();
       renderAdminAttention();
-      }
+      loadTodayShifts(false);
+    }
     if(sett){
       settingsDirty=false;
       populateSettings();
@@ -3759,7 +3865,6 @@ body{min-height:100dvh}
     }
     if(sched){
       renderMonth();
-      loadTodayShifts(false);
     }
 
     window.scrollTo({top:0,behavior:"smooth"});
@@ -4058,47 +4163,70 @@ body{min-height:100dvh}
     if(isStartupShiftMode()) document.body.classList.add("startup-shift-mode");
 
     lastSettingsSignature=stableJson(settings);
-    populateSettings();
-    defaultHistoryDates();
-    renderMonth();
 
-    // Сначала определяем, что это за устройство.
-    // Только после этого показываем интерфейс — поэтому Моба/Нова больше не мигают.
-    try{
-      await refreshDeviceAccess();
-    }catch(e){
-      console.error("initial device check",e);
+    // Сразу поднимаем последние данные из телефона/компьютера.
+    currentShiftRows=loadCachedTodayShifts();
+    const cachedDevice=loadCachedDeviceView();
+    if(cachedDevice) currentDeviceAccess=cachedDevice;
+
+    // Если это уже известное устройство — показываем правильный экран сразу.
+    // Если токен есть, но кеша ещё нет (первый запуск после обновления),
+    // один раз ждём проверку, чтобы Моба/Нова не мигали.
+    const hasDeviceToken=!!loadShiftDeviceToken();
+    if(hasDeviceToken && !cachedDevice){
+      try{
+        await refreshDeviceAccess();
+      }catch(e){
+        console.error("initial device check",e);
+      }
     }
 
     updateAuthUI();
     applyUserMode();
     switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday");
-
-    try{
-      await loadTodayShifts(false);
-    }catch(e){
-      console.error("initial shifts",e);
-    }
-
-    if(isStartupShiftMode()) renderStartupShiftWindow();
     document.body.classList.remove("app-booting");
 
+    // Всё сетевое — уже после показа интерфейса.
     registerServiceWorker().then(()=>{ updatePushState(); updateInstallUI(); });
     updateInstallUI();
 
-    if(isAdmin()) loadRegisteredDevices();
+    const backgroundTasks=[];
 
-    shiftPollTimer=setInterval(()=>loadTodayShifts(false),SHIFT_POLL_MS);
+    if(!hasDeviceToken || cachedDevice){
+      backgroundTasks.push(refreshDeviceAccess());
+    }
+
+    backgroundTasks.push(loadTodayShifts(false,true));
+
+    if(isAdmin()) backgroundTasks.push(loadRegisteredDevices());
 
     if(cloudConfigured()){
-      syncFromCloud(false);
-      syncTimer=setInterval(()=>syncFromCloud(false),SYNC_INTERVAL_MS);
-      window.addEventListener("focus",()=>{ syncFromCloud(false); loadTodayShifts(false); });
-      document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ syncFromCloud(false); loadTodayShifts(false); } });
+      backgroundTasks.push(syncFromCloud(false));
+
+      syncTimer=setInterval(()=>{
+        if(!document.hidden) syncFromCloud(false);
+      },SYNC_INTERVAL_MS);
+
+      shiftPollTimer=setInterval(()=>{
+        if(!document.hidden) loadTodayShifts(false);
+      },SHIFT_POLL_MS);
+
+      const refreshForegroundData=()=>{
+        syncFromCloud(false);
+        loadTodayShifts(false);
+      };
+
+      window.addEventListener("focus",refreshForegroundData);
+      document.addEventListener("visibilitychange",()=>{
+        if(!document.hidden) refreshForegroundData();
+      });
     }else{
       setCloudStatus("Локально","offline");
-     
     }
+
+    Promise.allSettled(backgroundTasks).then(()=>{
+      if(isStartupShiftMode()) renderStartupShiftWindow();
+    });
   }
 
   initApp().catch(e=>{
