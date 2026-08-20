@@ -1571,6 +1571,127 @@ body{padding-bottom:88px}
   .wallet-card-stat b{margin-top:0;text-align:right}
 }
 
+
+
+/* =========================================================
+   Кошельки 4.0 — быстрый ежедневный бюджет
+   Только UX: финансовая математика и схема данных не меняются.
+   ========================================================= */
+.wallets-shell{gap:10px}
+.wallets-head{align-items:center}
+.wallets-title-block{min-width:0}
+.wallets-sub{font-size:12px}
+.wallet-cloud-line{display:flex;align-items:center;gap:6px;margin-top:5px;min-height:28px}
+.wallet-cloud-line .wallet-cloud-state{display:inline;margin:0;min-width:0}
+.wallet-sync-icon{width:30px;height:30px;min-height:30px;padding:0;border-radius:9px;font-size:18px;line-height:1;flex:0 0 30px}
+.wallet-head-actions{flex-wrap:nowrap}
+.wallet-head-actions #walletPlanBtn{min-height:40px;padding:8px 12px}
+
+.wallet-overview-card{border:1px solid #cfe8d7;background:#f4fbf6;border-radius:16px;padding:15px}
+.wallet-overview-caption{display:block;color:#52705d;font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.02em}
+.wallet-overview-total{display:block;margin-top:4px;color:#14532d;font-size:30px;line-height:1.08;letter-spacing:-.025em}
+.wallet-overview-state{display:inline-flex;margin-top:8px;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:850;line-height:1.2}
+.wallet-overview-state.good{background:#dcfce7;color:#166534}
+.wallet-overview-state.warn{background:#ffedd5;color:#9a3412}
+.wallet-overview-state.neutral{background:#edf2f7;color:#475569}
+.wallet-overview-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:12px}
+.wallet-overview-grid>div{border:1px solid rgba(82,112,93,.16);background:rgba(255,255,255,.66);border-radius:10px;padding:8px;min-width:0}
+.wallet-overview-grid span{display:block;color:#64748b;font-size:9px}
+.wallet-overview-grid b{display:block;margin-top:3px;color:#24344d;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.wallet-month-compact{padding:8px 10px}
+.wallet-month-compact .wallet-month-head{margin:0}
+.wallet-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:2px}
+.wallet-list-head h3{margin:0;color:#24344d;font-size:16px}
+.wallet-filter{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none}
+.wallet-filter::-webkit-scrollbar{display:none}
+.wallet-filter button{border:1px solid var(--line);background:#fff;color:#64748b;border-radius:999px;min-height:34px;padding:6px 10px;font-size:11px;font-weight:850;white-space:nowrap}
+.wallet-filter button.active{background:#eaf2ff;border-color:#bfdbfe;color:#0f5bd7}
+
+.wallet-card{padding:12px;transition:border-color .15s,box-shadow .15s}
+.wallet-card-top{align-items:center}
+.wallet-card h3{font-size:15px;line-height:1.2}
+.wallet-card-balance{margin-top:6px;font-size:21px}
+.wallet-card-plan-main{margin-top:7px}
+.wallet-card-plan-line{display:flex;justify-content:space-between;gap:8px;color:#64748b;font-size:10px;line-height:1.3}
+.wallet-card-plan-line b{color:#334155;white-space:nowrap}
+.wallet-plan-progress{height:6px;background:#e7edf3;border-radius:99px;overflow:hidden;margin-top:6px}
+.wallet-plan-progress i{display:block;height:100%;background:#0f5bd7;border-radius:99px}
+.wallet-card.savings .wallet-plan-progress i{background:#22a35a}
+.wallet-card.insurance .wallet-card-plan{font-size:11px;color:#52705d}
+.wallet-card.insurance .wallet-card-stats{margin-top:8px}
+.wallet-card-more{margin-top:8px;border-top:1px solid #edf0f4;padding-top:7px}
+.wallet-card-more>summary{cursor:pointer;list-style:none;color:#64748b;font-size:10px;font-weight:850;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.wallet-card-more>summary::-webkit-details-marker{display:none}
+.wallet-card-more>summary::after{content:"+";font-size:14px;color:#94a3b8}
+.wallet-card-more[open]>summary::after{content:"−"}
+.wallet-card-more .wallet-card-stats{margin-top:7px}
+.wallet-card-actions{margin-top:9px}
+.wallet-goal{margin-top:8px;padding-top:8px}
+.wallet-protected{padding:2px 5px;font-size:8px}
+
+.wallet-history-compact{padding:12px}
+.wallet-history-compact .wallet-history-head{align-items:center;margin-bottom:8px}
+.wallet-full-history-btn{min-height:36px;padding:7px 10px;font-size:10px;white-space:nowrap}
+.wallet-history-menu{position:relative;margin-top:7px;padding-top:7px;border-top:1px solid #edf0f4}
+.wallet-history-menu>summary{cursor:pointer;list-style:none;margin-left:auto;width:34px;height:30px;border:1px solid var(--line);border-radius:8px;display:grid;place-items:center;font-size:18px;font-weight:900;color:#475569;background:#fff}
+.wallet-history-menu>summary::-webkit-details-marker{display:none}
+.wallet-history-menu-actions{display:flex;justify-content:flex-end;gap:5px;margin-top:6px;flex-wrap:wrap}
+.wallet-history-menu-actions button{min-height:34px;padding:6px 9px;font-size:10px}
+.wallet-history-sheet{max-height:calc(100dvh - 24px)}
+.wallet-history-full-list{margin-top:10px;padding-bottom:6px}
+
+.wallet-plan-sheet{position:relative}
+.wallet-plan-sticky{position:sticky;top:-16px;z-index:5;margin:10px -4px 0;padding:10px 12px;border:1px solid #bfdbfe;border-radius:12px;background:rgba(239,246,255,.97);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.wallet-plan-sticky span{font-size:11px;color:#475569;font-weight:800}
+.wallet-plan-sticky b{font-size:18px;color:#0f5bd7;white-space:nowrap}
+.wallet-strategy-field{margin-top:12px}
+.wallet-strategy-help{display:block;color:#64748b;font-size:10px;line-height:1.4;margin-top:2px}
+.wallet-plan-list{gap:12px}
+.wallet-plan-group{display:grid;gap:6px}
+.wallet-plan-group-title{font-size:10px;font-weight:900;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.wallet-plan-row{grid-template-columns:minmax(0,1fr) 145px;gap:10px;min-height:42px}
+.wallet-plan-row label{font-size:12px}
+.wallet-plan-row input{min-height:40px;text-align:right;font-weight:800}
+.wallet-modal-total{font-size:18px;font-weight:900;color:#0f5bd7}
+
+.wallet-danger-details{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.wallet-danger-details>summary{cursor:pointer;color:#991b1b;font-size:12px;font-weight:850}
+.wallet-danger-details .wallet-reset-box{margin-top:9px}
+.wallet-manage-main span{font-size:10px}
+.wallet-manage-actions [data-wallet-move]{width:36px;padding:5px;flex:0 0 36px}
+.wallet-edit-type-grid.priority-hidden{grid-template-columns:1fr}
+.wallet-edit-type-grid.priority-hidden #walletEditPriorityField{display:none}
+
+@media(max-width:760px){
+  .wallets-head{flex-direction:row;align-items:flex-start}
+  .wallet-head-actions{width:auto;display:flex}
+  .wallet-head-actions #walletPlanBtn{width:auto;min-height:40px;font-size:12px!important}
+  .wallet-overview-card{padding:13px}
+  .wallet-overview-total{font-size:28px}
+  .wallet-overview-grid{grid-template-columns:1fr 1fr;gap:6px}
+  .wallet-overview-grid>div{padding:8px}
+  .wallet-list-head{align-items:flex-start;flex-direction:column;gap:7px}
+  .wallet-filter{width:100%}
+  .wallet-filter button{flex:1;min-height:38px}
+  .wallet-card{padding:11px}
+  .wallet-card-actions button{min-height:44px!important;font-size:13px!important}
+  .wallet-card-more>summary{min-height:34px}
+  .wallet-full-history-btn{min-height:40px;font-size:11px}
+  .wallet-plan-sticky{top:-16px}
+  .wallet-plan-row{grid-template-columns:minmax(0,1fr) 120px;gap:8px}
+  .wallet-plan-row input{min-height:44px}
+  #walletFullHistoryModal .sheet{max-height:calc(100dvh - 16px);overflow-y:auto}
+}
+@media(max-width:360px){
+  .wallets-head{flex-direction:column}
+  .wallet-head-actions{width:100%}
+  .wallet-head-actions #walletPlanBtn{width:100%}
+  .wallet-overview-grid{grid-template-columns:1fr}
+  .wallet-plan-row{grid-template-columns:1fr}
+  .wallet-plan-row input{text-align:left}
+}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1809,34 +1930,36 @@ body{padding-bottom:88px}
     <section id="walletsPage" class="hidden">
       <div class="wallets-shell">
         <div class="wallets-head">
-          <div>
+          <div class="wallets-title-block">
             <h2>Кошельки</h2>
-            <div class="wallets-sub">Личный бюджет: месячные планы, расходы, накопления и переводы.</div>
-            <span class="wallet-cloud-state" id="walletCloudState">Облако: проверяем…</span>
+            <div class="wallets-sub">Личный бюджет на месяц</div>
+            <div class="wallet-cloud-line">
+              <span class="wallet-cloud-state" id="walletCloudState">Облако: проверяем…</span>
+              <button class="secondary wallet-sync-icon" id="walletSyncBtn" type="button" aria-label="Обновить кошельки из облака" title="Обновить из облака">↻</button>
+            </div>
           </div>
           <div class="wallet-head-actions">
-            <button class="secondary" id="walletSyncBtn">Обновить</button>
             <button class="secondary" id="walletPlanBtn">Управление</button>
           </div>
         </div>
 
-        <div class="wallet-total-card">
-          <span>Всего во всех кошельках</span>
-          <b id="walletsTotal">0 ₽</b>
-          <small id="walletsInsurance">Страховка: 0 ₽</small>
+        <div class="wallet-overview-card">
+          <span class="wallet-overview-caption" id="walletOverviewLabel">Всего денег</span>
+          <b class="wallet-overview-total" id="walletsTotal">0 ₽</b>
+          <div class="wallet-overview-state neutral" id="walletOverviewState">Считаем планы месяца…</div>
+          <div class="wallet-overview-grid">
+            <div><span id="walletOverviewStat1Label">План месяца</span><b id="walletOverviewStat1Value">0 ₽</b></div>
+            <div><span id="walletOverviewStat2Label">Распределено</span><b id="walletOverviewStat2Value">0 ₽</b></div>
+            <div><span id="walletOverviewStat3Label">Осталось закрыть</span><b id="walletOverviewStat3Value">0 ₽</b></div>
+            <div><span id="walletOverviewStat4Label">Страховка</span><b id="walletOverviewStat4Value">0 ₽</b></div>
+          </div>
         </div>
 
-        <div class="wallet-month-card">
+        <div class="wallet-month-card wallet-month-compact">
           <div class="wallet-month-head">
             <button class="secondary wallet-month-nav" id="walletMonthPrev" aria-label="Предыдущий месяц">‹</button>
-            <div><b id="walletMonthLabel">—</b><span>Итоги месяца</span></div>
+            <div><b id="walletMonthLabel">—</b><span>Просмотр месяца</span></div>
             <button class="secondary wallet-month-nav" id="walletMonthNext" aria-label="Следующий месяц">›</button>
-          </div>
-          <div class="wallet-month-stats">
-            <div><span>Получено</span><b id="walletMonthReceived">0 ₽</b></div>
-            <div><span>Распределено</span><b id="walletMonthDistributed">0 ₽</b></div>
-            <div><span>Потрачено</span><b id="walletMonthSpent">0 ₽</b></div>
-            <div><span id="walletMonthRemainingLabel">Баланс</span><b id="walletMonthRemaining">0 ₽</b></div>
           </div>
         </div>
 
@@ -1847,28 +1970,22 @@ body{padding-bottom:88px}
           <button class="secondary" id="openWalletTransfer">Перевести</button>
         </div>
 
+        <div class="wallet-list-head">
+          <h3>Кошельки</h3>
+          <div class="wallet-filter" id="walletFilterButtons" role="group" aria-label="Фильтр кошельков">
+            <button type="button" class="active" data-wallet-filter="all">Все</button>
+            <button type="button" data-wallet-filter="expense">Расходы</button>
+            <button type="button" data-wallet-filter="savings">Накопления</button>
+          </div>
+        </div>
         <div class="wallet-grid" id="walletsGrid"></div>
 
-        <div class="wallet-history-card">
+        <div class="wallet-history-card wallet-history-compact">
           <div class="wallet-history-head">
-            <div><h3>История</h3><span>Последние действия и исправления</span></div>
-            <button class="secondary wallet-undo-btn" id="undoLastWalletOperation">Отменить последнюю</button>
+            <div><h3>Последние операции</h3><span>Три последних действия</span></div>
+            <button class="secondary wallet-full-history-btn" id="openWalletFullHistory">Вся история</button>
           </div>
           <div class="wallet-history-list" id="walletRecentList"></div>
-          <details class="wallet-full-history">
-            <summary>Вся история и фильтры</summary>
-            <div class="wallet-history-filters">
-              <select id="walletHistoryType">
-                <option value="all">Все операции</option>
-                <option value="income">Поступления</option>
-                <option value="expense">Расходы</option>
-                <option value="transfer">Переводы</option>
-              </select>
-              <select id="walletHistoryWallet"><option value="all">Все кошельки</option></select>
-              <select id="walletHistoryMonth"><option value="all">Все месяцы</option></select>
-            </div>
-            <div class="wallet-history-list" id="walletHistoryList" style="margin-top:9px"></div>
-          </details>
         </div>
       </div>
     </section>
@@ -2085,18 +2202,22 @@ body{padding-bottom:88px}
 </div>
 
 <div class="modal hidden" id="walletPlanModal">
-  <div class="sheet">
+  <div class="sheet wallet-plan-sheet">
     <div class="sheet-head">
-      <div><h2>Месячные планы</h2><div class="employee-mode-note">План — сколько всего нужно выделить в кошелёк за месяц, а не за одно распределение.</div></div>
+      <div><h2>Месячные планы</h2><div class="employee-mode-note">Сколько всего нужно выделить в каждый кошелёк за месяц.</div></div>
       <button class="close" id="closeWalletPlan">×</button>
     </div>
-    <div class="field" style="margin-top:12px">
+    <div class="wallet-plan-sticky">
+      <span>Общий план месяца</span>
+      <b id="walletPlanTotal">0 ₽</b>
+    </div>
+    <div class="field wallet-strategy-field">
       <label>Если денег меньше незакрытых планов</label>
       <select id="walletDistributionStrategy"><option value="proportional">Распределять пропорционально</option><option value="priority">Распределять по приоритетам</option></select>
+      <small class="wallet-strategy-help" id="walletStrategyHelp">Если денег не хватает, все планы получат часть суммы.</small>
     </div>
     <div class="wallet-plan-list" id="walletPlanFields"></div>
-    <div class="wallet-plan-insurance">Страховка не имеет месячного плана: после закрытия остальных планов она получает свободный остаток.</div>
-    <div class="wallet-modal-total" id="walletPlanTotal">План: 0 ₽</div>
+    <div class="wallet-plan-insurance">Страховка не имеет месячного плана. После закрытия остальных планов она получает свободный остаток.</div>
     <div class="login-actions"><button class="secondary" id="cancelWalletPlan">Отмена</button><button class="primary" id="saveWalletPlan">Сохранить план</button></div>
   </div>
 </div>
@@ -2112,19 +2233,40 @@ body{padding-bottom:88px}
   </div>
 </div>
 
+
+<div class="modal hidden" id="walletFullHistoryModal">
+  <div class="sheet wallet-large-sheet wallet-history-sheet">
+    <div class="sheet-head"><div><h2>История кошельков</h2><div class="employee-mode-note">Все финансовые операции и исправления.</div></div><button class="close" id="closeWalletFullHistory">×</button></div>
+    <div class="wallet-history-filters">
+      <select id="walletHistoryType">
+        <option value="all">Все операции</option>
+        <option value="income">Поступления</option>
+        <option value="expense">Расходы</option>
+        <option value="transfer">Переводы</option>
+      </select>
+      <select id="walletHistoryWallet"><option value="all">Все кошельки</option></select>
+      <select id="walletHistoryMonth"><option value="all">Все месяцы</option></select>
+    </div>
+    <div class="wallet-history-list wallet-history-full-list" id="walletHistoryList"></div>
+  </div>
+</div>
+
 <div class="modal hidden" id="walletManageModal">
   <div class="sheet wallet-large-sheet">
-    <div class="sheet-head"><div><h2>Управление кошельками</h2><div class="employee-mode-note">Создавайте свои статьи, меняйте планы, цели, порядок и архив.</div></div><button class="close" id="closeWalletManage">×</button></div>
+    <div class="sheet-head"><div><h2>Управление кошельками</h2><div class="employee-mode-note">Добавляйте кошельки, меняйте планы, цели и порядок.</div></div><button class="close" id="closeWalletManage">×</button></div>
     <div class="wallet-manage-top">
       <button class="primary" id="addWalletBtn">+ Добавить кошелёк</button>
-      <button class="secondary" id="openWalletPlansFromManage">Планы месяца</button>
+      <button class="secondary" id="openWalletPlansFromManage">Месячные планы</button>
     </div>
     <div id="walletManageList"></div>
-    <div class="wallet-reset-box">
-      <b>Очистить финансовую историю</b>
-      <span id="walletClearHistoryState">Удалятся только операции и рассчитанные из них балансы. Кошельки, планы, цели, приоритеты и настройки останутся.</span>
-      <button class="danger" id="clearWalletHistoryBtn">Очистить историю и балансы</button>
-    </div>
+    <details class="wallet-danger-details">
+      <summary>Опасные действия</summary>
+      <div class="wallet-reset-box">
+        <b>Очистить финансовую историю</b>
+        <span id="walletClearHistoryState">Удалятся только операции и рассчитанные из них балансы. Кошельки, планы, цели, приоритеты и настройки останутся.</span>
+        <button class="danger" id="clearWalletHistoryBtn">Очистить историю и балансы</button>
+      </div>
+    </details>
   </div>
 </div>
 
@@ -2132,7 +2274,10 @@ body{padding-bottom:88px}
   <div class="sheet">
     <div class="sheet-head"><div><h2 id="walletEditTitle">Добавить кошелёк</h2><div class="employee-mode-note">Название можно менять позже — история останется привязана к постоянному ID.</div></div><button class="close" id="closeWalletEdit">×</button></div>
     <div class="field" style="margin-top:12px"><label>Название</label><input id="walletEditName" maxlength="60" placeholder="Например, Автомобиль"></div>
-    <div class="grid2"><div class="field"><label>Тип</label><select id="walletEditType"><option value="expense">Расходный</option><option value="savings">Накопительный</option></select></div><div class="field"><label>Приоритет (1 — самый высокий)</label><input id="walletEditPriority" inputmode="numeric" type="number" min="1" step="1" value="1"></div></div>
+    <div class="grid2 wallet-edit-type-grid" id="walletEditTypePriorityGrid">
+      <div class="field"><label>Тип</label><select id="walletEditType"><option value="expense">Расходный</option><option value="savings">Накопительный</option></select></div>
+      <div class="field" id="walletEditPriorityField"><label>Приоритет (1 — самый высокий)</label><input id="walletEditPriority" inputmode="numeric" type="number" min="1" step="1" value="1"></div>
+    </div>
     <div class="grid2"><div class="field"><label>Месячный план</label><input id="walletEditPlan" inputmode="decimal" value="0"></div><div class="field"><label>Цель — необязательно</label><input id="walletEditGoal" inputmode="decimal" value="0"></div></div>
     <div class="field"><label>Остаток при новом месяце</label><select id="walletEditRollover"><option value="carry">Перенести дальше</option><option value="insurance">Перевести в Страховку</option></select></div>
     <label class="wallet-check"><input type="checkbox" id="walletEditProtected"><span><b>Защищённый кошелёк</b><small>Перед расходом будет дополнительное подтверждение</small></span></label>
@@ -2455,6 +2600,7 @@ body{padding-bottom:88px}
   let lastWalletCloudFetchAt = 0;
   let walletCloudNeedsSetup = false;
   let walletViewMonthKey = walletCurrentMonthKey();
+  let walletListFilter = "all";
   let pendingArchiveWalletId = "";
   let walletEditingId = "";
   let walletCorrectionOperationId = "";
@@ -3636,12 +3782,14 @@ body{padding-bottom:88px}
     const reversed=walletReversedOperationIds();
 
     root.innerHTML=groups.map(g=>{
-      const isExpense=g.type==="expense";
-      const cls=g.type==="reversal"?"neutral":(isExpense?"out":"in");
+      const effectiveType=g.type==="reversal"?(g.sourceType||"reversal"):g.type;
+      const cls=g.type==="reversal" || ["transfer","auto_carryover"].includes(effectiveType)?"neutral":(effectiveType==="expense"?"out":"in");
       const comment=g.items[0]?.comment?` · ${escapeHtml(g.items[0].comment)}`:"";
       const details=g.items.length>1 ? `<div class="wallet-history-details">${g.items.map(t=>`<div class="wallet-history-detail-row"><span>${escapeHtml(walletDef(t.walletId)?.name||t.walletId)}</span><b>${formatMoney(t.amountCents,{signed:true})}</b></div>`).join("")}</div>` : "";
       const canEdit=g.type!=="reversal" && !reversed.has(g.operationId) && ["distribution","topup","expense","transfer"].includes(g.type);
-      const actions=canEdit?`<div class="wallet-history-actions"><button class="secondary" data-wallet-correct="${escapeHtml(g.operationId)}">Исправить</button></div>`:"";
+      const operationMonth=walletMonthKeyFromIso(g.effectiveAt||g.createdAt);
+      const canUndo=canEdit && operationMonth===walletCurrentMonthKey();
+      const actions=(canEdit||canUndo)?`<details class="wallet-history-menu"><summary aria-label="Действия">⋯</summary><div class="wallet-history-menu-actions">${canEdit?`<button class="secondary" data-wallet-correct="${escapeHtml(g.operationId)}">Исправить</button>`:""}${canUndo?`<button class="secondary" data-wallet-undo="${escapeHtml(g.operationId)}">Отменить</button>`:""}</div></details>`:"";
       return `<div class="wallet-history-item">
         <div class="wallet-history-row">
           <div class="wallet-history-main"><b>${walletOperationTitle(g)} · ${escapeHtml(walletOperationSummary(g))}</b><span>${escapeHtml(formatWalletDate(g.createdAt))}${comment}</span></div>
@@ -3817,17 +3965,73 @@ body{padding-bottom:88px}
     }
   }
 
+  function walletPlanMonthSummary(monthKey=walletCurrentMonthKey()){
+    const planned=walletActive().filter(w=>!w.systemRole && (w.monthlyPlanCents||0)>0);
+    let totalPlan=0,allocatedToPlans=0,remaining=0;
+    planned.forEach(w=>{
+      const plan=Math.max(0,Math.trunc(w.monthlyPlanCents||0));
+      const allocated=Math.max(0,walletMonthAllocated(w.id,monthKey));
+      totalPlan+=plan;
+      allocatedToPlans+=Math.min(plan,allocated);
+      remaining+=Math.max(0,plan-allocated);
+    });
+    return {totalPlan,allocatedToPlans,remaining,count:planned.length,allClosed:planned.length>0&&remaining===0};
+  }
+
+  function setWalletOverviewStat(index,label,value){
+    const l=$("walletOverviewStat"+index+"Label"),v=$("walletOverviewStat"+index+"Value");
+    if(l) l.textContent=label;
+    if(v) v.textContent=value;
+  }
+
   function renderWalletMonthSummary(){
     const label=$("walletMonthLabel"); if(label) label.textContent=walletMonthLabel(walletViewMonthKey);
-    const m=walletMonthMetrics(walletViewMonthKey);
     const current=walletViewMonthKey===walletCurrentMonthKey();
+    const m=walletMonthMetrics(walletViewMonthKey);
     const total=current?walletDefinitions().reduce((s,w)=>s+walletBalance(w.id),0):walletTotalBalanceAtMonth(walletViewMonthKey);
-    $("walletMonthReceived").textContent=formatMoney(m.received);
-    $("walletMonthDistributed").textContent=formatMoney(m.distributed);
-    $("walletMonthSpent").textContent=formatMoney(m.spent);
-    const remainingLabel=$("walletMonthRemainingLabel");
-    if(remainingLabel) remainingLabel.textContent=current?"Баланс":"Баланс на конец месяца";
-    $("walletMonthRemaining").textContent=formatMoney(total);
+    const insurance=walletInsurance();
+    const insuranceBalance=current?walletBalance(insurance?.id||"insurance"):walletBalanceAtMonth(insurance?.id||"insurance",walletViewMonthKey);
+    $("walletsTotal").textContent=formatMoney(total);
+    $("walletOverviewLabel").textContent=current?"Всего денег":"Баланс на конец месяца";
+    const state=$("walletOverviewState");
+    state.classList.remove("good","warn","neutral");
+
+    if(current){
+      const p=walletPlanMonthSummary(walletViewMonthKey);
+      setWalletOverviewStat(1,"План месяца",formatMoney(p.totalPlan));
+      setWalletOverviewStat(2,"Распределено",formatMoney(m.distributed));
+      setWalletOverviewStat(3,"Осталось закрыть",formatMoney(p.remaining));
+      setWalletOverviewStat(4,insurance?.name||"Страховка",formatMoney(insuranceBalance));
+      if(!p.count){ state.textContent="Месячные планы не заданы";state.classList.add("neutral"); }
+      else if(p.allClosed){ state.textContent="Все планы месяца закрыты";state.classList.add("good"); }
+      else{
+        const pct=p.totalPlan?Math.round((p.allocatedToPlans/p.totalPlan)*100):0;
+        state.textContent=`Закрыто ${Math.min(100,Math.max(0,pct))}% плана · осталось ${formatMoney(p.remaining)}`;
+        state.classList.add(pct>=70?"neutral":"warn");
+      }
+    }else{
+      setWalletOverviewStat(1,"Получено",formatMoney(m.received));
+      setWalletOverviewStat(2,"Распределено",formatMoney(m.distributed));
+      setWalletOverviewStat(3,"Потрачено",formatMoney(m.spent));
+      setWalletOverviewStat(4,insurance?.name||"Страховка",formatMoney(insuranceBalance));
+      state.textContent="Исторический просмотр";state.classList.add("neutral");
+    }
+  }
+
+  function walletPlanProgressHtml(w,mm){
+    const plan=Math.max(0,w.monthlyPlanCents||0);
+    if(!plan) return '<div class="wallet-card-plan">План на месяц не задан</div>';
+    const allocated=Math.max(0,mm.allocated||0),left=Math.max(0,plan-allocated);
+    const pct=Math.min(100,Math.max(0,Math.round((allocated/plan)*100)));
+    return `<div class="wallet-card-plan-main"><div class="wallet-card-plan-line"><span>План ${formatMoney(plan)}</span><b>${left?`Осталось ${formatMoney(left)}`:"Закрыт"}</b></div><div class="wallet-plan-progress"><i style="width:${pct}%"></i></div><div class="wallet-card-plan-line"><span>Закрыто ${pct}%</span><span>${formatMoney(Math.min(plan,allocated))}</span></div></div>`;
+  }
+
+  function walletCardDetailsHtml(w,mm,currentMonth){
+    if(w.systemRole){
+      const flow=walletMonthFlow(currentMonth,w.id);
+      return `<div class="wallet-card-stats"><div class="wallet-card-stat"><span>Поступило за месяц</span><b>${formatMoney(flow.incoming)}</b></div><div class="wallet-card-stat"><span>Выбыло за месяц</span><b>${formatMoney(flow.outgoing)}</b></div></div>`;
+    }
+    return `<div class="wallet-card-stats"><div class="wallet-card-stat"><span>По распределению</span><b>${formatMoney(mm.distributed)}</b></div><div class="wallet-card-stat"><span>Пополнено вручную</span><b>${formatMoney(mm.toppedUp)}</b></div><div class="wallet-card-stat"><span>Потрачено</span><b>${formatMoney(mm.spent)}</b></div></div>`;
   }
 
   function renderWallets(){
@@ -3837,13 +4041,8 @@ body{padding-bottom:88px}
     else if(!isAdmin()) setWalletCloudState("warn","Облако: войдите как администратор");
     else if(walletCloudNeedsSetup) setWalletCloudState("bad","Облако кошельков: требуется обновление Supabase");
 
-    const active=walletActive();
     const currentMonth=walletViewMonthKey;
     const currentIsNow=currentMonth===walletCurrentMonthKey();
-    const total=currentIsNow?walletDefinitions().reduce((sum,w)=>sum+walletBalance(w.id),0):walletTotalBalanceAtMonth(currentMonth);
-    const insurance=walletInsurance();
-    $("walletsTotal").textContent=formatMoney(total);
-    $("walletsInsurance").textContent=`${insurance?.name||"Страховка"}: ${formatMoney(currentIsNow?walletBalance(insurance?.id||"insurance"):walletBalanceAtMonth(insurance?.id||"insurance",currentMonth))}`;
     renderWalletMonthSummary();
 
     const readonlyNote=$("walletReadonlyNote");
@@ -3853,73 +4052,66 @@ body{padding-bottom:88px}
     if(transferBtn) transferBtn.disabled=!currentIsNow;
     if(nextBtn) nextBtn.disabled=currentIsNow;
 
+    document.querySelectorAll("[data-wallet-filter]").forEach(btn=>btn.classList.toggle("active",btn.dataset.walletFilter===walletListFilter));
+    const active=walletActive().filter(w=>walletListFilter==="all" || w.type===walletListFilter);
     grid.innerHTML=active.map(w=>{
       const balance=currentIsNow?walletBalance(w.id):walletBalanceAtMonth(w.id,currentMonth);
       const mm=walletMonthMetrics(currentMonth,w.id);
-      const plan=Math.max(0,w.monthlyPlanCents||0);
-      const left=Math.max(0,plan-mm.allocated);
-      const typeLabel=w.type==="savings"?"Накопительный":"Расходный";
-      let planBlock="",stats="";
+      const actionsDisabled=currentIsNow?"":" disabled";
+      let mainPlan="",details="";
 
       if(w.systemRole){
         const flow=walletMonthFlow(currentMonth,w.id);
-        planBlock='<div class="wallet-card-plan">Системный кошелёк · свободный остаток распределения</div>';
-        stats=`<div class="wallet-card-stats"><div class="wallet-card-stat"><span>Поступило за месяц</span><b>${formatMoney(flow.incoming)}</b></div><div class="wallet-card-stat"><span>Выбыло за месяц</span><b>${formatMoney(flow.outgoing)}</b></div></div>`;
+        mainPlan=`<div class="wallet-card-plan">Свободный резерв · за месяц +${formatMoney(flow.incoming)} / −${formatMoney(flow.outgoing)}</div>`;
+        details=walletCardDetailsHtml(w,mm,currentMonth);
       }else if(!currentIsNow){
-        planBlock='<div class="wallet-card-plan">Исторический просмотр · месячный план отдельно не сохранялся</div>';
-        stats=w.type==="savings"
-          ? `<div class="wallet-card-stats"><div class="wallet-card-stat"><span>По распределению</span><b>${formatMoney(mm.distributed)}</b></div><div class="wallet-card-stat"><span>Пополнено вручную</span><b>${formatMoney(mm.toppedUp)}</b></div></div>`
-          : `<div class="wallet-card-stats"><div class="wallet-card-stat"><span>Поступило за месяц</span><b>${formatMoney(mm.received)}</b></div><div class="wallet-card-stat"><span>Потрачено</span><b>${formatMoney(mm.spent)}</b></div></div>`;
+        mainPlan='<div class="wallet-card-plan">Исторический просмотр · месячный план отдельно не сохранялся</div>';
+        details=walletCardDetailsHtml(w,mm,currentMonth);
       }else{
-        planBlock=`<div class="wallet-card-plan">${typeLabel} · план ${formatMoney(plan)}</div>`;
-        stats=w.type==="savings"
-          ? `<div class="wallet-card-stats wallet-card-stats-3"><div class="wallet-card-stat"><span>По распределению</span><b>${formatMoney(mm.distributed)}</b></div><div class="wallet-card-stat"><span>Пополнено вручную</span><b>${formatMoney(mm.toppedUp)}</b></div><div class="wallet-card-stat"><span>Осталось по плану</span><b>${formatMoney(left)}</b></div></div>`
-          : `<div class="wallet-card-stats wallet-card-stats-3"><div class="wallet-card-stat"><span>Поступило за месяц</span><b>${formatMoney(mm.received)}</b></div><div class="wallet-card-stat"><span>Потрачено</span><b>${formatMoney(mm.spent)}</b></div><div class="wallet-card-stat"><span>Осталось по плану</span><b>${formatMoney(left)}</b></div></div>`;
+        mainPlan=walletPlanProgressHtml(w,mm);
+        details=walletCardDetailsHtml(w,mm,currentMonth);
       }
 
-      const actionsDisabled=currentIsNow?"":" disabled";
+      const goal=currentIsNow?walletGoalHtml(w,balance):"";
       return `<article class="wallet-card${w.systemRole?" insurance":""}${w.type==="savings"?" savings":""}" data-wallet-id="${escapeHtml(w.id)}">
-        <div class="wallet-card-top"><h3>${escapeHtml(w.name)}</h3>${w.protected?'<span class="wallet-protected" title="Защищённый кошелёк">Защищён</span>':""}</div>
+        <div class="wallet-card-top"><h3>${escapeHtml(w.name)}</h3>${w.protected?'<span class="wallet-protected" title="Перед расходом потребуется подтверждение">Защищён</span>':""}</div>
         <div class="wallet-card-balance">${formatMoney(balance)}</div>
-        ${planBlock}${stats}${currentIsNow?walletGoalHtml(w,balance):""}
+        ${goal}${mainPlan}
+        <details class="wallet-card-more"><summary>Подробнее</summary>${details}</details>
         <div class="wallet-card-actions"><button class="secondary" data-wallet-action="topup" data-wallet-id="${escapeHtml(w.id)}"${actionsDisabled}>+ Пополнить</button><button class="secondary" data-wallet-action="expense" data-wallet-id="${escapeHtml(w.id)}"${actionsDisabled}>− Расход</button></div>
       </article>`;
-    }).join("");
+    }).join("") || '<div class="wallet-empty">В этой группе кошельков пока нет.</div>';
 
-    renderWalletHistoryList($("walletRecentList"),5);
+    renderWalletHistoryList($("walletRecentList"),3);
     populateWalletHistoryFilters();
-    renderWalletHistoryList($("walletHistoryList"),0,{filtered:true});
-    const undo=$("undoLastWalletOperation");
-    if(undo){
-      undo.disabled=!currentIsNow || !lastUndoableWalletOperation();
-      undo.title=currentIsNow?"":"В прошлом месяце используйте «Исправить» у нужной операции";
-    }
+    if(!$("walletFullHistoryModal").classList.contains("hidden")) renderWalletHistoryList($("walletHistoryList"),0,{filtered:true});
   }
   function openWalletDistribution(){
     if(!requireWalletCurrentMonth()) return;
     $("walletDistributionAmount").value="";
     $("walletDistributionPreview").innerHTML='<div class="wallet-empty">Введите общую сумму — здесь появится распределение.</div>';
     $("confirmWalletDistribution").disabled=true;
+    $("confirmWalletDistribution").textContent="Распределить";
     $("walletDistributionModal").classList.remove("hidden");
     setTimeout(()=>$("walletDistributionAmount").focus(),60);
   }
-  function closeWalletDistribution(){ $("walletDistributionModal").classList.add("hidden"); }
+  function closeWalletDistribution(){ $("walletDistributionModal").classList.add("hidden");$("confirmWalletDistribution").textContent="Распределить"; }
 
   function updateWalletDistributionPreview(){
     const amount=parseMoneyInput($("walletDistributionAmount").value);
     const root=$("walletDistributionPreview"),btn=$("confirmWalletDistribution");
     if(!amount || amount<=0){ root.innerHTML='<div class="wallet-empty">Введите сумму больше 0.</div>';btn.disabled=true;return; }
     const calc=calculateWalletDistribution(amount,walletCurrentMonthKey());
-    const rows=walletActive().map(w=>`<div class="wallet-preview-row"><span>${escapeHtml(w.name)}</span><b>${formatMoney(calc.allocations[w.id]||0)}</b></div>`).join("");
+    const rows=walletActive().filter(w=>(calc.allocations[w.id]||0)>0).map(w=>`<div class="wallet-preview-row"><span>${escapeHtml(w.name)}</span><b>${formatMoney(calc.allocations[w.id]||0)}</b></div>`).join("");
     let note="";
-    if(calc.allPlansClosed) note='<div class="wallet-preview-note ok">Месячные планы уже закрыты. Вся сумма уйдёт в Страховку.</div>';
-    else if(calc.shortage && calc.priority) note='<div class="wallet-preview-note warn">Денег меньше незакрытых планов. Сумма распределится по установленным приоритетам.</div>';
-    else if(calc.shortage) note='<div class="wallet-preview-note warn">Денег меньше незакрытых планов. Суммы уменьшены пропорционально. Страховка получает 0 ₽.</div>';
-    else note='<div class="wallet-preview-note ok">Программа доложит только недостающие суммы месячных планов, остаток уйдёт в Страховку.</div>';
-    root.innerHTML=`<div class="wallet-preview">${rows}</div><div class="wallet-preview-total"><span>Итого</span><b>${formatMoney(amount)}</b></div>${note}`;
+    if(calc.allPlansClosed) note=`<div class="wallet-preview-note ok">Все планы месяца уже закрыты. Вся сумма попадёт в ${escapeHtml(walletInsurance()?.name||"Страховку")}.</div>`;
+    else if(calc.shortage && calc.priority) note='<div class="wallet-preview-note warn">Денег меньше незакрытых планов. Сначала будут закрываться самые важные кошельки.</div>';
+    else if(calc.shortage) note='<div class="wallet-preview-note warn">Денег меньше незакрытых планов. Все планы получат часть суммы пропорционально.</div>';
+    else note='<div class="wallet-preview-note ok">Программа доложит недостающие суммы по планам, свободный остаток уйдёт в Страховку.</div>';
+    root.innerHTML=`<div class="wallet-preview">${rows||'<div class="wallet-empty">Нет кошельков для распределения.</div>'}</div><div class="wallet-preview-total"><span>Итого</span><b>${formatMoney(amount)}</b></div>${note}`;
+    btn.textContent=`Распределить ${formatMoney(amount)}`;
     btn.disabled=false;
   }
-
   async function confirmWalletDistribution(){
     if(walletBusy || !requireWalletCurrentMonth()) return;
     const amount=parseMoneyInput($("walletDistributionAmount").value);
@@ -3984,10 +4176,28 @@ body{padding-bottom:88px}
     }finally{ walletBusy=false;endButtonBusy(busy); }
   }
 
+  function walletStrategyHelpText(){
+    return walletState.strategy==="priority"
+      ? "Сначала деньги получат кошельки с самым высоким приоритетом."
+      : "Если денег не хватает, все планы получат часть суммы.";
+  }
+
+  function updateWalletStrategyHelp(){
+    const help=$("walletStrategyHelp");
+    if(help) help.textContent=$("walletDistributionStrategy")?.value==="priority"
+      ? "Сначала деньги получат самые важные кошельки."
+      : "Если денег не хватает, все планы получат часть суммы.";
+    syncWalletEditPriorityVisibility();
+  }
+
   function renderWalletPlanFields(){
     const root=$("walletPlanFields");
-    root.innerHTML=walletActive().filter(w=>!w.systemRole).map(w=>`<div class="wallet-plan-row"><label for="wallet-plan-${escapeHtml(w.id)}">${escapeHtml(w.name)}</label><input id="wallet-plan-${escapeHtml(w.id)}" data-wallet-plan="${escapeHtml(w.id)}" inputmode="decimal" value="${moneyInputValue(w.monthlyPlanCents||0)}"></div>`).join("");
+    const rows=w=>`<div class="wallet-plan-row"><label for="wallet-plan-${escapeHtml(w.id)}">${escapeHtml(w.name)}</label><input id="wallet-plan-${escapeHtml(w.id)}" data-wallet-plan="${escapeHtml(w.id)}" inputmode="decimal" value="${moneyInputValue(w.monthlyPlanCents||0)}"></div>`;
+    const expense=walletActive().filter(w=>!w.systemRole&&w.type!=="savings");
+    const savings=walletActive().filter(w=>!w.systemRole&&w.type==="savings");
+    root.innerHTML=`${expense.length?`<div class="wallet-plan-group"><div class="wallet-plan-group-title">Расходы</div>${expense.map(rows).join("")}</div>`:""}${savings.length?`<div class="wallet-plan-group"><div class="wallet-plan-group-title">Накопления</div>${savings.map(rows).join("")}</div>`:""}` || '<div class="wallet-empty">Нет кошельков для планирования.</div>';
     $("walletDistributionStrategy").value=walletState.strategy;
+    updateWalletStrategyHelp();
     updateWalletPlanTotal();
   }
   function updateWalletPlanTotal(){
@@ -3996,12 +4206,19 @@ body{padding-bottom:88px}
       const n=parseMoneyInput(inp.value||"0");
       if(n===null){valid=false;inp.setAttribute("aria-invalid","true");}else{inp.removeAttribute("aria-invalid");total+=n;}
     });
-    $("walletPlanTotal").textContent=valid?`Месячный план активных кошельков: ${formatMoney(total)}`:"Проверьте суммы плана";
+    $("walletPlanTotal").textContent=valid?formatMoney(total):"Проверьте суммы";
     $("saveWalletPlan").disabled=!valid;
   }
   function openWalletPlan(){ renderWalletPlanFields();$("walletPlanModal").classList.remove("hidden"); }
   function closeWalletPlan(){ $("walletPlanModal").classList.add("hidden"); }
 
+  function syncWalletEditPriorityVisibility(){
+    const grid=$("walletEditTypePriorityGrid"),field=$("walletEditPriorityField");
+    if(!grid||!field) return;
+    const show=walletState.strategy==="priority" || $("walletDistributionStrategy")?.value==="priority";
+    grid.classList.toggle("priority-hidden",!show);
+    field.classList.toggle("hidden",!show);
+  }
   async function persistWalletConfig({toastText="Настройки кошельков сохранены",showToast=true}={}){
     walletState.configUpdatedAt=new Date().toISOString();
     saveWalletState();
@@ -4093,7 +4310,7 @@ body{padding-bottom:88px}
   function renderWalletManagement(){
     const root=$("walletManageList"); if(!root) return;
     const active=walletDefinitions({includeArchived:false}),archived=walletDefinitions().filter(w=>w.archived);
-    const row=w=>`<div class="wallet-manage-row ${w.archived?"archived":""}"><div class="wallet-manage-main"><b>${escapeHtml(w.name)}</b><span>${w.type==="savings"?"Накопительный":"Расходный"}${w.systemRole?" · системный":""} · план ${formatMoney(w.monthlyPlanCents||0)} · приоритет ${w.priority}</span></div><div class="wallet-manage-actions">${!w.archived&&!w.systemRole?`<button class="secondary" data-wallet-move="up" data-wallet-id="${escapeHtml(w.id)}" aria-label="Выше">↑</button><button class="secondary" data-wallet-move="down" data-wallet-id="${escapeHtml(w.id)}" aria-label="Ниже">↓</button>`:""}<button class="secondary" data-wallet-edit="${escapeHtml(w.id)}">Изменить</button>${w.archived?`<button class="secondary" data-wallet-restore="${escapeHtml(w.id)}">Восстановить</button>`:(!w.systemRole?`<button class="secondary" data-wallet-archive="${escapeHtml(w.id)}">Архив</button>`:"")}${!w.systemRole&&!walletHasHistory(w.id)&&walletBalance(w.id)===0?`<button class="danger" data-wallet-delete="${escapeHtml(w.id)}">Удалить</button>`:""}</div></div>`;
+    const row=w=>`<div class="wallet-manage-row ${w.archived?"archived":""}"><div class="wallet-manage-main"><b>${escapeHtml(w.name)}</b><span>${w.type==="savings"?"Накопительный":"Расходный"}${w.systemRole?" · системный":""}${w.systemRole?"":` · план ${formatMoney(w.monthlyPlanCents||0)}`}${walletState.strategy==="priority"&&!w.systemRole?` · приоритет ${w.priority}`:""}</span></div><div class="wallet-manage-actions">${!w.archived&&!w.systemRole?`<button class="secondary" data-wallet-move="up" data-wallet-id="${escapeHtml(w.id)}" aria-label="Выше">↑</button><button class="secondary" data-wallet-move="down" data-wallet-id="${escapeHtml(w.id)}" aria-label="Ниже">↓</button>`:""}<button class="secondary" data-wallet-edit="${escapeHtml(w.id)}">Изменить</button>${w.archived?`<button class="secondary" data-wallet-restore="${escapeHtml(w.id)}">Восстановить</button>`:(!w.systemRole?`<button class="secondary" data-wallet-archive="${escapeHtml(w.id)}">Архив</button>`:"")}${!w.systemRole&&!walletHasHistory(w.id)&&walletBalance(w.id)===0?`<button class="danger" data-wallet-delete="${escapeHtml(w.id)}">Удалить</button>`:""}</div></div>`;
     root.innerHTML=`<div class="wallet-manage-section"><h3>Активные кошельки</h3>${active.map(row).join("")||'<div class="wallet-empty">Нет активных кошельков.</div>'}</div><details class="wallet-manage-archive" ${archived.length?"":""}><summary>Архив (${archived.length})</summary><div class="wallet-manage-section">${archived.map(row).join("")||'<div class="wallet-empty">Архив пуст.</div>'}</div></details>`;
     const clearBtn=$("clearWalletHistoryBtn"),clearState=$("walletClearHistoryState");
     const operationCount=walletOperationGroups().length;
@@ -4216,6 +4433,7 @@ body{padding-bottom:88px}
     $("walletEditType").disabled=system;$("walletEditPlan").disabled=system;$("walletEditRollover").disabled=system;
     $("walletEditSystemNote").classList.toggle("hidden",!system);
     $("walletEditError").textContent="";
+    syncWalletEditPriorityVisibility();
   }
   function openWalletEdit(id=""){ const w=id?walletDef(id):null;fillWalletEditForm(w);$("walletEditModal").classList.remove("hidden");setTimeout(()=>$("walletEditName").focus(),60); }
   function closeWalletEdit(){ walletEditingId="";$("walletEditModal").classList.add("hidden"); }
@@ -4299,28 +4517,37 @@ body{padding-bottom:88px}
     }finally{walletBusy=false;}
   }
 
-  function lastUndoableWalletOperation(){
-    const reversed=walletReversedOperationIds();
-    return walletOperationGroups().find(g=>g.type!=="reversal"&&!reversed.has(g.operationId))||null;
-  }
-
   function buildReversalOperation(group,label=""){
     return buildWalletOperation("reversal",group.items.map(t=>({walletId:t.walletId,amountCents:-t.amountCents,reversalOfTransactionId:t.id})),label||`Отмена: ${walletOperationTitle(group)}`,{
       reversesOperationId:group.operationId,sourceType:group.type,effectiveAt:group.effectiveAt||group.items[0]?.effectiveAt||group.createdAt
     });
   }
 
-  async function undoLastWalletOperation(){
-    if(walletBusy || !requireWalletCurrentMonth())return;
-    const group=lastUndoableWalletOperation();if(!group){toast("Нет операции для отмены");return;}
+  async function undoWalletOperation(operationId){
+    if(walletBusy) return;
+    const group=walletOperationGroups().find(g=>g.operationId===operationId);
+    if(!group){toast("Операция не найдена");return;}
+    if(group.type==="reversal" || walletReversedOperationIds().has(group.operationId)){toast("Эта операция уже отменена или исправлена");return;}
+    if(walletMonthKeyFromIso(group.effectiveAt||group.createdAt)!==walletCurrentMonthKey()){
+      toast("Старую операцию лучше исправить через «Исправить»");return;
+    }
     const label=walletOperationTitle(group);
-    if(!confirm(`Отменить последнюю операцию «${label}»?\n\nИсходная запись останется в истории, а программа создаст обратную операцию.`))return;
-    walletBusy=true;const busy=beginButtonBusy("undoLastWalletOperation","Отменяем…");const previous=clone(walletState);
+    if(!confirm(`Отменить операцию «${label}»?
+
+Исходная запись останется в истории, программа создаст обратную операцию.`)) return;
+    walletBusy=true;const previous=clone(walletState);
     try{
-      await applyWalletBatchSafely([buildReversalOperation(group)]);renderWallets();toast("Последняя операция отменена");
+      await applyWalletBatchSafely([buildReversalOperation(group)]);renderWallets();toast("Операция отменена");
     }catch(e){console.error(e);walletState=previous;try{saveWalletState();}catch(_){}toast(e.message||"Не удалось отменить операцию");}
-    finally{walletBusy=false;endButtonBusy(busy);}
+    finally{walletBusy=false;}
   }
+
+  function openWalletFullHistory(){
+    populateWalletHistoryFilters();
+    $("walletFullHistoryModal").classList.remove("hidden");
+    renderWalletHistoryList($("walletHistoryList"),0,{filtered:true});
+  }
+  function closeWalletFullHistory(){ $("walletFullHistoryModal").classList.add("hidden"); }
 
   function openWalletCorrection(operationId){
     const group=walletOperationGroups().find(g=>g.operationId===operationId);if(!group)return;
@@ -9384,6 +9611,7 @@ body{padding-bottom:88px}
   $("cancelWalletPlan").onclick=closeWalletPlan;
   $("walletPlanModal").addEventListener("click",e=>{ if(e.target===$("walletPlanModal")) closeWalletPlan(); });
   $("walletPlanFields").addEventListener("input",updateWalletPlanTotal);
+  $("walletDistributionStrategy").onchange=updateWalletStrategyHelp;
   $("saveWalletPlan").onclick=saveWalletPlan;
 
   $("openWalletTransfer").onclick=()=>openWalletTransfer();
@@ -9401,15 +9629,26 @@ body{padding-bottom:88px}
     if(!btn) return;
     openWalletTransaction(btn.dataset.walletId,btn.dataset.walletAction);
   });
+  $("walletFilterButtons").addEventListener("click",e=>{
+    const btn=e.target.closest("[data-wallet-filter]");if(!btn)return;
+    walletListFilter=["expense","savings"].includes(btn.dataset.walletFilter)?btn.dataset.walletFilter:"all";
+    renderWallets();
+  });
 
   $("walletMonthPrev").onclick=()=>{ walletViewMonthKey=walletShiftMonth(walletViewMonthKey,-1);renderWallets(); };
   $("walletMonthNext").onclick=()=>{ const next=walletShiftMonth(walletViewMonthKey,1);if(next<=walletCurrentMonthKey()){walletViewMonthKey=next;renderWallets();} };
   $("walletHistoryType").onchange=()=>renderWalletHistoryList($("walletHistoryList"),0,{filtered:true});
   $("walletHistoryWallet").onchange=()=>renderWalletHistoryList($("walletHistoryList"),0,{filtered:true});
   $("walletHistoryMonth").onchange=()=>renderWalletHistoryList($("walletHistoryList"),0,{filtered:true});
-  $("walletRecentList").addEventListener("click",e=>{const b=e.target.closest("[data-wallet-correct]");if(b)openWalletCorrection(b.dataset.walletCorrect);});
-  $("walletHistoryList").addEventListener("click",e=>{const b=e.target.closest("[data-wallet-correct]");if(b)openWalletCorrection(b.dataset.walletCorrect);});
-  $("undoLastWalletOperation").onclick=undoLastWalletOperation;
+  const handleWalletHistoryAction=e=>{
+    const correct=e.target.closest("[data-wallet-correct]");if(correct){openWalletCorrection(correct.dataset.walletCorrect);return;}
+    const undo=e.target.closest("[data-wallet-undo]");if(undo){undoWalletOperation(undo.dataset.walletUndo);return;}
+  };
+  $("walletRecentList").addEventListener("click",handleWalletHistoryAction);
+  $("walletHistoryList").addEventListener("click",handleWalletHistoryAction);
+  $("openWalletFullHistory").onclick=openWalletFullHistory;
+  $("closeWalletFullHistory").onclick=closeWalletFullHistory;
+  $("walletFullHistoryModal").addEventListener("click",e=>{if(e.target===$("walletFullHistoryModal"))closeWalletFullHistory();});
 
   $("closeWalletManage").onclick=closeWalletManagement;
   $("walletManageModal").addEventListener("click",e=>{ if(e.target===$("walletManageModal")) closeWalletManagement(); });
