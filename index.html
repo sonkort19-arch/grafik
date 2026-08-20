@@ -2460,6 +2460,13 @@ body{padding-bottom:88px}
   let walletCorrectionOperationId = "";
   const adminMutationLocks = new Set();
   let serviceWorkerRegistration = null;
+  let serviceWorkerControllerListenerBound=false;
+  let serviceWorkerReloading=false;
+  let lastServiceWorkerUpdateAt=0;
+  let responsiveRefreshTimer=null;
+  let resumeRefreshPromise=null;
+  let lastResumeRefreshAt=0;
+  let appInitialized=false;
   let deferredGrafikInstallPrompt=null;
   let grafikAppInstalled=false;
   let startupDeviceRetryTimer=null;
@@ -3057,6 +3064,7 @@ body{padding-bottom:88px}
       wallets:walletLegacyDefaults({}),
       strategy:"proportional",
       configUpdatedAt:"",
+      historyClearedAt:"",
       lastRolloverMonth:walletCurrentMonthKey(),
       transactions:[]
     };
@@ -3121,7 +3129,10 @@ body{padding-bottom:88px}
     if(!raw || typeof raw!=="object") return base;
     walletBackupBeforeMigration(raw);
 
-    const tx=Array.isArray(raw.transactions)?raw.transactions.map(normalizeWalletTransaction).filter(Boolean):[];
+    const historyClearedAt=raw.historyClearedAt && !Number.isNaN(Date.parse(String(raw.historyClearedAt))) ? String(raw.historyClearedAt) : "";
+    const clearedMs=historyClearedAt ? Date.parse(historyClearedAt) : 0;
+    const tx=(Array.isArray(raw.transactions)?raw.transactions.map(normalizeWalletTransaction).filter(Boolean):[])
+      .filter(t=>!clearedMs || (Date.parse(t.createdAt)||0)>clearedMs);
     let wallets=[];
     if(Array.isArray(raw.wallets)){
       wallets=raw.wallets.map(normalizeWalletDefinition).filter(Boolean);
@@ -3168,6 +3179,7 @@ body{padding-bottom:88px}
       wallets:dedup,
       strategy:raw.strategy==="priority"?"priority":"proportional",
       configUpdatedAt,
+      historyClearedAt,
       lastRolloverMonth:/^\d{4}-\d{2}$/.test(String(raw.lastRolloverMonth||""))?String(raw.lastRolloverMonth):walletCurrentMonthKey(),
       transactions:tx.sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)) || a.id.localeCompare(b.id))
     };
@@ -3212,7 +3224,7 @@ body{padding-bottom:88px}
 
   function walletCloudTableMissing(errorText){
     const text=String(errorText||"").toLowerCase();
-    return text.includes("ma_wallet_config") || text.includes("ma_wallet_plans") || text.includes("ma_wallet_transactions") || text.includes("effective_at") || text.includes("ma_wallet_apply_batch") || text.includes("ma_wallet_clear_history") || text.includes("pgrst205") || text.includes("42p01") || text.includes("could not find the table") || text.includes("could not find the function");
+    return text.includes("ma_wallet_config") || text.includes("ma_wallet_plans") || text.includes("ma_wallet_transactions") || text.includes("effective_at") || text.includes("history_cleared_at") || text.includes("ma_wallet_apply_batch") || text.includes("ma_wallet_clear_history") || text.includes("pgrst205") || text.includes("42p01") || text.includes("could not find the table") || text.includes("could not find the function");
   }
 
   function walletTransactionPayload(t,ownerId){
@@ -3237,9 +3249,8 @@ body{padding-bottom:88px}
     for(let offset=0;offset<WALLET_CLOUD_MAX_ROWS;offset+=WALLET_CLOUD_PAGE_SIZE){
       const path=`/rest/v1/${WALLET_TX_TABLE}?select=id,operation_id,type,wallet_id,amount_cents,comment,created_at,effective_at,reversal_of_transaction_id,reverses_operation_id,source_type&order=created_at.asc,id.asc&limit=${WALLET_CLOUD_PAGE_SIZE}&offset=${offset}`;
       const res=await authFetch(path,{method:"GET",headers:{Authorization:"Bearer "+token}});
-      const text=await res.text();
-      if(!res.ok) throw new Error(text||"Не удалось загрузить кошельки");
-      const part=text?JSON.parse(text):[];
+      if(!res.ok) throw await httpErrorFromResponse(res,"Не удалось загрузить кошельки");
+      const part=await res.json().catch(()=>[]);
       rows.push(...part);
       if(part.length<WALLET_CLOUD_PAGE_SIZE) return rows;
     }
@@ -3248,16 +3259,14 @@ body{padding-bottom:88px}
 
   async function fetchWalletCloudPlans(token){
     const res=await authFetch(`/rest/v1/${WALLET_PLAN_TABLE}?select=plans,updated_at&limit=1`,{method:"GET",headers:{Authorization:"Bearer "+token}});
-    const text=await res.text();
-    if(!res.ok) throw new Error(text||"Не удалось загрузить старые планы кошельков");
-    return text?JSON.parse(text):[];
+    if(!res.ok) throw await httpErrorFromResponse(res,"Не удалось загрузить старые планы кошельков");
+    return await res.json().catch(()=>[]);
   }
 
   async function fetchWalletCloudConfig(token){
-    const res=await authFetch(`/rest/v1/${WALLET_CONFIG_TABLE}?select=wallets,strategy,last_rollover_month,updated_at&limit=1`,{method:"GET",headers:{Authorization:"Bearer "+token}});
-    const text=await res.text();
-    if(!res.ok) throw new Error(text||"Не удалось загрузить настройки кошельков");
-    return text?JSON.parse(text):[];
+    const res=await authFetch(`/rest/v1/${WALLET_CONFIG_TABLE}?select=wallets,strategy,last_rollover_month,history_cleared_at,updated_at&limit=1`,{method:"GET",headers:{Authorization:"Bearer "+token}});
+    if(!res.ok) throw await httpErrorFromResponse(res,"Не удалось загрузить настройки кошельков");
+    return await res.json().catch(()=>[]);
   }
 
   async function uploadWalletTransactions(token,ownerId,transactions){
@@ -3296,7 +3305,7 @@ body{padding-bottom:88px}
     const res=await authFetch(`/rest/v1/${WALLET_CONFIG_TABLE}?on_conflict=owner_id`,{
       method:"POST",
       headers:{Authorization:"Bearer "+token,Prefer:"resolution=merge-duplicates,return=minimal"},
-      body:JSON.stringify({owner_id:ownerId,wallets:state.wallets,strategy:state.strategy,last_rollover_month:state.lastRolloverMonth||walletCurrentMonthKey(),updated_at:state.configUpdatedAt||new Date().toISOString()})
+      body:JSON.stringify({owner_id:ownerId,wallets:state.wallets,strategy:state.strategy,last_rollover_month:state.lastRolloverMonth||walletCurrentMonthKey(),history_cleared_at:state.historyClearedAt||null,updated_at:state.configUpdatedAt||new Date().toISOString()})
     });
     if(!res.ok) throw new Error(await res.text());
     // Старые версии приложения продолжают видеть планы встроенных кошельков.
@@ -3316,6 +3325,7 @@ body{padding-bottom:88px}
       wallets:Array.isArray(row?.wallets)?row.wallets:[],
       strategy:row?.strategy||"proportional",
       configUpdatedAt:row?.updated_at||"",
+      historyClearedAt:row?.history_cleared_at||"",
       lastRolloverMonth:row?.last_rollover_month||walletCurrentMonthKey(),
       transactions
     });
@@ -3352,32 +3362,50 @@ body{padding-bottom:88px}
       try{
         const token=await getAdminToken();
         const ownerId=currentAdminUserId();
-        if(!token || !ownerId) throw new Error("Сессия администратора закончилась");
+        if(!token || !ownerId) throw Object.assign(new Error("Сессия администратора закончилась"),{status:401});
 
         const [configRows,planRows,txRows]=await Promise.all([fetchWalletCloudConfig(token),fetchWalletCloudPlans(token),fetchWalletCloudTransactions(token)]);
         lastWalletCloudFetchAt=Date.now();
         walletCloudNeedsSetup=false;
 
-        const remoteTransactions=txRows.map(walletTransactionFromCloud).filter(Boolean);
+        const remoteConfig=configRows[0]||null;
+        const legacyPlan=planRows[0]||null;
+        const localClearMs=Date.parse(walletState.historyClearedAt||"")||0;
+        const remoteClearMs=Date.parse(remoteConfig?.history_cleared_at||"")||0;
+        const effectiveClearMs=Math.max(localClearMs,remoteClearMs);
+        const effectiveClearAt=effectiveClearMs?new Date(effectiveClearMs).toISOString():"";
+
+        // Важная защита нескольких устройств: после полной очистки старое устройство
+        // не имеет права снова загрузить операции, созданные до серверной отметки очистки.
+        if(effectiveClearMs){
+          const before=walletState.transactions.length;
+          walletState.historyClearedAt=effectiveClearAt;
+          walletState.transactions=walletState.transactions.filter(t=>(Date.parse(t.createdAt)||0)>effectiveClearMs);
+          if(walletState.transactions.length!==before || localClearMs!==effectiveClearMs) saveWalletState();
+        }
+
+        const remoteTransactions=txRows.map(walletTransactionFromCloud).filter(Boolean)
+          .filter(t=>!effectiveClearMs || (Date.parse(t.createdAt)||0)>effectiveClearMs);
         const remoteIds=new Set(remoteTransactions.map(t=>t.id));
         const missingInCloud=walletState.transactions.filter(t=>!remoteIds.has(t.id));
         if(missingInCloud.length) await uploadWalletTransactions(token,ownerId,missingInCloud);
         const mergedTransactions=mergeWalletTransactionLists(walletState.transactions,remoteTransactions);
 
-        let nextState=normalizeWalletState({...walletState,transactions:mergedTransactions});
-        const remoteConfig=configRows[0]||null;
-        const legacyPlan=planRows[0]||null;
+        let nextState=normalizeWalletState({...walletState,historyClearedAt:effectiveClearAt||walletState.historyClearedAt,transactions:mergedTransactions});
         const localTime=Date.parse(nextState.configUpdatedAt||"")||0;
         const remoteTime=Date.parse(remoteConfig?.updated_at||"")||0;
         const legacyTime=Date.parse(legacyPlan?.updated_at||"")||0;
 
         if(remoteConfig){
           const remoteState=walletStateFromCloudConfig(remoteConfig,mergedTransactions);
+          // Никогда не теряем более новую отметку полной очистки.
+          remoteState.historyClearedAt=effectiveClearAt||remoteState.historyClearedAt;
           if(legacyTime>Math.max(remoteTime,localTime)){
             nextState=applyLegacyPlanRowToState(remoteState,legacyPlan);
+            nextState.historyClearedAt=effectiveClearAt||nextState.historyClearedAt;
             nextState.transactions=mergedTransactions;
             await uploadWalletConfig(token,ownerId,nextState);
-          }else if(localTime>remoteTime){
+          }else if(localTime>remoteTime || localClearMs>remoteClearMs){
             await uploadWalletConfig(token,ownerId,nextState);
           }else{
             nextState=remoteState;
@@ -3386,6 +3414,7 @@ body{padding-bottom:88px}
         }else{
           if(legacyPlan && legacyTime>localTime) nextState=applyLegacyPlanRowToState(nextState,legacyPlan);
           if(!nextState.configUpdatedAt) nextState.configUpdatedAt=new Date().toISOString();
+          nextState.historyClearedAt=effectiveClearAt||nextState.historyClearedAt;
           nextState.transactions=mergedTransactions;
           await uploadWalletConfig(token,ownerId,nextState);
         }
@@ -3398,17 +3427,28 @@ body{padding-bottom:88px}
         if(showToast) toast("Кошельки обновлены из облака");
         return true;
       }catch(e){
-        console.error("wallet cloud sync",e);
+        logAppError("wallet cloud sync",e);
         const text=String(e?.message||e||"");
+        const info=classifySyncError(e);
         if(walletCloudTableMissing(text)){
           walletCloudNeedsSetup=true;
           setWalletCloudState("bad","Облако кошельков: требуется обновление Supabase");
-          if(showToast) toast("Сначала выполните supabase_wallets_upgrade.sql");
-        }else if(navigator.onLine===false){
+          if(showToast) toast("Сначала выполните supabase_fix.sql");
+        }else if(info.kind==="offline"){
           setWalletCloudState("warn","Облако: нет интернета, изменения сохранены локально");
           if(showToast) toast("Нет интернета. Кошельки сохранены на этом устройстве");
+        }else if(info.kind==="auth"){
+          setWalletCloudState("bad","Облако: сессия администратора закончилась");
+          if(Number(e?.status)===401 && adminSession) saveAdminSession(null);
+          if(showToast) toast("Войдите как администратор заново");
+        }else if(info.kind==="forbidden"){
+          setWalletCloudState("bad","Облако: нет доступа к данным кошельков");
+          if(showToast) toast("Supabase отклонил доступ к кошелькам");
+        }else if(info.kind==="temporary"){
+          setWalletCloudState("warn","Облако: временный сбой, повторим автоматически");
+          if(showToast) toast("Временная ошибка облака. Повторим автоматически");
         }else{
-          setWalletCloudState("warn","Облако: не удалось синхронизировать, повторим позже");
+          setWalletCloudState("warn","Облако: ошибка синхронизации");
           if(showToast) toast("Не удалось синхронизировать кошельки");
         }
         return false;
@@ -4066,37 +4106,43 @@ body{padding-bottom:88px}
   function closeWalletManagement(){ $("walletManageModal").classList.add("hidden"); }
 
   async function clearWalletCloudHistory(token,ownerId){
-    // Удаление выполняет серверная функция с проверкой auth.uid().
-    // Обычный REST DELETE при RLS может вернуть 2xx даже когда удалено 0 строк,
-    // поэтому после RPC обязательно проверяем, что записей владельца действительно не осталось.
+    // Сервер удаляет историю и в той же транзакции ставит history_cleared_at.
+    // Это не даёт другому старому устройству воскресить удалённые операции.
     const res=await authFetch("/rest/v1/rpc/ma_wallet_clear_history",{
       method:"POST",
       headers:{Authorization:"Bearer "+token,Prefer:"return=representation"},
       body:JSON.stringify({})
     });
-    const text=await res.text();
     if(!res.ok){
-      const low=String(text||"").toLowerCase();
-      if(low.includes("ma_wallet_clear_history") || low.includes("pgrst202") || low.includes("could not find the function")){
-        throw new Error("В Supabase не установлена функция очистки. Выполните файл supabase_wallet_clear_history.sql");
+      const err=await httpErrorFromResponse(res,"Не удалось удалить историю из Supabase");
+      const low=String(err.message||"").toLowerCase();
+      if(low.includes("ma_wallet_clear_history") || low.includes("pgrst202") || low.includes("could not find the function") || low.includes("history_cleared_at")){
+        throw new Error("В Supabase не установлено обновление очистки. Выполните файл supabase_fix.sql");
       }
-      throw new Error(text||"Не удалось удалить историю из Supabase");
+      throw err;
     }
+
+    const result=await res.json().catch(()=>null);
+    let clearedAt="";
+    const raw=Array.isArray(result)?result[0]:result;
+    if(typeof raw==="string" && !Number.isNaN(Date.parse(raw))) clearedAt=raw;
+    else if(raw?.cleared_at && !Number.isNaN(Date.parse(String(raw.cleared_at)))) clearedAt=String(raw.cleared_at);
 
     const verify=await authFetch(`/rest/v1/${WALLET_TX_TABLE}?select=id&owner_id=eq.${encodeURIComponent(ownerId)}&limit=1`,{
       method:"GET",headers:{Authorization:"Bearer "+token}
     });
-    const verifyText=await verify.text();
-    if(!verify.ok) throw new Error(verifyText||"Не удалось проверить очистку Supabase");
-    const remaining=verifyText?JSON.parse(verifyText):[];
+    if(!verify.ok) throw await httpErrorFromResponse(verify,"Не удалось проверить очистку Supabase");
+    const remaining=await verify.json().catch(()=>[]);
     if(Array.isArray(remaining) && remaining.length){
       throw new Error("Supabase не удалил историю. Проверьте SQL-функцию и права доступа.");
     }
 
-    try{
-      const parsed=text?JSON.parse(text):0;
-      return Number(Array.isArray(parsed)?parsed[0]:parsed)||0;
-    }catch(_){ return 0; }
+    const configRows=await fetchWalletCloudConfig(token);
+    const serverStamp=String(configRows?.[0]?.history_cleared_at||"");
+    if(!serverStamp || Number.isNaN(Date.parse(serverStamp))){
+      throw new Error("Supabase удалил операции, но не сохранил отметку очистки. Выполните supabase_fix.sql");
+    }
+    return serverStamp || clearedAt;
   }
 
   async function clearWalletHistoryAndBalances(){
@@ -4123,12 +4169,13 @@ body{padding-bottom:88px}
       if(cloudConfigured()){
         const token=await getAdminToken(),ownerId=currentAdminUserId();
         if(!token||!ownerId) throw new Error("Сессия администратора закончилась");
-        await clearWalletCloudHistory(token,ownerId);
+        walletState.historyClearedAt=await clearWalletCloudHistory(token,ownerId);
         cloudDeletedConfirmed=true;
         lastWalletCloudFetchAt=0;
       }
 
       walletState.transactions=[];
+      if(!walletState.historyClearedAt) walletState.historyClearedAt=new Date().toISOString();
       saveWalletState();
       walletViewMonthKey=walletCurrentMonthKey();
       closeWalletManagement();
@@ -4456,16 +4503,26 @@ body{padding-bottom:88px}
     updateDesktopNavBrand("admin");
     if(brand) brand.textContent="MA График";
     if($("attentionTitle")) $("attentionTitle").textContent="Требует внимания";
+    const mobileAdmin=isMobileAdminNav();
     inner.classList.remove("employee-three","admin-four","admin-five","admin-six");
-    inner.classList.add("admin-six");
+    inner.classList.add(mobileAdmin?"admin-five":"admin-six");
 
     t1.textContent="Сегодня"; t1.dataset.tab="adminToday"; t1.classList.remove("hidden");
     t2.textContent="График"; t2.dataset.tab="schedule"; t2.classList.remove("hidden");
     t3.textContent="Календарь"; t3.dataset.tab="desktopCalendar"; t3.classList.remove("hidden");
-    t4.textContent="История"; t4.dataset.tab="history"; t4.classList.remove("hidden");
-    t5.textContent="Настройки"; t5.dataset.tab="settings"; t5.classList.remove("hidden");
     t6.textContent="Кошельки"; t6.dataset.tab="wallets"; t6.classList.remove("hidden");
-    if(tMore){ tMore.textContent="Ещё"; tMore.dataset.tab="more"; tMore.classList.remove("hidden"); }
+
+    if(mobileAdmin){
+      // На телефоне набор задаёт сам JS: ровно 5 пунктов. CSS остаётся только страховкой.
+      t4.classList.add("hidden");
+      t5.classList.add("hidden");
+      if(tMore){ tMore.textContent="Ещё"; tMore.dataset.tab="more"; tMore.classList.remove("hidden"); }
+    }else{
+      t4.textContent="История"; t4.dataset.tab="history"; t4.classList.remove("hidden");
+      t5.textContent="Настройки"; t5.dataset.tab="settings"; t5.classList.remove("hidden");
+      if(tMore) tMore.classList.add("hidden");
+    }
+    if(tMore) tMore.classList.toggle("active",mobileAdmin && (!$("historyPage").classList.contains("hidden") || !$("settingsPage").classList.contains("hidden")));
 
     $("employeePickerModal").classList.add("hidden");
 
@@ -4494,10 +4551,76 @@ body{padding-bottom:88px}
     if(isAdmin() && cloudConfigured() && !document.body.classList.contains("app-booting")) syncWalletsCloud(false);
   }
 
+  function sleepMs(ms){ return new Promise(resolve=>setTimeout(resolve,ms)); }
+
+  async function httpErrorFromResponse(res,fallback="Ошибка запроса"){
+    let body="";
+    try{ body=await res.text(); }catch(_){ }
+    const message=body || `${fallback} (HTTP ${res.status})`;
+    const err=new Error(message);
+    err.status=Number(res.status)||0;
+    err.statusText=String(res.statusText||"");
+    return err;
+  }
+
+  function classifySyncError(error){
+    const status=Number(error?.status||0);
+    const text=String(error?.message||error||"").toLowerCase();
+    if(navigator.onLine===false) return {kind:"offline",status};
+    if(status===401 || text.includes("jwt expired") || text.includes("invalid jwt")) return {kind:"auth",status};
+    if(status===403) return {kind:"forbidden",status};
+    if([408,425,429,500,502,503,504].includes(status)) return {kind:"temporary",status};
+    if(error?.name==="AbortError" || text.includes("timeout") || text.includes("timed out") || text.includes("failed to fetch") || text.includes("networkerror") || text.includes("network request failed")) return {kind:"temporary",status};
+    return {kind:"other",status};
+  }
+
+  function logAppError(context,error,extra={}){
+    const safe={
+      context:String(context||"app"),
+      time:new Date().toISOString(),
+      online:navigator.onLine!==false,
+      mode:isEmployeePhoneMode()?"employee":(isServiceDeviceMode()?"service":"admin"),
+      status:Number(error?.status||0)||undefined,
+      name:String(error?.name||"Error"),
+      message:String(error?.message||error||"Неизвестная ошибка").slice(0,500),
+      ...extra
+    };
+    console.error("MA График",safe);
+  }
+
   async function authFetch(path,options={}){
     if(!cloudConfigured()) throw new Error("Supabase не настроен");
-    const headers=Object.assign({"apikey":SUPABASE_PUBLISHABLE_KEY,"Content-Type":"application/json"},options.headers||{});
-    return fetch(SUPABASE_URL+path,Object.assign({},options,{headers}));
+    const method=String(options.method||"GET").toUpperCase();
+    const retryAttempts=Math.max(1,Math.min(3,Number(options.retryAttempts ?? (method==="GET"?3:1))||1));
+    const timeoutMs=Math.max(3000,Math.min(20000,Number(options.timeoutMs||8000)||8000));
+    const fetchOptions={...options};
+    delete fetchOptions.retryAttempts;
+    delete fetchOptions.timeoutMs;
+    const headers=Object.assign({"apikey":SUPABASE_PUBLISHABLE_KEY,"Content-Type":"application/json"},fetchOptions.headers||{});
+    fetchOptions.headers=headers;
+    if(method==="GET" && fetchOptions.cache===undefined) fetchOptions.cache="no-store";
+
+    let lastError=null;
+    for(let attempt=1;attempt<=retryAttempts;attempt++){
+      const controller=!fetchOptions.signal && typeof AbortController!=="undefined" ? new AbortController() : null;
+      const timer=controller?setTimeout(()=>controller.abort(),timeoutMs):null;
+      try{
+        const res=await fetch(SUPABASE_URL+path,{...fetchOptions,signal:fetchOptions.signal||controller?.signal});
+        if(timer) clearTimeout(timer);
+        if(method==="GET" && attempt<retryAttempts && [408,425,429,500,502,503,504].includes(res.status) && !document.hidden){
+          await sleepMs(attempt===1?350:900);
+          continue;
+        }
+        return res;
+      }catch(e){
+        if(timer) clearTimeout(timer);
+        lastError=e;
+        const retryable=method==="GET" && attempt<retryAttempts && navigator.onLine!==false && !document.hidden;
+        if(!retryable) throw e;
+        await sleepMs(attempt===1?350:900);
+      }
+    }
+    throw lastError||new Error("Не удалось выполнить запрос");
   }
 
   async function loginAdmin(email,password){
@@ -4745,8 +4868,8 @@ body{padding-bottom:88px}
 
       try{
         const res=await authFetch(`/rest/v1/${CLOUD_TABLE}?id=eq.${encodeURIComponent(CLOUD_ROW_ID)}&select=settings,updated_at`,{method:"GET"});
-        if(!res.ok) throw new Error(await res.text());
-        const rows=await res.json();
+        if(!res.ok) throw await httpErrorFromResponse(res,"Не удалось загрузить общий график");
+        const rows=await res.json().catch(()=>[]);
         lastCloudFetchAt=Date.now();
 
         if(rows && rows[0] && rows[0].settings && Object.keys(rows[0].settings).length){
@@ -4781,9 +4904,13 @@ body{padding-bottom:88px}
         if(showToast) toast("Общий график обновлён");
         return true;
       }catch(e){
-        console.error(e);
-        setCloudStatus("Нет связи","offline");
-        if(showToast) toast("Не удалось загрузить общий график");
+        logAppError("schedule cloud sync",e);
+        const info=classifySyncError(e);
+        if(info.kind==="offline") setCloudStatus("Нет связи","offline");
+        else if(info.kind==="temporary") setCloudStatus("Облако временно недоступно","offline");
+        else if(info.kind==="forbidden" || info.kind==="auth") setCloudStatus("Ошибка доступа","offline");
+        else setCloudStatus("Ошибка облака","offline");
+        if(showToast) toast(info.kind==="temporary"?"Временная ошибка облака. Повторим автоматически":"Не удалось загрузить общий график");
         return false;
       }
     })();
@@ -5705,10 +5832,36 @@ body{padding-bottom:88px}
     btn.disabled=false;
     updateSettingsSystemStatus();
   }
-  async function registerServiceWorker(){
+  async function registerServiceWorker({checkUpdate=true}={}){
     if(!("serviceWorker" in navigator)) return null;
-    try{ serviceWorkerRegistration=await navigator.serviceWorker.register("./sw.js"); return serviceWorkerRegistration; }
-    catch(e){ console.error("SW",e); return null; }
+    try{
+      const hadController=!!navigator.serviceWorker.controller;
+      serviceWorkerRegistration=await navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"});
+
+      if(hadController && !serviceWorkerControllerListenerBound){
+        serviceWorkerControllerListenerBound=true;
+        navigator.serviceWorker.addEventListener("controllerchange",()=>{
+          if(serviceWorkerReloading) return;
+          const last=Number(sessionStorage.getItem("ma_grafik_sw_reload_at")||0);
+          if(Date.now()-last<10000) return;
+          serviceWorkerReloading=true;
+          sessionStorage.setItem("ma_grafik_sw_reload_at",String(Date.now()));
+          location.reload();
+        });
+      }
+
+      if(checkUpdate && Date.now()-lastServiceWorkerUpdateAt>60000){
+        lastServiceWorkerUpdateAt=Date.now();
+        try{ await serviceWorkerRegistration.update(); }catch(e){ logAppError("service worker update",e); }
+      }
+      if(serviceWorkerRegistration.waiting){
+        try{ serviceWorkerRegistration.waiting.postMessage({type:"SKIP_WAITING"}); }catch(_){ }
+      }
+      return serviceWorkerRegistration;
+    }catch(e){
+      logAppError("service worker register",e);
+      return null;
+    }
   }
   async function enablePush(){
     if(!isAdmin()){ openLoginModal(); toast("Сначала войди как администратор"); return; }
@@ -9298,18 +9451,61 @@ body{padding-bottom:88px}
   if(window.matchMedia("(max-width:760px)").matches){
     ["settingsScheduleFold","settingsPinsFold","settingsDevicesFold"].forEach(id=>{ const el=$(id); if(el) el.open=false; });
   }
-  window.addEventListener("resize",()=>{ if(!isMobileAdminNav()) closeMobileMoreMenu(); });
-  window.addEventListener("online",()=>{ setCloudStatus(cloudConfigured()?"Онлайн":"Локально",cloudConfigured()?"online":"offline"); syncFromCloud(false); if(isAdmin()) syncWalletsCloud(false); loadTodayShifts(false); });
-  window.addEventListener("offline",()=>{ setCloudStatus("Нет связи","offline"); });
 
-  window.addEventListener("resize",()=>{
+  function refreshResponsiveLayout(){
     const wasEmployee=document.body.classList.contains("employee-phone-mode");
     const nowEmployee=isEmployeePhoneMode();
+    applyUserMode();
+    if(!isMobileAdminNav()) closeMobileMoreMenu();
     if(wasEmployee!==nowEmployee){
-      applyUserMode();
       switchTab(nowEmployee?"employeeToday":"adminToday");
+      return;
     }
+    const more=$("bottomTabMore");
+    if(more) more.classList.toggle("active",isMobileAdminNav() && (!$("historyPage").classList.contains("hidden") || !$("settingsPage").classList.contains("hidden")));
+  }
+
+  function scheduleResponsiveRefresh(){
+    if(responsiveRefreshTimer) clearTimeout(responsiveRefreshTimer);
+    responsiveRefreshTimer=setTimeout(()=>{
+      responsiveRefreshTimer=null;
+      refreshResponsiveLayout();
+    },120);
+  }
+
+  async function refreshAppAfterResume(reason="resume",force=false){
+    if(!appInitialized || document.hidden) return false;
+    const now=Date.now();
+    if(resumeRefreshPromise) return resumeRefreshPromise;
+    if(!force && now-lastResumeRefreshAt<1200) return true;
+    lastResumeRefreshAt=now;
+
+    resumeRefreshPromise=(async()=>{
+      refreshResponsiveLayout();
+      await registerServiceWorker({checkUpdate:true});
+      if(isAdmin()){
+        try{ await getAdminToken(); }catch(e){ logAppError("resume auth refresh",e,{reason}); }
+      }
+      if(!cloudConfigured()) return true;
+      const tasks=[syncFromCloud(false),loadTodayShifts(false)];
+      if(isAdmin()) tasks.push(syncWalletsCloud(false));
+      await Promise.allSettled(tasks);
+      return true;
+    })();
+    try{ return await resumeRefreshPromise; }
+    finally{ resumeRefreshPromise=null; }
+  }
+
+  window.addEventListener("resize",scheduleResponsiveRefresh,{passive:true});
+  window.addEventListener("orientationchange",scheduleResponsiveRefresh,{passive:true});
+  window.addEventListener("pageshow",e=>{ if(e.persisted) refreshAppAfterResume("pageshow-bfcache",true); else scheduleResponsiveRefresh(); });
+  window.addEventListener("focus",()=>refreshAppAfterResume("focus"));
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden) refreshAppAfterResume("visibility"); });
+  window.addEventListener("online",()=>{
+    setCloudStatus(cloudConfigured()?"Онлайн":"Локально",cloudConfigured()?"online":"offline");
+    refreshAppAfterResume("online",true);
   });
+  window.addEventListener("offline",()=>{ setCloudStatus("Нет связи","offline"); });
   const scheduleSettingInputIds=new Set(["service1","service2","shiftStart","shiftEnd"]);
   $("settingsPage").addEventListener("input",e=>{
     if(scheduleSettingInputIds.has(e.target.id)) markDirty();
@@ -9342,9 +9538,10 @@ body{padding-bottom:88px}
     applyUserMode();
     switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday");
     document.body.classList.remove("app-booting");
+    appInitialized=true;
 
     // Всё сетевое — уже после показа интерфейса.
-    registerServiceWorker().then(()=>{ updatePushState(); updateInstallUI(); });
+    registerServiceWorker({checkUpdate:true}).then(()=>{ updatePushState(); updateInstallUI(); });
     updateInstallUI();
 
     const backgroundTasks=[];
@@ -9361,6 +9558,9 @@ body{padding-bottom:88px}
       backgroundTasks.push(syncFromCloud(false));
       if(isAdmin()) backgroundTasks.push(syncWalletsCloud(false));
 
+      // Защита от повторной инициализации: одновременно существует только по одному таймеру.
+      if(syncTimer) clearInterval(syncTimer);
+      if(shiftPollTimer) clearInterval(shiftPollTimer);
       syncTimer=setInterval(()=>{
         if(!document.hidden){
           syncFromCloud(false);
@@ -9371,17 +9571,6 @@ body{padding-bottom:88px}
       shiftPollTimer=setInterval(()=>{
         if(!document.hidden) loadTodayShifts(false);
       },SHIFT_POLL_MS);
-
-      const refreshForegroundData=()=>{
-        syncFromCloud(false);
-        if(isAdmin()) syncWalletsCloud(false);
-        loadTodayShifts(false);
-      };
-
-      window.addEventListener("focus",refreshForegroundData);
-      document.addEventListener("visibilitychange",()=>{
-        if(!document.hidden) refreshForegroundData();
-      });
     }else{
       setCloudStatus("Локально","offline");
     }
