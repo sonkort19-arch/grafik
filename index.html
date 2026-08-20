@@ -3212,7 +3212,7 @@ body{padding-bottom:88px}
 
   function walletCloudTableMissing(errorText){
     const text=String(errorText||"").toLowerCase();
-    return text.includes("ma_wallet_config") || text.includes("ma_wallet_plans") || text.includes("ma_wallet_transactions") || text.includes("effective_at") || text.includes("ma_wallet_apply_batch") || text.includes("pgrst205") || text.includes("42p01") || text.includes("could not find the table") || text.includes("could not find the function");
+    return text.includes("ma_wallet_config") || text.includes("ma_wallet_plans") || text.includes("ma_wallet_transactions") || text.includes("effective_at") || text.includes("ma_wallet_apply_batch") || text.includes("ma_wallet_clear_history") || text.includes("pgrst205") || text.includes("42p01") || text.includes("could not find the table") || text.includes("could not find the function");
   }
 
   function walletTransactionPayload(t,ownerId){
@@ -4065,6 +4065,40 @@ body{padding-bottom:88px}
   function openWalletManagement(){ renderWalletManagement();$("walletManageModal").classList.remove("hidden"); }
   function closeWalletManagement(){ $("walletManageModal").classList.add("hidden"); }
 
+  async function clearWalletCloudHistory(token,ownerId){
+    // Удаление выполняет серверная функция с проверкой auth.uid().
+    // Обычный REST DELETE при RLS может вернуть 2xx даже когда удалено 0 строк,
+    // поэтому после RPC обязательно проверяем, что записей владельца действительно не осталось.
+    const res=await authFetch("/rest/v1/rpc/ma_wallet_clear_history",{
+      method:"POST",
+      headers:{Authorization:"Bearer "+token,Prefer:"return=representation"},
+      body:JSON.stringify({})
+    });
+    const text=await res.text();
+    if(!res.ok){
+      const low=String(text||"").toLowerCase();
+      if(low.includes("ma_wallet_clear_history") || low.includes("pgrst202") || low.includes("could not find the function")){
+        throw new Error("В Supabase не установлена функция очистки. Выполните файл supabase_wallet_clear_history.sql");
+      }
+      throw new Error(text||"Не удалось удалить историю из Supabase");
+    }
+
+    const verify=await authFetch(`/rest/v1/${WALLET_TX_TABLE}?select=id&owner_id=eq.${encodeURIComponent(ownerId)}&limit=1`,{
+      method:"GET",headers:{Authorization:"Bearer "+token}
+    });
+    const verifyText=await verify.text();
+    if(!verify.ok) throw new Error(verifyText||"Не удалось проверить очистку Supabase");
+    const remaining=verifyText?JSON.parse(verifyText):[];
+    if(Array.isArray(remaining) && remaining.length){
+      throw new Error("Supabase не удалил историю. Проверьте SQL-функцию и права доступа.");
+    }
+
+    try{
+      const parsed=text?JSON.parse(text):0;
+      return Number(Array.isArray(parsed)?parsed[0]:parsed)||0;
+    }catch(_){ return 0; }
+  }
+
   async function clearWalletHistoryAndBalances(){
     if(walletBusy) return;
     const operationCount=walletOperationGroups().length;
@@ -4082,37 +4116,33 @@ body{padding-bottom:88px}
     const previous=clone(walletState);
     walletBusy=true;
     const busy=beginButtonBusy("clearWalletHistoryBtn","Удаляем…");
-    let cloudDeleted=false;
+    let cloudDeletedConfirmed=false;
     try{
-      // Сначала очищаем локальную копию, чтобы синхронизация не могла повторно загрузить старые операции.
-      walletState.transactions=[];
-      saveWalletState();
-
+      // Если подключено облако, сначала удаляем и проверяем данные именно там.
+      // Локальная история очищается только после подтверждённого серверного удаления.
       if(cloudConfigured()){
         const token=await getAdminToken(),ownerId=currentAdminUserId();
         if(!token||!ownerId) throw new Error("Сессия администратора закончилась");
-        const res=await authFetch(`/rest/v1/${WALLET_TX_TABLE}?owner_id=eq.${encodeURIComponent(ownerId)}`,{
-          method:"DELETE",
-          headers:{Authorization:"Bearer "+token,Prefer:"return=minimal"}
-        });
-        if(!res.ok) throw new Error(await res.text()||"Не удалось удалить историю из облака");
-        cloudDeleted=true;
+        await clearWalletCloudHistory(token,ownerId);
+        cloudDeletedConfirmed=true;
         lastWalletCloudFetchAt=0;
       }
 
+      walletState.transactions=[];
+      saveWalletState();
       walletViewMonthKey=walletCurrentMonthKey();
       closeWalletManagement();
       renderWallets();
-      toast("История удалена. Балансы кошельков: 0 ₽");
+      toast(cloudConfigured()?"История удалена из устройства и Supabase. Балансы: 0 ₽":"История удалена. Балансы: 0 ₽");
     }catch(e){
       console.error("wallet history clear",e);
-      if(!cloudDeleted){
-        walletState=previous;
+      if(cloudDeletedConfirmed){
+        // Серверное удаление уже подтверждено. Старую локальную историю возвращать нельзя,
+        // иначе она снова загрузится в Supabase как «недостающая в облаке».
+        walletState.transactions=[];
         try{saveWalletState();}catch(_){}
       }else{
-        // Облачное удаление уже необратимо — не возвращаем старые операции локально,
-        // иначе следующая синхронизация загрузит их обратно в Supabase.
-        walletState.transactions=[];
+        walletState=previous;
         try{saveWalletState();}catch(_){}
       }
       renderWallets();
