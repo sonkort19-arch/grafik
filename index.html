@@ -1498,6 +1498,72 @@ body{padding-bottom:88px}
   .wallet-card-balance{font-size:20px}
 }
 
+
+/* Кошельки 3.0 — месячные планы, динамические статьи и безопасные переводы */
+.wallet-month-card{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px}
+.wallet-month-head{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:8px;align-items:center;margin-bottom:10px}
+.wallet-month-head>div{text-align:center;min-width:0}
+.wallet-month-head b{display:block;color:#172033;font-size:16px}
+.wallet-month-head span{display:block;margin-top:2px;color:var(--muted);font-size:10px}
+.wallet-month-nav{min-height:40px;padding:4px;font-size:22px}
+.wallet-month-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.wallet-month-stats>div{border:1px solid #edf0f4;border-radius:10px;padding:8px;min-width:0}
+.wallet-month-stats span{display:block;color:var(--muted);font-size:9px}
+.wallet-month-stats b{display:block;margin-top:3px;color:#24344d;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wallet-card-stats.wallet-card-stats-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.wallet-protected{display:inline-flex;align-items:center;border-radius:999px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;padding:3px 6px;font-size:8px;font-weight:900;white-space:nowrap}
+.wallet-goal{margin-top:10px;padding-top:9px;border-top:1px solid #edf0f4}
+.wallet-goal-head{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:10px;color:#475569}
+.wallet-goal-head b{color:#24344d}
+.wallet-progress{height:7px;background:#e7edf3;border-radius:99px;overflow:hidden;margin-top:6px}
+.wallet-progress i{display:block;height:100%;background:#22a35a;border-radius:99px}
+.wallet-goal small{display:block;margin-top:5px;color:var(--muted);font-size:9px}
+.wallet-history-actions{display:flex;justify-content:flex-end;margin-top:7px;padding-top:7px;border-top:1px solid #edf0f4}
+.wallet-history-actions button{min-height:34px;padding:6px 9px;font-size:10px}
+.wallet-undo-btn{min-height:36px;padding:7px 9px;font-size:10px;white-space:nowrap}
+.wallet-history-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}
+.wallet-history-filters select{width:100%;min-width:0}
+.wallet-large-sheet{max-width:720px}
+.wallet-manage-top{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.wallet-manage-section{display:grid;gap:8px;margin-top:12px}
+.wallet-manage-section h3{margin:0;color:#24344d;font-size:14px}
+.wallet-manage-row{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.wallet-manage-row.archived{background:#f8fafc}
+.wallet-manage-main{min-width:0}
+.wallet-manage-main b{display:block;color:#24344d;font-size:13px}
+.wallet-manage-main span{display:block;margin-top:3px;color:var(--muted);font-size:9px;line-height:1.35}
+.wallet-manage-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px}
+.wallet-manage-actions button{min-height:34px;padding:6px 8px;font-size:10px}
+.wallet-manage-archive{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.wallet-manage-archive>summary{cursor:pointer;font-size:12px;font-weight:850;color:#475569}
+.wallet-check{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px;background:#fff}
+.wallet-check input{width:18px;height:18px;margin-top:1px}
+.wallet-check b{display:block;color:#24344d;font-size:12px}
+.wallet-check small{display:block;color:var(--muted);font-size:10px;line-height:1.35;margin-top:2px}
+#walletCorrectionFields .wallet-plan-list{margin-top:0}
+@media(max-width:760px){
+  .wallet-month-stats{grid-template-columns:1fr 1fr}
+  .wallet-month-stats>div{padding:9px}
+  .wallet-month-stats b{font-size:13px}
+  .wallet-card-stats.wallet-card-stats-3{grid-template-columns:1fr 1fr 1fr}
+  .wallet-card-actions button,.wallet-main-actions button,.wallet-head-actions button,.wallet-month-nav{min-height:44px!important}
+  .wallet-history-filters{grid-template-columns:1fr}
+  .wallet-history-filters select{min-height:44px}
+  .wallet-history-head{align-items:stretch;flex-direction:column}
+  .wallet-undo-btn{width:100%;min-height:44px}
+  .wallet-manage-top{grid-template-columns:1fr}
+  .wallet-manage-row{grid-template-columns:1fr}
+  .wallet-manage-actions{justify-content:flex-start}
+  .wallet-manage-actions button{min-height:44px;font-size:11px}
+  #walletManageModal .sheet,#walletEditModal .sheet,#walletCorrectionModal .sheet,#walletTransferModal .sheet{max-height:calc(100dvh - 16px);overflow-y:auto}
+  #walletEditModal .login-actions,#walletCorrectionModal .login-actions,#walletTransferModal .login-actions{position:sticky;bottom:-16px;z-index:4;background:#fff;border-top:1px solid var(--line);padding:10px 0 calc(4px + env(safe-area-inset-bottom));margin-top:10px}
+}
+@media(max-width:420px){
+  .wallet-card-stats.wallet-card-stats-3{grid-template-columns:1fr}
+  .wallet-card-stat{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px}
+  .wallet-card-stat b{margin-top:0;text-align:right}
+}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1738,12 +1804,12 @@ body{padding-bottom:88px}
         <div class="wallets-head">
           <div>
             <h2>Кошельки</h2>
-            <div class="wallets-sub">Личное распределение денег. Планы можно менять — текущие балансы от этого не изменятся.</div>
+            <div class="wallets-sub">Личный бюджет: месячные планы, расходы, накопления и переводы.</div>
             <span class="wallet-cloud-state" id="walletCloudState">Облако: проверяем…</span>
           </div>
           <div class="wallet-head-actions">
             <button class="secondary" id="walletSyncBtn">Обновить</button>
-            <button class="secondary" id="walletPlanBtn">Настроить</button>
+            <button class="secondary" id="walletPlanBtn">Управление</button>
           </div>
         </div>
 
@@ -1753,28 +1819,51 @@ body{padding-bottom:88px}
           <small id="walletsInsurance">Страховка: 0 ₽</small>
         </div>
 
+        <div class="wallet-month-card">
+          <div class="wallet-month-head">
+            <button class="secondary wallet-month-nav" id="walletMonthPrev" aria-label="Предыдущий месяц">‹</button>
+            <div><b id="walletMonthLabel">—</b><span>Итоги месяца</span></div>
+            <button class="secondary wallet-month-nav" id="walletMonthNext" aria-label="Следующий месяц">›</button>
+          </div>
+          <div class="wallet-month-stats">
+            <div><span>Получено</span><b id="walletMonthReceived">0 ₽</b></div>
+            <div><span>Распределено</span><b id="walletMonthDistributed">0 ₽</b></div>
+            <div><span>Потрачено</span><b id="walletMonthSpent">0 ₽</b></div>
+            <div><span>Осталось</span><b id="walletMonthRemaining">0 ₽</b></div>
+          </div>
+        </div>
+
         <div class="wallet-main-actions">
           <button class="primary" id="openWalletDistribution">+ Распределить деньги</button>
-          <button class="secondary" id="undoLastWalletOperation">Отменить последнюю операцию</button>
+          <button class="secondary" id="openWalletTransfer">Перевести</button>
         </div>
 
         <div class="wallet-grid" id="walletsGrid"></div>
 
         <div class="wallet-history-card">
           <div class="wallet-history-head">
-            <div>
-              <h3>Последние операции</h3>
-              <span>Последние 5 действий</span>
-            </div>
+            <div><h3>История</h3><span>Последние действия и исправления</span></div>
+            <button class="secondary wallet-undo-btn" id="undoLastWalletOperation">Отменить последнюю</button>
           </div>
           <div class="wallet-history-list" id="walletRecentList"></div>
           <details class="wallet-full-history">
-            <summary>Вся история</summary>
+            <summary>Вся история и фильтры</summary>
+            <div class="wallet-history-filters">
+              <select id="walletHistoryType">
+                <option value="all">Все операции</option>
+                <option value="income">Поступления</option>
+                <option value="expense">Расходы</option>
+                <option value="transfer">Переводы</option>
+              </select>
+              <select id="walletHistoryWallet"><option value="all">Все кошельки</option></select>
+              <select id="walletHistoryMonth"><option value="all">Все месяцы</option></select>
+            </div>
             <div class="wallet-history-list" id="walletHistoryList" style="margin-top:9px"></div>
           </details>
         </div>
       </div>
     </section>
+
 
     <section id="settingsPage" class="hidden">
 
@@ -1963,69 +2052,92 @@ body{padding-bottom:88px}
 <div class="modal hidden" id="walletDistributionModal">
   <div class="sheet">
     <div class="sheet-head">
-      <div>
-        <h2>Распределить деньги</h2>
-        <div class="employee-mode-note">Введите общую сумму. Сначала будет показан предпросмотр.</div>
-      </div>
+      <div><h2>Распределить деньги</h2><div class="employee-mode-note">Программа учитывает, сколько уже выделено по планам этого месяца.</div></div>
       <button class="close" id="closeWalletDistribution">×</button>
     </div>
-    <div class="field" style="margin-top:12px">
-      <label>Общая сумма</label>
-      <input id="walletDistributionAmount" inputmode="decimal" autocomplete="off" placeholder="Например, 150000">
-    </div>
+    <div class="field" style="margin-top:12px"><label>Общая сумма</label><input id="walletDistributionAmount" inputmode="decimal" autocomplete="off" placeholder="Например, 150000"></div>
     <div id="walletDistributionPreview"></div>
-    <div class="login-actions">
-      <button class="secondary" id="cancelWalletDistribution">Отмена</button>
-      <button class="primary" id="confirmWalletDistribution" disabled>Подтвердить распределение</button>
-    </div>
+    <div class="login-actions"><button class="secondary" id="cancelWalletDistribution">Отмена</button><button class="primary" id="confirmWalletDistribution" disabled>Подтвердить распределение</button></div>
   </div>
 </div>
 
 <div class="modal hidden" id="walletTransactionModal">
   <div class="sheet">
     <div class="sheet-head">
-      <div>
-        <h2 id="walletTransactionTitle">Операция</h2>
-        <div class="employee-mode-note" id="walletTransactionSubtitle"></div>
-      </div>
+      <div><h2 id="walletTransactionTitle">Операция</h2><div class="employee-mode-note" id="walletTransactionSubtitle"></div></div>
       <button class="close" id="closeWalletTransaction">×</button>
     </div>
-    <input type="hidden" id="walletTransactionWalletId">
-    <input type="hidden" id="walletTransactionType">
-    <div class="field" style="margin-top:12px">
-      <label>Сумма</label>
-      <input id="walletTransactionAmount" inputmode="decimal" autocomplete="off" placeholder="0">
-    </div>
-    <div class="field">
-      <label>Комментарий — необязательно</label>
-      <input id="walletTransactionComment" maxlength="120" placeholder="Например, Магазин">
-    </div>
+    <input type="hidden" id="walletTransactionWalletId"><input type="hidden" id="walletTransactionType">
+    <div class="field" style="margin-top:12px"><label>Сумма</label><input id="walletTransactionAmount" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+    <div class="field"><label>Комментарий — необязательно</label><input id="walletTransactionComment" maxlength="120" placeholder="Например, Магазин"></div>
     <div class="login-error" id="walletTransactionError"></div>
-    <div class="login-actions">
-      <button class="secondary" id="cancelWalletTransaction">Отмена</button>
-      <button class="primary" id="confirmWalletTransaction">Сохранить</button>
-    </div>
+    <div class="login-actions"><button class="secondary" id="cancelWalletTransaction">Отмена</button><button class="primary" id="confirmWalletTransaction">Сохранить</button></div>
   </div>
 </div>
 
 <div class="modal hidden" id="walletPlanModal">
   <div class="sheet">
     <div class="sheet-head">
-      <div>
-        <h2>Настроить распределение</h2>
-        <div class="employee-mode-note">Укажите обычную сумму для каждого кошелька. Остаток всегда идёт в Страховку.</div>
-      </div>
+      <div><h2>Месячные планы</h2><div class="employee-mode-note">План — сколько всего нужно выделить в кошелёк за месяц, а не за одно распределение.</div></div>
       <button class="close" id="closeWalletPlan">×</button>
     </div>
-    <div class="wallet-plan-list" id="walletPlanFields"></div>
-    <div class="wallet-plan-insurance">Страховка не имеет фиксированного плана. Она получает весь остаток после остальных кошельков.</div>
-    <div class="wallet-modal-total" id="walletPlanTotal">План: 0 ₽</div>
-    <div class="login-actions">
-      <button class="secondary" id="cancelWalletPlan">Отмена</button>
-      <button class="primary" id="saveWalletPlan">Сохранить план</button>
+    <div class="field" style="margin-top:12px">
+      <label>Если денег меньше незакрытых планов</label>
+      <select id="walletDistributionStrategy"><option value="proportional">Распределять пропорционально</option><option value="priority">Распределять по приоритетам</option></select>
     </div>
+    <div class="wallet-plan-list" id="walletPlanFields"></div>
+    <div class="wallet-plan-insurance">Страховка не имеет месячного плана: после закрытия остальных планов она получает свободный остаток.</div>
+    <div class="wallet-modal-total" id="walletPlanTotal">План: 0 ₽</div>
+    <div class="login-actions"><button class="secondary" id="cancelWalletPlan">Отмена</button><button class="primary" id="saveWalletPlan">Сохранить план</button></div>
   </div>
 </div>
+
+<div class="modal hidden" id="walletTransferModal">
+  <div class="sheet">
+    <div class="sheet-head"><div><h2 id="walletTransferTitle">Перевести между кошельками</h2><div class="employee-mode-note">Перевод не считается расходом или новым поступлением.</div></div><button class="close" id="closeWalletTransfer">×</button></div>
+    <div class="grid2" style="margin-top:12px"><div class="field"><label>Откуда</label><select id="walletTransferFrom"></select></div><div class="field"><label>Куда</label><select id="walletTransferTo"></select></div></div>
+    <div class="field"><label>Сумма</label><input id="walletTransferAmount" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+    <div class="field"><label>Комментарий — необязательно</label><input id="walletTransferComment" maxlength="120" placeholder="Например, Перенёс на детей"></div>
+    <div class="login-error" id="walletTransferError"></div>
+    <div class="login-actions"><button class="secondary" id="cancelWalletTransfer">Отмена</button><button class="primary" id="confirmWalletTransfer">Перевести</button></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="walletManageModal">
+  <div class="sheet wallet-large-sheet">
+    <div class="sheet-head"><div><h2>Управление кошельками</h2><div class="employee-mode-note">Создавайте свои статьи, меняйте планы, цели, порядок и архив.</div></div><button class="close" id="closeWalletManage">×</button></div>
+    <div class="wallet-manage-top">
+      <button class="primary" id="addWalletBtn">+ Добавить кошелёк</button>
+      <button class="secondary" id="openWalletPlansFromManage">Планы месяца</button>
+    </div>
+    <div class="field"><label>Стратегия при нехватке денег</label><select id="walletManageStrategy"><option value="proportional">Пропорционально</option><option value="priority">По приоритетам</option></select></div>
+    <div id="walletManageList"></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="walletEditModal">
+  <div class="sheet">
+    <div class="sheet-head"><div><h2 id="walletEditTitle">Добавить кошелёк</h2><div class="employee-mode-note">Название можно менять позже — история останется привязана к постоянному ID.</div></div><button class="close" id="closeWalletEdit">×</button></div>
+    <div class="field" style="margin-top:12px"><label>Название</label><input id="walletEditName" maxlength="60" placeholder="Например, Автомобиль"></div>
+    <div class="grid2"><div class="field"><label>Тип</label><select id="walletEditType"><option value="expense">Расходный</option><option value="savings">Накопительный</option></select></div><div class="field"><label>Приоритет (1 — самый высокий)</label><input id="walletEditPriority" inputmode="numeric" type="number" min="1" step="1" value="1"></div></div>
+    <div class="grid2"><div class="field"><label>Месячный план</label><input id="walletEditPlan" inputmode="decimal" value="0"></div><div class="field"><label>Цель — необязательно</label><input id="walletEditGoal" inputmode="decimal" value="0"></div></div>
+    <div class="field"><label>Остаток при новом месяце</label><select id="walletEditRollover"><option value="carry">Перенести дальше</option><option value="insurance">Перевести в Страховку</option></select></div>
+    <label class="wallet-check"><input type="checkbox" id="walletEditProtected"><span><b>Защищённый кошелёк</b><small>Перед расходом будет дополнительное подтверждение</small></span></label>
+    <div class="wallet-plan-insurance hidden" id="walletEditSystemNote">Это системная Страховка. Её нельзя удалить или архивировать, чтобы не сломать распределение.</div>
+    <div class="login-error" id="walletEditError"></div>
+    <div class="login-actions"><button class="secondary" id="cancelWalletEdit">Отмена</button><button class="primary" id="saveWalletEdit">Сохранить</button></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="walletCorrectionModal">
+  <div class="sheet wallet-large-sheet">
+    <div class="sheet-head"><div><h2 id="walletCorrectionTitle">Исправить операцию</h2><div class="employee-mode-note" id="walletCorrectionNote"></div></div><button class="close" id="closeWalletCorrection">×</button></div>
+    <div id="walletCorrectionFields" style="margin-top:12px"></div>
+    <div class="login-error" id="walletCorrectionError"></div>
+    <div class="login-actions"><button class="secondary" id="cancelWalletCorrection">Отмена</button><button class="primary" id="saveWalletCorrection">Исправить</button></div>
+  </div>
+</div>
+
 
 <div class="toast" id="toast"></div>
 
@@ -2259,22 +2371,12 @@ body{padding-bottom:88px}
   const DEVICE_VIEW_CACHE_KEY = "ma_device_view_cache_v1";
   const TODAY_SHIFT_CACHE_KEY = "ma_today_shift_cache_v1";
   const WALLET_STORAGE_KEY = "ma_personal_wallets_v1";
-  const WALLET_DATA_VERSION = 2;
+  const WALLET_DATA_VERSION = 3;
   const WALLET_PLAN_TABLE = "ma_wallet_plans";
+  const WALLET_CONFIG_TABLE = "ma_wallet_config";
   const WALLET_TX_TABLE = "ma_wallet_transactions";
   const WALLET_CLOUD_PAGE_SIZE = 1000;
-  const WALLET_CLOUD_MAX_ROWS = 20000;
-  const WALLET_DEFS = [
-    {id:"products",name:"Продукты"},
-    {id:"pocket",name:"Карманные расходы"},
-    {id:"restaurant",name:"Ресторан"},
-    {id:"vacation",name:"Отпуск"},
-    {id:"savings",name:"Накопления"},
-    {id:"clothes",name:"Вещи"},
-    {id:"children",name:"Дети"},
-    {id:"self",name:"На себя"},
-    {id:"insurance",name:"Страховка",insurance:true}
-  ];
+  const WALLET_CLOUD_MAX_ROWS = 100000;
 
   // === ОБЩИЙ ОНЛАЙН-ГРАФИК ===
   // Вставь сюда данные Supabase перед загрузкой файла в Vercel.
@@ -2339,6 +2441,10 @@ body{padding-bottom:88px}
   let walletCloudSyncPromise = null;
   let lastWalletCloudFetchAt = 0;
   let walletCloudNeedsSetup = false;
+  let walletViewMonthKey = walletCurrentMonthKey();
+  let pendingArchiveWalletId = "";
+  let walletEditingId = "";
+  let walletCorrectionOperationId = "";
   const adminMutationLocks = new Set();
   let serviceWorkerRegistration = null;
   let deferredGrafikInstallPrompt=null;
@@ -2873,51 +2979,193 @@ body{padding-bottom:88px}
 
 
   // ---------- Кошельки ----------
+  function walletCurrentMonthKey(){
+    const p=moscowParts();
+    return `${p.year}-${String(p.month).padStart(2,"0")}`;
+  }
+
+  function walletMonthKeyFromIso(iso){
+    try{
+      const parts=new Intl.DateTimeFormat("en-CA",{timeZone:SHIFT_TIMEZONE,year:"numeric",month:"2-digit"}).formatToParts(new Date(iso));
+      const year=parts.find(x=>x.type==="year")?.value;
+      const month=parts.find(x=>x.type==="month")?.value;
+      return year&&month?`${year}-${month}`:walletCurrentMonthKey();
+    }catch(e){ return walletCurrentMonthKey(); }
+  }
+
+  function walletMonthLabel(key){
+    const [y,m]=String(key||walletCurrentMonthKey()).split("-").map(Number);
+    if(!y || !m) return key||"";
+    return `${MONTHS[m-1]} ${y}`;
+  }
+
+  function walletShiftMonth(key,delta){
+    const [y,m]=String(key||walletCurrentMonthKey()).split("-").map(Number);
+    const d=new Date(Date.UTC(y,m-1+delta,1));
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}`;
+  }
+
+  function walletStartOfMonthIso(key){
+    const [y,m]=String(key).split("-").map(Number);
+    // Москва остаётся UTC+3 круглый год.
+    return new Date(Date.UTC(y,m-1,1,21,0,0)-24*60*60*1000).toISOString();
+  }
+
+  function walletLegacyDefaults(plans={}){
+    const base=[
+      {id:"products",name:"Продукты",type:"expense"},
+      {id:"pocket",name:"Карманные расходы",type:"expense"},
+      {id:"restaurant",name:"Ресторан",type:"expense"},
+      {id:"vacation",name:"Отпуск",type:"savings"},
+      {id:"savings",name:"Накопления",type:"savings"},
+      {id:"clothes",name:"Вещи",type:"expense"},
+      {id:"children",name:"Дети",type:"expense"},
+      {id:"self",name:"На себя",type:"expense"},
+      {id:"insurance",name:"Страховка",type:"savings",systemRole:"insurance"}
+    ];
+    return base.map((w,index)=>({
+      id:w.id,
+      name:w.name,
+      type:w.type,
+      monthlyPlanCents:w.systemRole?0:Math.max(0,Math.trunc(Number(plans[w.id])||0)),
+      goalCents:0,
+      protected:!!w.systemRole || ["savings"].includes(w.id),
+      archived:false,
+      order:index+1,
+      priority:index+1,
+      rollover:"carry",
+      systemRole:w.systemRole||""
+    }));
+  }
+
   function emptyWalletState(){
-    const plans={};
-    WALLET_DEFS.filter(w=>!w.insurance).forEach(w=>plans[w.id]=0);
-    return {version:WALLET_DATA_VERSION,plans,plansUpdatedAt:"",transactions:[]};
+    return {
+      version:WALLET_DATA_VERSION,
+      wallets:walletLegacyDefaults({}),
+      strategy:"proportional",
+      configUpdatedAt:"",
+      lastRolloverMonth:walletCurrentMonthKey(),
+      transactions:[]
+    };
+  }
+
+  function walletBackupBeforeMigration(raw){
+    if(!raw || typeof raw!=="object") return;
+    const oldVersion=Number(raw.version||1);
+    if(oldVersion>=WALLET_DATA_VERSION) return;
+    const flag="ma_personal_wallets_v3_backup_done";
+    try{
+      if(localStorage.getItem(flag)) return;
+      const stamp=new Date().toISOString().replace(/[:.]/g,"-");
+      localStorage.setItem(`ma_personal_wallets_backup_v${oldVersion}_${stamp}`,JSON.stringify(raw));
+      localStorage.setItem(flag,"1");
+    }catch(e){ console.warn("wallet migration backup",e); }
+  }
+
+  function normalizeWalletDefinition(raw,index=0){
+    if(!raw || typeof raw!=="object") return null;
+    const id=String(raw.id||"").trim();
+    if(!id || id.length>80) return null;
+    const systemRole=raw.systemRole==="insurance"?"insurance":"";
+    const type=systemRole?"savings":(raw.type==="savings"?"savings":"expense");
+    const plan=Number(raw.monthlyPlanCents ?? raw.planCents ?? 0);
+    const goal=Number(raw.goalCents ?? 0);
+    return {
+      id,
+      name:String(raw.name||"Кошелёк").trim().slice(0,60)||"Кошелёк",
+      type,
+      monthlyPlanCents:systemRole?0:(Number.isSafeInteger(plan)&&plan>=0?plan:0),
+      goalCents:Number.isSafeInteger(goal)&&goal>=0?goal:0,
+      protected:!!raw.protected || !!systemRole,
+      archived:systemRole?false:!!raw.archived,
+      order:Number.isFinite(Number(raw.order))?Number(raw.order):index+1,
+      priority:Number.isFinite(Number(raw.priority))?Math.max(1,Math.trunc(Number(raw.priority))):index+1,
+      rollover:["carry","insurance"].includes(raw.rollover)?raw.rollover:"carry",
+      systemRole
+    };
+  }
+
+  function normalizeWalletTransaction(t){
+    if(!t || typeof t!=="object") return null;
+    const allowed=["distribution","topup","expense","transfer","reversal","correction","auto_carryover"];
+    const amount=Number(t.amountCents);
+    if(typeof t.id!=="string" || !t.id || typeof t.operationId!=="string" || !t.operationId) return null;
+    if(!String(t.walletId||"").trim() || !Number.isSafeInteger(amount) || amount===0) return null;
+    if(!allowed.includes(String(t.type))) return null;
+    const createdAt=!Number.isNaN(Date.parse(String(t.createdAt||"")))?String(t.createdAt):new Date().toISOString();
+    const effectiveAt=!Number.isNaN(Date.parse(String(t.effectiveAt||"")))?String(t.effectiveAt):createdAt;
+    return {
+      id:String(t.id),operationId:String(t.operationId),type:String(t.type),walletId:String(t.walletId),
+      amountCents:amount,comment:String(t.comment||""),createdAt,effectiveAt,
+      reversalOfTransactionId:t.reversalOfTransactionId?String(t.reversalOfTransactionId):"",
+      reversesOperationId:t.reversesOperationId?String(t.reversesOperationId):"",
+      sourceType:t.sourceType?String(t.sourceType):""
+    };
   }
 
   function normalizeWalletState(raw){
     const base=emptyWalletState();
     if(!raw || typeof raw!=="object") return base;
-    const next={version:WALLET_DATA_VERSION,plans:{...base.plans},plansUpdatedAt:"",transactions:[]};
-    if(raw.plans && typeof raw.plans==="object"){
-      Object.keys(next.plans).forEach(id=>{
-        const n=Number(raw.plans[id]);
-        next.plans[id]=Number.isSafeInteger(n) && n>=0 ? n : 0;
-      });
+    walletBackupBeforeMigration(raw);
+
+    const tx=Array.isArray(raw.transactions)?raw.transactions.map(normalizeWalletTransaction).filter(Boolean):[];
+    let wallets=[];
+    if(Array.isArray(raw.wallets)){
+      wallets=raw.wallets.map(normalizeWalletDefinition).filter(Boolean);
+    }else{
+      wallets=walletLegacyDefaults(raw.plans&&typeof raw.plans==="object"?raw.plans:{});
     }
-    if(raw.plansUpdatedAt && !Number.isNaN(Date.parse(String(raw.plansUpdatedAt)))){
-      next.plansUpdatedAt=String(raw.plansUpdatedAt);
-    }else if(Object.values(next.plans).some(n=>n>0)){
-      // Миграция v1: существующий локальный план считается реальным, но старым.
-      // Если в облаке уже есть более новая версия, она победит.
-      next.plansUpdatedAt="2000-01-01T00:00:00.000Z";
+
+    // Любой старый/неизвестный wallet_id из истории нельзя потерять.
+    const known=new Set(wallets.map(w=>w.id));
+    tx.forEach(t=>{
+      if(known.has(t.walletId)) return;
+      wallets.push(normalizeWalletDefinition({id:t.walletId,name:`Кошелёк ${t.walletId}`,type:"expense",archived:true,order:wallets.length+1,priority:wallets.length+1},wallets.length));
+      known.add(t.walletId);
+    });
+
+    // Страховка должна существовать всегда и иметь стабильный ID.
+    let insurance=wallets.find(w=>w.systemRole==="insurance" || w.id==="insurance");
+    if(!insurance){
+      insurance=normalizeWalletDefinition({id:"insurance",name:"Страховка",type:"savings",systemRole:"insurance",protected:true,order:wallets.length+1,priority:wallets.length+1},wallets.length);
+      wallets.push(insurance);
+    }else{
+      insurance.id="insurance";
+      insurance.systemRole="insurance";
+      insurance.type="savings";
+      insurance.archived=false;
+      insurance.monthlyPlanCents=0;
     }
-    if(Array.isArray(raw.transactions)){
-      next.transactions=raw.transactions.filter(t=>{
-        return t && typeof t==="object" &&
-          typeof t.id==="string" && typeof t.operationId==="string" &&
-          WALLET_DEFS.some(w=>w.id===t.walletId) &&
-          Number.isSafeInteger(t.amountCents) && t.amountCents!==0 &&
-          ["distribution","topup","expense","reversal"].includes(t.type);
-      }).map(t=>({
-        id:String(t.id),operationId:String(t.operationId),type:String(t.type),walletId:String(t.walletId),
-        amountCents:Number(t.amountCents),comment:String(t.comment||""),createdAt:String(t.createdAt||new Date().toISOString()),
-        reversalOfTransactionId:t.reversalOfTransactionId?String(t.reversalOfTransactionId):"",
-        reversesOperationId:t.reversesOperationId?String(t.reversesOperationId):"",
-        sourceType:t.sourceType?String(t.sourceType):""
-      }));
-    }
-    return next;
+
+    const dedup=[];
+    const ids=new Set();
+    wallets.sort((a,b)=>a.order-b.order || a.name.localeCompare(b.name,"ru"));
+    wallets.forEach((w,index)=>{
+      if(ids.has(w.id)) return;
+      ids.add(w.id);w.order=index+1;dedup.push(w);
+    });
+
+    let configUpdatedAt="";
+    if(raw.configUpdatedAt && !Number.isNaN(Date.parse(String(raw.configUpdatedAt)))) configUpdatedAt=String(raw.configUpdatedAt);
+    else if(raw.plansUpdatedAt && !Number.isNaN(Date.parse(String(raw.plansUpdatedAt)))) configUpdatedAt=String(raw.plansUpdatedAt);
+    else if(dedup.some(w=>w.monthlyPlanCents>0)) configUpdatedAt="2000-01-01T00:00:00.000Z";
+
+    return {
+      version:WALLET_DATA_VERSION,
+      wallets:dedup,
+      strategy:raw.strategy==="priority"?"priority":"proportional",
+      configUpdatedAt,
+      lastRolloverMonth:/^\d{4}-\d{2}$/.test(String(raw.lastRolloverMonth||""))?String(raw.lastRolloverMonth):walletCurrentMonthKey(),
+      transactions:tx.sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)) || a.id.localeCompare(b.id))
+    };
   }
 
   function loadWalletState(){
     try{
       const raw=JSON.parse(localStorage.getItem(WALLET_STORAGE_KEY)||"null");
-      return normalizeWalletState(raw);
+      const next=normalizeWalletState(raw);
+      try{ localStorage.setItem(WALLET_STORAGE_KEY,JSON.stringify(next)); }catch(_){}
+      return next;
     }catch(e){
       console.error("wallet load",e);
       return emptyWalletState();
@@ -2951,45 +3199,51 @@ body{padding-bottom:88px}
 
   function walletCloudTableMissing(errorText){
     const text=String(errorText||"").toLowerCase();
-    return text.includes("ma_wallet_plans") || text.includes("ma_wallet_transactions") || text.includes("pgrst205") || text.includes("42p01") || text.includes("could not find the table");
+    return text.includes("ma_wallet_config") || text.includes("ma_wallet_plans") || text.includes("ma_wallet_transactions") || text.includes("effective_at") || text.includes("ma_wallet_apply_batch") || text.includes("pgrst205") || text.includes("42p01") || text.includes("could not find the table") || text.includes("could not find the function");
   }
 
   function walletTransactionPayload(t,ownerId){
     return {
       id:t.id,owner_id:ownerId,operation_id:t.operationId,type:t.type,wallet_id:t.walletId,
-      amount_cents:t.amountCents,comment:t.comment||"",created_at:t.createdAt,
+      amount_cents:t.amountCents,comment:t.comment||"",created_at:t.createdAt,effective_at:t.effectiveAt||t.createdAt,
       reversal_of_transaction_id:t.reversalOfTransactionId||"",
       reverses_operation_id:t.reversesOperationId||"",source_type:t.sourceType||""
     };
   }
 
   function walletTransactionFromCloud(row){
-    return {
+    return normalizeWalletTransaction({
       id:String(row.id||""),operationId:String(row.operation_id||""),type:String(row.type||""),walletId:String(row.wallet_id||""),
-      amountCents:Number(row.amount_cents),comment:String(row.comment||""),createdAt:String(row.created_at||new Date().toISOString()),
-      reversalOfTransactionId:String(row.reversal_of_transaction_id||""),
-      reversesOperationId:String(row.reverses_operation_id||""),sourceType:String(row.source_type||"")
-    };
+      amountCents:Number(row.amount_cents),comment:String(row.comment||""),createdAt:String(row.created_at||new Date().toISOString()),effectiveAt:String(row.effective_at||row.created_at||new Date().toISOString()),
+      reversalOfTransactionId:String(row.reversal_of_transaction_id||""),reversesOperationId:String(row.reverses_operation_id||""),sourceType:String(row.source_type||"")
+    });
   }
 
   async function fetchWalletCloudTransactions(token){
     const rows=[];
     for(let offset=0;offset<WALLET_CLOUD_MAX_ROWS;offset+=WALLET_CLOUD_PAGE_SIZE){
-      const path=`/rest/v1/${WALLET_TX_TABLE}?select=id,operation_id,type,wallet_id,amount_cents,comment,created_at,reversal_of_transaction_id,reverses_operation_id,source_type&order=created_at.asc,id.asc&limit=${WALLET_CLOUD_PAGE_SIZE}&offset=${offset}`;
+      const path=`/rest/v1/${WALLET_TX_TABLE}?select=id,operation_id,type,wallet_id,amount_cents,comment,created_at,effective_at,reversal_of_transaction_id,reverses_operation_id,source_type&order=created_at.asc,id.asc&limit=${WALLET_CLOUD_PAGE_SIZE}&offset=${offset}`;
       const res=await authFetch(path,{method:"GET",headers:{Authorization:"Bearer "+token}});
       const text=await res.text();
       if(!res.ok) throw new Error(text||"Не удалось загрузить кошельки");
       const part=text?JSON.parse(text):[];
       rows.push(...part);
-      if(part.length<WALLET_CLOUD_PAGE_SIZE) break;
+      if(part.length<WALLET_CLOUD_PAGE_SIZE) return rows;
     }
-    return rows;
+    throw new Error(`История кошельков превысила безопасный лимит ${WALLET_CLOUD_MAX_ROWS} строк. Синхронизация остановлена, чтобы не посчитать баланс по неполным данным.`);
   }
 
   async function fetchWalletCloudPlans(token){
     const res=await authFetch(`/rest/v1/${WALLET_PLAN_TABLE}?select=plans,updated_at&limit=1`,{method:"GET",headers:{Authorization:"Bearer "+token}});
     const text=await res.text();
-    if(!res.ok) throw new Error(text||"Не удалось загрузить планы кошельков");
+    if(!res.ok) throw new Error(text||"Не удалось загрузить старые планы кошельков");
+    return text?JSON.parse(text):[];
+  }
+
+  async function fetchWalletCloudConfig(token){
+    const res=await authFetch(`/rest/v1/${WALLET_CONFIG_TABLE}?select=wallets,strategy,last_rollover_month,updated_at&limit=1`,{method:"GET",headers:{Authorization:"Bearer "+token}});
+    const text=await res.text();
+    if(!res.ok) throw new Error(text||"Не удалось загрузить настройки кошельков");
     return text?JSON.parse(text):[];
   }
 
@@ -3007,20 +3261,63 @@ body{padding-bottom:88px}
     }
   }
 
-  async function uploadWalletPlans(token,ownerId,plans,updatedAt){
+  function walletLegacyPlansObject(state=walletState){
+    const ids=new Set(["products","pocket","restaurant","vacation","savings","clothes","children","self"]);
+    const result={};
+    state.wallets.forEach(w=>{ if(ids.has(w.id)) result[w.id]=Math.max(0,Math.trunc(w.monthlyPlanCents||0)); });
+    ids.forEach(id=>{ if(!(id in result)) result[id]=0; });
+    return result;
+  }
+
+  async function uploadWalletLegacyPlans(token,ownerId,state=walletState){
+    const stamp=state.configUpdatedAt||new Date().toISOString();
     const res=await authFetch(`/rest/v1/${WALLET_PLAN_TABLE}?on_conflict=owner_id`,{
       method:"POST",
       headers:{Authorization:"Bearer "+token,Prefer:"resolution=merge-duplicates,return=minimal"},
-      body:JSON.stringify({owner_id:ownerId,plans,updated_at:updatedAt})
+      body:JSON.stringify({owner_id:ownerId,plans:walletLegacyPlansObject(state),updated_at:stamp})
     });
     if(!res.ok) throw new Error(await res.text());
   }
 
+  async function uploadWalletConfig(token,ownerId,state=walletState){
+    const res=await authFetch(`/rest/v1/${WALLET_CONFIG_TABLE}?on_conflict=owner_id`,{
+      method:"POST",
+      headers:{Authorization:"Bearer "+token,Prefer:"resolution=merge-duplicates,return=minimal"},
+      body:JSON.stringify({owner_id:ownerId,wallets:state.wallets,strategy:state.strategy,last_rollover_month:state.lastRolloverMonth||walletCurrentMonthKey(),updated_at:state.configUpdatedAt||new Date().toISOString()})
+    });
+    if(!res.ok) throw new Error(await res.text());
+    // Старые версии приложения продолжают видеть планы встроенных кошельков.
+    await uploadWalletLegacyPlans(token,ownerId,state);
+  }
+
   function mergeWalletTransactionLists(localList,remoteList){
     const map=new Map();
-    remoteList.forEach(t=>map.set(t.id,t));
-    localList.forEach(t=>{ if(!map.has(t.id)) map.set(t.id,t); });
+    remoteList.forEach(t=>{ if(t) map.set(t.id,t); });
+    localList.forEach(t=>{ if(t && !map.has(t.id)) map.set(t.id,t); });
     return [...map.values()].sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)) || String(a.id).localeCompare(String(b.id)));
+  }
+
+  function walletStateFromCloudConfig(row,transactions){
+    return normalizeWalletState({
+      version:WALLET_DATA_VERSION,
+      wallets:Array.isArray(row?.wallets)?row.wallets:[],
+      strategy:row?.strategy||"proportional",
+      configUpdatedAt:row?.updated_at||"",
+      lastRolloverMonth:row?.last_rollover_month||walletCurrentMonthKey(),
+      transactions
+    });
+  }
+
+  function applyLegacyPlanRowToState(state,row){
+    if(!row || !row.plans || typeof row.plans!=="object") return state;
+    const next=clone(state);
+    Object.entries(row.plans).forEach(([id,value])=>{
+      const w=next.wallets.find(x=>x.id===id && !x.systemRole);
+      const n=Number(value);
+      if(w && Number.isSafeInteger(n) && n>=0) w.monthlyPlanCents=n;
+    });
+    next.configUpdatedAt=String(row.updated_at||new Date().toISOString());
+    return normalizeWalletState(next);
   }
 
   async function syncWalletsCloud(showToast=false,allowBusy=false){
@@ -3044,43 +3341,45 @@ body{padding-bottom:88px}
         const ownerId=currentAdminUserId();
         if(!token || !ownerId) throw new Error("Сессия администратора закончилась");
 
-        const [planRows,txRows]=await Promise.all([fetchWalletCloudPlans(token),fetchWalletCloudTransactions(token)]);
+        const [configRows,planRows,txRows]=await Promise.all([fetchWalletCloudConfig(token),fetchWalletCloudPlans(token),fetchWalletCloudTransactions(token)]);
         lastWalletCloudFetchAt=Date.now();
         walletCloudNeedsSetup=false;
 
-        const remoteState=normalizeWalletState({
-          plans:planRows[0]?.plans||{},
-          plansUpdatedAt:planRows[0]?.updated_at||"",
-          transactions:txRows.map(walletTransactionFromCloud)
-        });
-
-        // История операций объединяется по уникальному id, поэтому операция с одного устройства
-        // не затирает операцию, сделанную на другом устройстве.
-        const remoteIds=new Set(remoteState.transactions.map(t=>t.id));
+        const remoteTransactions=txRows.map(walletTransactionFromCloud).filter(Boolean);
+        const remoteIds=new Set(remoteTransactions.map(t=>t.id));
         const missingInCloud=walletState.transactions.filter(t=>!remoteIds.has(t.id));
         if(missingInCloud.length) await uploadWalletTransactions(token,ownerId,missingInCloud);
+        const mergedTransactions=mergeWalletTransactionLists(walletState.transactions,remoteTransactions);
 
-        const mergedTransactions=mergeWalletTransactionLists(walletState.transactions,remoteState.transactions);
+        let nextState=normalizeWalletState({...walletState,transactions:mergedTransactions});
+        const remoteConfig=configRows[0]||null;
+        const legacyPlan=planRows[0]||null;
+        const localTime=Date.parse(nextState.configUpdatedAt||"")||0;
+        const remoteTime=Date.parse(remoteConfig?.updated_at||"")||0;
+        const legacyTime=Date.parse(legacyPlan?.updated_at||"")||0;
 
-        let nextPlans={...walletState.plans};
-        let nextPlansUpdatedAt=walletState.plansUpdatedAt||"";
-        const hasRemotePlans=!!planRows[0];
-        const localPlanTime=Date.parse(nextPlansUpdatedAt||"")||0;
-        const remotePlanTime=Date.parse(remoteState.plansUpdatedAt||"")||0;
-
-        if(!hasRemotePlans){
-          const stamp=nextPlansUpdatedAt || new Date().toISOString();
-          await uploadWalletPlans(token,ownerId,nextPlans,stamp);
-          nextPlansUpdatedAt=stamp;
-        }else if(localPlanTime>remotePlanTime){
-          await uploadWalletPlans(token,ownerId,nextPlans,nextPlansUpdatedAt);
+        if(remoteConfig){
+          const remoteState=walletStateFromCloudConfig(remoteConfig,mergedTransactions);
+          if(legacyTime>Math.max(remoteTime,localTime)){
+            nextState=applyLegacyPlanRowToState(remoteState,legacyPlan);
+            nextState.transactions=mergedTransactions;
+            await uploadWalletConfig(token,ownerId,nextState);
+          }else if(localTime>remoteTime){
+            await uploadWalletConfig(token,ownerId,nextState);
+          }else{
+            nextState=remoteState;
+            nextState.transactions=mergedTransactions;
+          }
         }else{
-          nextPlans={...remoteState.plans};
-          nextPlansUpdatedAt=remoteState.plansUpdatedAt||nextPlansUpdatedAt;
+          if(legacyPlan && legacyTime>localTime) nextState=applyLegacyPlanRowToState(nextState,legacyPlan);
+          if(!nextState.configUpdatedAt) nextState.configUpdatedAt=new Date().toISOString();
+          nextState.transactions=mergedTransactions;
+          await uploadWalletConfig(token,ownerId,nextState);
         }
 
-        walletState=normalizeWalletState({plans:nextPlans,plansUpdatedAt:nextPlansUpdatedAt,transactions:mergedTransactions});
+        walletState=normalizeWalletState(nextState);
         saveWalletState();
+        await maybeApplyWalletMonthRollover(token,ownerId);
         if(!$("walletsPage").classList.contains("hidden")) renderWallets();
         setWalletCloudState("ok","Облако: синхронизировано");
         if(showToast) toast("Кошельки обновлены из облака");
@@ -3090,8 +3389,8 @@ body{padding-bottom:88px}
         const text=String(e?.message||e||"");
         if(walletCloudTableMissing(text)){
           walletCloudNeedsSetup=true;
-          setWalletCloudState("bad","Облако кошельков: требуется настройка Supabase");
-          if(showToast) toast("Для облака кошельков сначала выполните SQL-настройку");
+          setWalletCloudState("bad","Облако кошельков: требуется обновление Supabase");
+          if(showToast) toast("Сначала выполните supabase_wallets_upgrade.sql");
         }else if(navigator.onLine===false){
           setWalletCloudState("warn","Облако: нет интернета, изменения сохранены локально");
           if(showToast) toast("Нет интернета. Кошельки сохранены на этом устройстве");
@@ -3107,7 +3406,14 @@ body{padding-bottom:88px}
     finally{ walletCloudSyncPromise=null; }
   }
 
-  function walletDef(id){ return WALLET_DEFS.find(w=>w.id===id)||null; }
+  function walletDefinitions({includeArchived=true}={}){
+    const list=walletState.wallets.slice().sort((a,b)=>a.order-b.order || a.name.localeCompare(b.name,"ru"));
+    return includeArchived?list:list.filter(w=>!w.archived);
+  }
+
+  function walletDef(id){ return walletState.wallets.find(w=>w.id===id)||null; }
+  function walletInsurance(){ return walletState.wallets.find(w=>w.systemRole==="insurance") || walletDef("insurance"); }
+  function walletActive(){ return walletDefinitions({includeArchived:false}); }
 
   function parseMoneyInput(value){
     const normalized=String(value??"").replace(/[\s\u00a0\u202f₽]/g,"").replace(",",".");
@@ -3135,31 +3441,51 @@ body{padding-bottom:88px}
     return `${sign}${main}${kop?","+String(kop).padStart(2,"0"):""} ₽`;
   }
 
+  function walletTransactionMonth(t){ return walletMonthKeyFromIso(t.effectiveAt||t.createdAt); }
+
   function walletBalance(id){
     return walletState.transactions.reduce((sum,t)=>sum+(t.walletId===id?t.amountCents:0),0);
   }
 
-  function walletStats(id){
-    const byId=new Map(walletState.transactions.map(t=>[t.id,t]));
-    let incoming=0,spent=0;
+  function walletBalanceAtMonth(id,monthKey){
+    return walletState.transactions.reduce((sum,t)=>{
+      if(t.walletId!==id) return sum;
+      return walletTransactionMonth(t)<=monthKey?sum+t.amountCents:sum;
+    },0);
+  }
+
+  function walletTotalBalanceAtMonth(monthKey){
+    return walletDefinitions().reduce((sum,w)=>sum+walletBalanceAtMonth(w.id,monthKey),0);
+  }
+
+  function walletMonthMetrics(monthKey,walletId=""){
+    let received=0,distributed=0,spent=0,allocated=0;
     walletState.transactions.forEach(t=>{
-      if(t.walletId!==id) return;
-      if(t.type==="distribution" || t.type==="topup") incoming+=t.amountCents;
-      else if(t.type==="expense") spent+=Math.abs(t.amountCents);
-      else if(t.type==="reversal"){
-        const original=byId.get(t.reversalOfTransactionId);
-        if(!original) return;
-        if(original.type==="distribution" || original.type==="topup") incoming+=t.amountCents;
-        else if(original.type==="expense") spent-=Math.abs(t.amountCents);
+      if(walletId && t.walletId!==walletId) return;
+      if(walletTransactionMonth(t)!==monthKey) return;
+      const source=t.type==="reversal"?t.sourceType:t.type;
+      if(source==="distribution"){
+        received+=t.amountCents;
+        distributed+=t.amountCents;
+        allocated+=t.amountCents;
+      }else if(source==="topup"){
+        received+=t.amountCents;
+        allocated+=t.amountCents;
+      }else if(source==="expense"){
+        spent+=-t.amountCents;
       }
     });
-    return {balance:walletBalance(id),incoming:Math.max(0,incoming),spent:Math.max(0,spent)};
+    return {received:Math.max(0,received),distributed:Math.max(0,distributed),spent:Math.max(0,spent),allocated:Math.max(0,allocated)};
+  }
+
+  function walletMonthAllocated(id,monthKey=walletCurrentMonthKey()){
+    return walletMonthMetrics(monthKey,id).allocated;
   }
 
   function walletOperationGroups(){
     const map=new Map();
     walletState.transactions.forEach(t=>{
-      if(!map.has(t.operationId)) map.set(t.operationId,{operationId:t.operationId,items:[],createdAt:t.createdAt,type:t.type});
+      if(!map.has(t.operationId)) map.set(t.operationId,{operationId:t.operationId,items:[],createdAt:t.createdAt,effectiveAt:t.effectiveAt||t.createdAt,type:t.type,comment:t.comment||"",sourceType:t.sourceType||"",reversesOperationId:t.reversesOperationId||""});
       const g=map.get(t.operationId);
       g.items.push(t);
       if(String(t.createdAt)>String(g.createdAt)) g.createdAt=t.createdAt;
@@ -3167,10 +3493,17 @@ body{padding-bottom:88px}
     return [...map.values()].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
   }
 
+  function walletReversedOperationIds(){
+    return new Set(walletState.transactions.filter(t=>t.type==="reversal" && t.reversesOperationId).map(t=>t.reversesOperationId));
+  }
+
   function walletOperationTitle(group){
     if(group.type==="distribution") return "Распределение";
     if(group.type==="topup") return "Пополнение";
     if(group.type==="expense") return "Расход";
+    if(group.type==="transfer") return "Перевод";
+    if(group.type==="auto_carryover") return "Перенос остатка";
+    if(group.type==="correction") return "Корректировка";
     return "Отмена операции";
   }
 
@@ -3180,78 +3513,216 @@ body{padding-bottom:88px}
     }catch(e){ return iso||"—"; }
   }
 
-  function calculateWalletDistribution(totalCents){
+  function walletOperationSummary(group){
+    const items=group.items;
+    if(group.type==="transfer" || group.type==="auto_carryover"){
+      const from=items.find(t=>t.amountCents<0),to=items.find(t=>t.amountCents>0);
+      return `${walletDef(from?.walletId)?.name||"Кошелёк"} → ${walletDef(to?.walletId)?.name||"Кошелёк"}`;
+    }
+    if(items.length===1) return walletDef(items[0].walletId)?.name||"Кошелёк";
+    return `${items.length} кошельков`;
+  }
+
+  function walletOperationDisplayAmount(group){
+    if(group.type==="transfer" || group.type==="auto_carryover"){
+      const out=group.items.find(t=>t.amountCents<0);
+      return out?formatMoney(Math.abs(out.amountCents)):formatMoney(0);
+    }
+    const total=group.items.reduce((sum,t)=>sum+t.amountCents,0);
+    if(group.type==="reversal") return formatMoney(Math.abs(total));
+    return formatMoney(total,{signed:true});
+  }
+
+  function walletHistoryMatches(group){
+    const month=$("walletHistoryMonth")?.value||walletViewMonthKey;
+    const type=$("walletHistoryType")?.value||"all";
+    const walletId=$("walletHistoryWallet")?.value||"all";
+    const gMonth=walletMonthKeyFromIso(group.effectiveAt||group.createdAt);
+    if(month!=="all" && gMonth!==month) return false;
+    if(walletId!=="all" && !group.items.some(t=>t.walletId===walletId)) return false;
+    if(type==="income" && !["distribution","topup"].includes(group.type)) return false;
+    if(type==="expense" && group.type!=="expense") return false;
+    if(type==="transfer" && !["transfer","auto_carryover"].includes(group.type)) return false;
+    return true;
+  }
+
+  function renderWalletHistoryList(root,limit=0,{filtered=false}={}){
+    if(!root) return;
+    let groups=walletOperationGroups();
+    if(filtered) groups=groups.filter(walletHistoryMatches);
+    if(limit>0) groups=groups.slice(0,limit);
+    if(!groups.length){ root.innerHTML='<div class="wallet-empty">Операций пока нет.</div>'; return; }
+    const reversed=walletReversedOperationIds();
+
+    root.innerHTML=groups.map(g=>{
+      const isExpense=g.type==="expense";
+      const cls=g.type==="reversal"?"neutral":(isExpense?"out":"in");
+      const comment=g.items[0]?.comment?` · ${escapeHtml(g.items[0].comment)}`:"";
+      const details=g.items.length>1 ? `<div class="wallet-history-details">${g.items.map(t=>`<div class="wallet-history-detail-row"><span>${escapeHtml(walletDef(t.walletId)?.name||t.walletId)}</span><b>${formatMoney(t.amountCents,{signed:true})}</b></div>`).join("")}</div>` : "";
+      const canEdit=g.type!=="reversal" && !reversed.has(g.operationId) && ["distribution","topup","expense","transfer"].includes(g.type);
+      const actions=canEdit?`<div class="wallet-history-actions"><button class="secondary" data-wallet-correct="${escapeHtml(g.operationId)}">Исправить</button></div>`:"";
+      return `<div class="wallet-history-item">
+        <div class="wallet-history-row">
+          <div class="wallet-history-main"><b>${walletOperationTitle(g)} · ${escapeHtml(walletOperationSummary(g))}</b><span>${escapeHtml(formatWalletDate(g.createdAt))}${comment}</span></div>
+          <div class="wallet-history-amount ${cls}">${walletOperationDisplayAmount(g)}</div>
+        </div>${details}${actions}
+      </div>`;
+    }).join("");
+  }
+
+  function calculateWalletDistribution(totalCents,monthKey=walletCurrentMonthKey()){
     totalCents=Math.max(0,Math.trunc(totalCents||0));
-    const planned=WALLET_DEFS.filter(w=>!w.insurance).map(w=>({id:w.id,plan:Math.max(0,Math.trunc(walletState.plans[w.id]||0))}));
-    const planTotal=planned.reduce((sum,x)=>sum+x.plan,0);
+    const insurance=walletInsurance();
+    const planned=walletActive().filter(w=>!w.systemRole && w.monthlyPlanCents>0).map((w,index)=>{
+      const allocated=walletMonthAllocated(w.id,monthKey);
+      const need=Math.max(0,Math.trunc(w.monthlyPlanCents)-allocated);
+      return {id:w.id,name:w.name,plan:w.monthlyPlanCents,allocated,need,priority:w.priority,index};
+    });
+    const needTotal=planned.reduce((sum,x)=>sum+x.need,0);
     const allocations={};
-    planned.forEach(x=>allocations[x.id]=0);
-    allocations.insurance=0;
+    walletActive().forEach(w=>allocations[w.id]=0);
+    if(insurance) allocations[insurance.id]=0;
 
-    if(planTotal<=0){
-      allocations.insurance=totalCents;
-      return {allocations,planTotal,totalCents,shortage:false,unconfigured:true};
+    if(needTotal<=0){
+      if(insurance) allocations[insurance.id]=totalCents;
+      return {allocations,needTotal,totalCents,shortage:false,allPlansClosed:true,unconfigured:planned.length===0};
     }
 
-    if(totalCents>=planTotal){
-      planned.forEach(x=>allocations[x.id]=x.plan);
-      allocations.insurance=totalCents-planTotal;
-      return {allocations,planTotal,totalCents,shortage:false,unconfigured:false};
+    if(totalCents>=needTotal){
+      planned.forEach(x=>allocations[x.id]=x.need);
+      if(insurance) allocations[insurance.id]=totalCents-needTotal;
+      return {allocations,needTotal,totalCents,shortage:false,allPlansClosed:false,unconfigured:false};
     }
 
-    const totalBig=BigInt(totalCents), planTotalBig=BigInt(planTotal);
+    if(walletState.strategy==="priority"){
+      let left=totalCents;
+      planned.slice().sort((a,b)=>a.priority-b.priority || a.index-b.index).forEach(x=>{
+        const part=Math.min(left,x.need);
+        allocations[x.id]=part;left-=part;
+      });
+      if(insurance) allocations[insurance.id]=0;
+      return {allocations,needTotal,totalCents,shortage:true,priority:true,allPlansClosed:false,unconfigured:false};
+    }
+
+    const totalBig=BigInt(totalCents), needTotalBig=BigInt(needTotal);
     const shares=planned.map((x,index)=>{
-      const numerator=totalBig*BigInt(x.plan);
-      return {id:x.id,index,base:Number(numerator/planTotalBig),rem:numerator%planTotalBig};
+      const numerator=totalBig*BigInt(x.need);
+      return {id:x.id,index,base:Number(numerator/needTotalBig),rem:numerator%needTotalBig};
     });
     shares.forEach(x=>allocations[x.id]=x.base);
     let remainder=totalCents-shares.reduce((sum,x)=>sum+x.base,0);
     shares.sort((a,b)=>a.rem===b.rem?a.index-b.index:(a.rem>b.rem?-1:1));
     for(let i=0;i<remainder;i++) allocations[shares[i%shares.length].id]+=1;
-    allocations.insurance=0;
-    return {allocations,planTotal,totalCents,shortage:true,unconfigured:false};
+    if(insurance) allocations[insurance.id]=0;
+    return {allocations,needTotal,totalCents,shortage:true,priority:false,allPlansClosed:false,unconfigured:false};
+  }
+
+  function walletNewId(){
+    try{ return `wallet_${crypto.randomUUID().replace(/-/g,"")}`; }
+    catch(e){ return `wallet_${Date.now()}_${Math.random().toString(36).slice(2,10)}`; }
+  }
+
+  function walletNewOperationId(){ return `wallet-op-${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+  function walletNewTransactionId(index=0){ return `wallet-tx-${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`; }
+
+  function buildWalletOperation(type,entries,comment="",extra={}){
+    const operationId=extra.operationId||walletNewOperationId();
+    const createdAt=extra.createdAt||new Date().toISOString();
+    const effectiveAt=extra.effectiveAt||createdAt;
+    const items=[];
+    entries.forEach((entry,index)=>{
+      const amount=Math.trunc(Number(entry.amountCents)||0);
+      if(!amount) return;
+      items.push({
+        id:entry.id||walletNewTransactionId(index),operationId,type,walletId:String(entry.walletId),amountCents:amount,
+        comment:String(comment||""),createdAt,effectiveAt,
+        reversalOfTransactionId:String(entry.reversalOfTransactionId||""),
+        reversesOperationId:String(extra.reversesOperationId||""),sourceType:String(extra.sourceType||"")
+      });
+    });
+    return {operationId,type,comment:String(comment||""),createdAt,effectiveAt,reversesOperationId:String(extra.reversesOperationId||""),sourceType:String(extra.sourceType||""),items};
+  }
+
+  function appendWalletOperationsLocally(operations){
+    const existing=new Set(walletState.transactions.map(t=>t.id));
+    operations.forEach(op=>op.items.forEach(t=>{ if(!existing.has(t.id)){ walletState.transactions.push(t);existing.add(t.id); } }));
+    walletState.transactions.sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)) || a.id.localeCompare(b.id));
+    saveWalletState();
   }
 
   function createWalletOperation(type,entries,comment="",extra={}){
-    const operationId=`wallet-op-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const createdAt=new Date().toISOString();
-    entries.forEach((entry,index)=>{
-      if(!entry.amountCents) return;
-      walletState.transactions.push({
-        id:`wallet-tx-${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`,
-        operationId,type,walletId:entry.walletId,amountCents:Math.trunc(entry.amountCents),
-        comment:String(comment||""),createdAt,
-        reversalOfTransactionId:String(extra.reversalOfTransactionId?.[entry.walletId]||""),
-        reversesOperationId:String(extra.reversesOperationId||""),
-        sourceType:String(extra.sourceType||"")
-      });
-    });
-    saveWalletState();
-    return operationId;
+    const op=buildWalletOperation(type,entries,comment,extra);
+    appendWalletOperationsLocally([op]);
+    return op.operationId;
   }
 
-  function renderWalletHistoryList(root,limit=0){
-    if(!root) return;
-    let groups=walletOperationGroups();
-    if(limit>0) groups=groups.slice(0,limit);
-    if(!groups.length){ root.innerHTML='<div class="wallet-empty">Операций пока нет.</div>'; return; }
+  function walletRpcOperation(op){
+    return {
+      operation_id:op.operationId,type:op.type,comment:op.comment||"",created_at:op.createdAt,effective_at:op.effectiveAt,
+      reverses_operation_id:op.reversesOperationId||"",source_type:op.sourceType||"",
+      entries:op.items.map(t=>({id:t.id,wallet_id:t.walletId,amount_cents:t.amountCents,reversal_of_transaction_id:t.reversalOfTransactionId||""}))
+    };
+  }
 
-    root.innerHTML=groups.map(g=>{
-      const total=g.items.reduce((sum,t)=>sum+t.amountCents,0);
-      const first=g.items[0];
-      const isExpense=g.type==="expense";
-      const cls=g.type==="reversal"?"neutral":(isExpense?"out":"in");
-      const displayAmount=g.type==="reversal"?formatMoney(Math.abs(total)):(isExpense?formatMoney(total,{signed:true}):formatMoney(total,{signed:true}));
-      const comment=first.comment?` · ${escapeHtml(first.comment)}`:"";
-      const walletText=g.items.length===1?(walletDef(first.walletId)?.name||"Кошелёк"):`${g.items.length} кошельков`;
-      const details=g.items.length>1 ? `<div class="wallet-history-details">${g.items.map(t=>`<div class="wallet-history-detail-row"><span>${escapeHtml(walletDef(t.walletId)?.name||t.walletId)}</span><b>${formatMoney(t.amountCents,{signed:true})}</b></div>`).join("")}</div>` : "";
-      return `<div class="wallet-history-item">
-        <div class="wallet-history-row">
-          <div class="wallet-history-main"><b>${walletOperationTitle(g)} · ${escapeHtml(walletText)}</b><span>${escapeHtml(formatWalletDate(g.createdAt))}${comment}</span></div>
-          <div class="wallet-history-amount ${cls}">${displayAmount}</div>
-        </div>${details}
-      </div>`;
-    }).join("");
+  async function applyWalletBatchSafely(operations,{allowLocalWithoutCloud=true,skipSync=false}={}){
+    const hasNegative=operations.some(op=>op.items.some(t=>t.amountCents<0));
+    if(cloudConfigured()){
+      if(!isAdmin()) throw new Error("Войдите как администратор");
+      if(navigator.onLine===false) throw new Error(hasNegative?"Для списания денег требуется интернет, чтобы проверить актуальный баланс.":"Нет интернета");
+      if(walletCloudNeedsSetup) throw new Error("Сначала выполните supabase_wallets_upgrade.sql");
+      const token=await getAdminToken();
+      const res=await authFetch(`/rest/v1/rpc/ma_wallet_apply_batch`,{
+        method:"POST",headers:{Authorization:"Bearer "+token},body:JSON.stringify({p_operations:operations.map(walletRpcOperation)})
+      });
+      const text=await res.text();
+      if(!res.ok){
+        const low=text.toLowerCase();
+        if(low.includes("wallet_insufficient_balance")) throw new Error("Баланс изменился на другом устройстве. Обновите данные.");
+        if(walletCloudTableMissing(text)){ walletCloudNeedsSetup=true; throw new Error("Сначала выполните supabase_wallets_upgrade.sql"); }
+        throw new Error(text||"Не удалось сохранить операцию");
+      }
+      appendWalletOperationsLocally(operations);
+      if(!skipSync) await syncWalletsCloud(false,true);
+      return true;
+    }
+    if(!allowLocalWithoutCloud && hasNegative) throw new Error("Для списания требуется подключённое облако");
+    appendWalletOperationsLocally(operations);
+    return true;
+  }
+
+  function walletGoalHtml(w,balance){
+    if(w.type!=="savings" || !w.goalCents) return "";
+    const pct=Math.min(100,Math.max(0,Math.round((Math.max(0,balance)/w.goalCents)*100)));
+    const left=Math.max(0,w.goalCents-Math.max(0,balance));
+    return `<div class="wallet-goal"><div class="wallet-goal-head"><span>${balance>=w.goalCents?"Цель достигнута":`До цели ${formatMoney(left)}`}</span><b>${pct}%</b></div><div class="wallet-progress"><i style="width:${pct}%"></i></div><small>Цель: ${formatMoney(w.goalCents)}</small></div>`;
+  }
+
+  function populateWalletHistoryFilters(){
+    const select=$("walletHistoryWallet");
+    if(select){
+      const current=select.value||"all";
+      select.innerHTML='<option value="all">Все кошельки</option>'+walletDefinitions().map(w=>`<option value="${escapeHtml(w.id)}">${escapeHtml(w.name)}${w.archived?" (архив)":""}</option>`).join("");
+      select.value=[...select.options].some(o=>o.value===current)?current:"all";
+    }
+    const month=$("walletHistoryMonth");
+    if(month){
+      const keys=new Set([walletCurrentMonthKey(),walletViewMonthKey,...walletState.transactions.map(walletTransactionMonth)]);
+      const sorted=[...keys].filter(k=>/^\d{4}-\d{2}$/.test(k)).sort().reverse();
+      const current=month.value||walletViewMonthKey;
+      month.innerHTML='<option value="all">Все месяцы</option>'+sorted.map(k=>`<option value="${k}">${escapeHtml(walletMonthLabel(k))}</option>`).join("");
+      month.value=[...month.options].some(o=>o.value===current)?current:walletViewMonthKey;
+    }
+  }
+
+  function renderWalletMonthSummary(){
+    const label=$("walletMonthLabel"); if(label) label.textContent=walletMonthLabel(walletViewMonthKey);
+    const m=walletMonthMetrics(walletViewMonthKey);
+    const current=walletViewMonthKey===walletCurrentMonthKey();
+    const total=current?walletDefinitions().reduce((s,w)=>s+walletBalance(w.id),0):walletTotalBalanceAtMonth(walletViewMonthKey);
+    $("walletMonthReceived").textContent=formatMoney(m.received);
+    $("walletMonthDistributed").textContent=formatMoney(m.distributed);
+    $("walletMonthSpent").textContent=formatMoney(m.spent);
+    $("walletMonthRemaining").textContent=formatMoney(total);
   }
 
   function renderWallets(){
@@ -3259,31 +3730,40 @@ body{padding-bottom:88px}
     if(!grid) return;
     if(!cloudConfigured()) setWalletCloudState("warn","Облако: недоступно, данные сохранены на этом устройстве");
     else if(!isAdmin()) setWalletCloudState("warn","Облако: войдите как администратор");
-    else if(walletCloudNeedsSetup) setWalletCloudState("bad","Облако кошельков: требуется настройка Supabase");
-    const total=WALLET_DEFS.reduce((sum,w)=>sum+walletBalance(w.id),0);
-    $("walletsTotal").textContent=formatMoney(total);
-    $("walletsInsurance").textContent=`Страховка: ${formatMoney(walletBalance("insurance"))}`;
+    else if(walletCloudNeedsSetup) setWalletCloudState("bad","Облако кошельков: требуется обновление Supabase");
 
-    grid.innerHTML=WALLET_DEFS.map(w=>{
-      const st=walletStats(w.id);
-      const plan=w.insurance?"Остаток":formatMoney(walletState.plans[w.id]||0);
-      return `<article class="wallet-card${w.insurance?" insurance":""}" data-wallet-id="${w.id}">
-        <div class="wallet-card-top"><h3>${escapeHtml(w.name)}</h3></div>
-        <div class="wallet-card-balance">${formatMoney(st.balance)}</div>
-        <div class="wallet-card-plan">План: ${plan}</div>
-        <div class="wallet-card-stats">
-          <div class="wallet-card-stat"><span>Поступило</span><b>${formatMoney(st.incoming)}</b></div>
-          <div class="wallet-card-stat"><span>Потрачено</span><b>${formatMoney(st.spent)}</b></div>
-        </div>
-        <div class="wallet-card-actions">
-          <button class="secondary" data-wallet-action="topup" data-wallet-id="${w.id}">+ Пополнить</button>
-          <button class="secondary" data-wallet-action="expense" data-wallet-id="${w.id}">− Расход</button>
-        </div>
+    const active=walletActive();
+    const currentMonth=walletViewMonthKey;
+    const currentIsNow=currentMonth===walletCurrentMonthKey();
+    const total=currentIsNow?walletDefinitions().reduce((sum,w)=>sum+walletBalance(w.id),0):walletTotalBalanceAtMonth(currentMonth);
+    const insurance=walletInsurance();
+    $("walletsTotal").textContent=formatMoney(total);
+    $("walletsInsurance").textContent=`${insurance?.name||"Страховка"}: ${formatMoney(currentIsNow?walletBalance(insurance?.id||"insurance"):walletBalanceAtMonth(insurance?.id||"insurance",currentMonth))}`;
+    renderWalletMonthSummary();
+
+    grid.innerHTML=active.map(w=>{
+      const balance=currentIsNow?walletBalance(w.id):walletBalanceAtMonth(w.id,currentMonth);
+      const mm=walletMonthMetrics(currentMonth,w.id);
+      const plan=Math.max(0,w.monthlyPlanCents||0);
+      const left=Math.max(0,plan-mm.allocated);
+      const typeLabel=w.type==="savings"?"Накопительный":"Расходный";
+      const planBlock=w.systemRole
+        ? `<div class="wallet-card-plan">Системный · остаток распределения</div>`
+        : `<div class="wallet-card-plan">${typeLabel} · план ${formatMoney(plan)}</div>`;
+      const stats=w.type==="savings"
+        ? `<div class="wallet-card-stats wallet-card-stats-3"><div class="wallet-card-stat"><span>Выделено</span><b>${formatMoney(mm.allocated)}</b></div><div class="wallet-card-stat"><span>Осталось по плану</span><b>${formatMoney(left)}</b></div><div class="wallet-card-stat"><span>Добавлено/получено</span><b>${formatMoney(mm.received)}</b></div></div>`
+        : `<div class="wallet-card-stats wallet-card-stats-3"><div class="wallet-card-stat"><span>Выделено</span><b>${formatMoney(mm.allocated)}</b></div><div class="wallet-card-stat"><span>Осталось по плану</span><b>${formatMoney(left)}</b></div><div class="wallet-card-stat"><span>Потрачено</span><b>${formatMoney(mm.spent)}</b></div></div>`;
+      return `<article class="wallet-card${w.systemRole?" insurance":""}${w.type==="savings"?" savings":""}" data-wallet-id="${escapeHtml(w.id)}">
+        <div class="wallet-card-top"><h3>${escapeHtml(w.name)}</h3>${w.protected?'<span class="wallet-protected" title="Защищённый кошелёк">Защищён</span>':""}</div>
+        <div class="wallet-card-balance">${formatMoney(balance)}</div>
+        ${planBlock}${stats}${walletGoalHtml(w,balance)}
+        <div class="wallet-card-actions"><button class="secondary" data-wallet-action="topup" data-wallet-id="${escapeHtml(w.id)}">+ Пополнить</button><button class="secondary" data-wallet-action="expense" data-wallet-id="${escapeHtml(w.id)}">− Расход</button></div>
       </article>`;
     }).join("");
 
     renderWalletHistoryList($("walletRecentList"),5);
-    renderWalletHistoryList($("walletHistoryList"),0);
+    populateWalletHistoryFilters();
+    renderWalletHistoryList($("walletHistoryList"),0,{filtered:true});
     const undo=$("undoLastWalletOperation");
     if(undo) undo.disabled=!lastUndoableWalletOperation();
   }
@@ -3295,24 +3775,19 @@ body{padding-bottom:88px}
     $("walletDistributionModal").classList.remove("hidden");
     setTimeout(()=>$("walletDistributionAmount").focus(),60);
   }
-
   function closeWalletDistribution(){ $("walletDistributionModal").classList.add("hidden"); }
 
   function updateWalletDistributionPreview(){
     const amount=parseMoneyInput($("walletDistributionAmount").value);
-    const root=$("walletDistributionPreview");
-    const btn=$("confirmWalletDistribution");
-    if(!amount || amount<=0){
-      root.innerHTML='<div class="wallet-empty">Введите сумму больше 0.</div>';
-      btn.disabled=true;
-      return;
-    }
-    const calc=calculateWalletDistribution(amount);
-    const rows=WALLET_DEFS.map(w=>`<div class="wallet-preview-row"><span>${escapeHtml(w.name)}</span><b>${formatMoney(calc.allocations[w.id]||0)}</b></div>`).join("");
+    const root=$("walletDistributionPreview"),btn=$("confirmWalletDistribution");
+    if(!amount || amount<=0){ root.innerHTML='<div class="wallet-empty">Введите сумму больше 0.</div>';btn.disabled=true;return; }
+    const calc=calculateWalletDistribution(amount,walletCurrentMonthKey());
+    const rows=walletActive().map(w=>`<div class="wallet-preview-row"><span>${escapeHtml(w.name)}</span><b>${formatMoney(calc.allocations[w.id]||0)}</b></div>`).join("");
     let note="";
-    if(calc.unconfigured) note='<div class="wallet-preview-note warn">Планы ещё не настроены. Вся сумма уйдёт в Страховку.</div>';
-    else if(calc.shortage) note='<div class="wallet-preview-note warn">Денег меньше запланированного. Суммы уменьшены пропорционально. Страховка получает 0 ₽.</div>';
-    else note='<div class="wallet-preview-note ok">Обычные кошельки получат плановые суммы, весь остаток уйдёт в Страховку.</div>';
+    if(calc.allPlansClosed) note='<div class="wallet-preview-note ok">Месячные планы уже закрыты. Вся сумма уйдёт в Страховку.</div>';
+    else if(calc.shortage && calc.priority) note='<div class="wallet-preview-note warn">Денег меньше незакрытых планов. Сумма распределится по установленным приоритетам.</div>';
+    else if(calc.shortage) note='<div class="wallet-preview-note warn">Денег меньше незакрытых планов. Суммы уменьшены пропорционально. Страховка получает 0 ₽.</div>';
+    else note='<div class="wallet-preview-note ok">Программа доложит только недостающие суммы месячных планов, остаток уйдёт в Страховку.</div>';
     root.innerHTML=`<div class="wallet-preview">${rows}</div><div class="wallet-preview-total"><span>Итого</span><b>${formatMoney(amount)}</b></div>${note}`;
     btn.disabled=false;
   }
@@ -3321,147 +3796,341 @@ body{padding-bottom:88px}
     if(walletBusy) return;
     const amount=parseMoneyInput($("walletDistributionAmount").value);
     if(!amount || amount<=0){ toast("Введите сумму больше 0"); return; }
-    const calc=calculateWalletDistribution(amount);
+    const calc=calculateWalletDistribution(amount,walletCurrentMonthKey());
     const allocated=Object.values(calc.allocations).reduce((sum,n)=>sum+n,0);
-    if(allocated!==amount){ console.error("wallet distribution mismatch",{amount,allocated,calc}); toast("Не удалось точно распределить сумму"); return; }
-
+    if(allocated!==amount){ console.error("wallet distribution mismatch",{amount,allocated,calc});toast("Не удалось точно распределить сумму");return; }
     walletBusy=true;
     const busy=beginButtonBusy("confirmWalletDistribution","Распределяем…");
     const previous=clone(walletState);
     try{
-      const entries=WALLET_DEFS.map(w=>({walletId:w.id,amountCents:calc.allocations[w.id]||0})).filter(x=>x.amountCents>0);
+      const entries=walletActive().map(w=>({walletId:w.id,amountCents:calc.allocations[w.id]||0})).filter(x=>x.amountCents>0);
       createWalletOperation("distribution",entries,`Общая сумма ${formatMoney(amount)}`);
-      closeWalletDistribution();
-      renderWallets();
+      closeWalletDistribution();renderWallets();
       const synced=await syncWalletsCloud(false,true);
       toast(synced?`${formatMoney(amount)} успешно распределено`:`${formatMoney(amount)} распределено. Облако синхронизируется позже`);
     }catch(e){
-      console.error(e); walletState=previous;
-      try{ saveWalletState(); }catch(_){}
-      toast("Не удалось сохранить распределение");
-    }finally{
-      walletBusy=false; endButtonBusy(busy);
-    }
+      console.error(e);walletState=previous;try{saveWalletState();}catch(_){}toast("Не удалось сохранить распределение");
+    }finally{ walletBusy=false;endButtonBusy(busy); }
   }
 
   function openWalletTransaction(walletId,type){
-    const w=walletDef(walletId); if(!w) return;
+    const w=walletDef(walletId); if(!w || w.archived) return;
     const expense=type==="expense";
     $("walletTransactionWalletId").value=walletId;
     $("walletTransactionType").value=expense?"expense":"topup";
     $("walletTransactionTitle").textContent=expense?`Расход — ${w.name}`:`Пополнить — ${w.name}`;
     $("walletTransactionSubtitle").textContent=expense?`Доступно: ${formatMoney(walletBalance(walletId))}`:`Текущий баланс: ${formatMoney(walletBalance(walletId))}`;
-    $("walletTransactionAmount").value="";
-    $("walletTransactionComment").value="";
-    $("walletTransactionError").textContent="";
+    $("walletTransactionAmount").value="";$("walletTransactionComment").value="";$("walletTransactionError").textContent="";
     $("confirmWalletTransaction").textContent=expense?"Списать":"Пополнить";
     $("walletTransactionModal").classList.remove("hidden");
     setTimeout(()=>$("walletTransactionAmount").focus(),60);
   }
-
   function closeWalletTransaction(){ $("walletTransactionModal").classList.add("hidden"); }
 
   async function confirmWalletTransaction(){
     if(walletBusy) return;
-    const walletId=$("walletTransactionWalletId").value;
-    const type=$("walletTransactionType").value;
-    const amount=parseMoneyInput($("walletTransactionAmount").value);
-    const comment=$("walletTransactionComment").value.trim();
-    const err=$("walletTransactionError");
-    if(!walletDef(walletId) || !["topup","expense"].includes(type)){ err.textContent="Не удалось определить кошелёк"; return; }
-    if(!amount || amount<=0){ err.textContent="Введите сумму больше 0"; return; }
-    if(type==="expense" && amount>walletBalance(walletId)){ err.textContent="В кошельке недостаточно денег."; return; }
+    const walletId=$("walletTransactionWalletId").value,type=$("walletTransactionType").value;
+    const amount=parseMoneyInput($("walletTransactionAmount").value),comment=$("walletTransactionComment").value.trim(),err=$("walletTransactionError");
+    const w=walletDef(walletId);
+    if(!w || w.archived || !["topup","expense"].includes(type)){ err.textContent="Не удалось определить кошелёк";return; }
+    if(!amount || amount<=0){ err.textContent="Введите сумму больше 0";return; }
+    if(type==="expense" && amount>walletBalance(walletId)){ err.textContent="В кошельке недостаточно денег.";return; }
+    if(type==="expense" && w.protected && !confirm(`Вы собираетесь взять ${formatMoney(amount)} из защищённого кошелька «${w.name}». Продолжить?`)) return;
 
     walletBusy=true;
     const busy=beginButtonBusy("confirmWalletTransaction",type==="expense"?"Списываем…":"Пополняем…");
     const previous=clone(walletState);
     try{
-      createWalletOperation(type,[{walletId,amountCents:type==="expense"?-amount:amount}],comment);
-      closeWalletTransaction(); renderWallets();
-      const synced=await syncWalletsCloud(false,true);
-      const mainText=type==="expense"?`${formatMoney(amount)} списано`:`${formatMoney(amount)} добавлено`;
-      toast(synced?mainText:`${mainText}. Облако синхронизируется позже`);
+      if(type==="topup"){
+        createWalletOperation("topup",[{walletId,amountCents:amount}],comment);
+        const synced=await syncWalletsCloud(false,true);
+        closeWalletTransaction();renderWallets();toast(synced?`${formatMoney(amount)} добавлено`:`${formatMoney(amount)} добавлено. Облако синхронизируется позже`);
+      }else{
+        const op=buildWalletOperation("expense",[{walletId,amountCents:-amount}],comment);
+        await applyWalletBatchSafely([op]);
+        closeWalletTransaction();renderWallets();toast(`${formatMoney(amount)} списано`);
+      }
     }catch(e){
-      console.error(e); walletState=previous;
-      try{ saveWalletState(); }catch(_){}
-      err.textContent="Не удалось сохранить операцию";
-    }finally{
-      walletBusy=false; endButtonBusy(busy);
-    }
+      console.error(e);walletState=previous;try{saveWalletState();}catch(_){}err.textContent=e.message||"Не удалось сохранить операцию";
+    }finally{ walletBusy=false;endButtonBusy(busy); }
   }
 
   function renderWalletPlanFields(){
     const root=$("walletPlanFields");
-    root.innerHTML=WALLET_DEFS.filter(w=>!w.insurance).map(w=>`<div class="wallet-plan-row"><label for="wallet-plan-${w.id}">${escapeHtml(w.name)}</label><input id="wallet-plan-${w.id}" data-wallet-plan="${w.id}" inputmode="decimal" value="${moneyInputValue(walletState.plans[w.id]||0)}"></div>`).join("");
+    root.innerHTML=walletActive().filter(w=>!w.systemRole).map(w=>`<div class="wallet-plan-row"><label for="wallet-plan-${escapeHtml(w.id)}">${escapeHtml(w.name)}</label><input id="wallet-plan-${escapeHtml(w.id)}" data-wallet-plan="${escapeHtml(w.id)}" inputmode="decimal" value="${moneyInputValue(w.monthlyPlanCents||0)}"></div>`).join("");
+    $("walletDistributionStrategy").value=walletState.strategy;
     updateWalletPlanTotal();
   }
-
   function updateWalletPlanTotal(){
     let total=0,valid=true;
     document.querySelectorAll("[data-wallet-plan]").forEach(inp=>{
       const n=parseMoneyInput(inp.value||"0");
-      if(n===null){ valid=false; inp.setAttribute("aria-invalid","true"); }
-      else{ inp.removeAttribute("aria-invalid"); total+=n; }
+      if(n===null){valid=false;inp.setAttribute("aria-invalid","true");}else{inp.removeAttribute("aria-invalid");total+=n;}
     });
-    $("walletPlanTotal").textContent=valid?`План остальных кошельков: ${formatMoney(total)}`:"Проверьте суммы плана";
+    $("walletPlanTotal").textContent=valid?`Месячный план активных кошельков: ${formatMoney(total)}`:"Проверьте суммы плана";
     $("saveWalletPlan").disabled=!valid;
   }
-
-  function openWalletPlan(){ renderWalletPlanFields(); $("walletPlanModal").classList.remove("hidden"); }
+  function openWalletPlan(){ renderWalletPlanFields();$("walletPlanModal").classList.remove("hidden"); }
   function closeWalletPlan(){ $("walletPlanModal").classList.add("hidden"); }
+
+  async function persistWalletConfig({toastText="Настройки кошельков сохранены",showToast=true}={}){
+    walletState.configUpdatedAt=new Date().toISOString();
+    saveWalletState();
+    if(cloudConfigured() && isAdmin()){
+      const token=await getAdminToken(),ownerId=currentAdminUserId();
+      if(token&&ownerId) await uploadWalletConfig(token,ownerId,walletState);
+    }
+    if(showToast) toast(toastText);
+  }
 
   async function saveWalletPlan(){
     if(walletBusy) return;
     const next={};
     for(const inp of document.querySelectorAll("[data-wallet-plan]")){
       const n=parseMoneyInput(inp.value||"0");
-      if(n===null || n<0){ toast("Проверьте суммы плана"); return; }
+      if(n===null || n<0){ toast("Проверьте суммы плана");return; }
       next[inp.dataset.walletPlan]=n;
     }
-    walletBusy=true;
-    const busy=beginButtonBusy("saveWalletPlan","Сохраняем…");
-    const previous=clone(walletState);
+    walletBusy=true;const busy=beginButtonBusy("saveWalletPlan","Сохраняем…");const previous=clone(walletState);
     try{
-      walletState.plans={...walletState.plans,...next};
-      walletState.plansUpdatedAt=new Date().toISOString();
-      saveWalletState(); closeWalletPlan(); renderWallets();
-      const synced=await syncWalletsCloud(false,true);
-      toast(synced?"План распределения сохранён":"План сохранён. Облако синхронизируется позже");
-    }catch(e){
-      console.error(e); walletState=previous; toast("Не удалось сохранить план");
-    }finally{ walletBusy=false; endButtonBusy(busy); }
+      Object.entries(next).forEach(([id,n])=>{ const w=walletDef(id);if(w&&!w.systemRole)w.monthlyPlanCents=n; });
+      walletState.strategy=$("walletDistributionStrategy").value==="priority"?"priority":"proportional";
+      await persistWalletConfig({showToast:false});closeWalletPlan();renderWallets();toast("Месячные планы сохранены");
+    }catch(e){ console.error(e);walletState=previous;try{saveWalletState();}catch(_){}toast("Не удалось сохранить план"); }
+    finally{ walletBusy=false;endButtonBusy(busy); }
+  }
+
+  function populateWalletTransferSelects(sourceId="",destinationId=""){
+    const active=walletActive();
+    const options=active.map(w=>`<option value="${escapeHtml(w.id)}">${escapeHtml(w.name)}</option>`).join("");
+    $("walletTransferFrom").innerHTML='<option value="">Откуда</option>'+options;
+    $("walletTransferTo").innerHTML='<option value="">Куда</option>'+options;
+    if(sourceId) $("walletTransferFrom").value=sourceId;
+    if(destinationId) $("walletTransferTo").value=destinationId;
+  }
+
+  function openWalletTransfer(sourceId="",amountCents=0,{archiveAfter=""}={}){
+    pendingArchiveWalletId=archiveAfter||"";
+    populateWalletTransferSelects(sourceId,"");
+    $("walletTransferAmount").value=amountCents?moneyInputValue(amountCents):"";
+    $("walletTransferComment").value=archiveAfter?"Перевод остатка перед архивированием":"";
+    $("walletTransferError").textContent="";
+    $("walletTransferTitle").textContent=archiveAfter?"Перевести остаток и архивировать":"Перевести между кошельками";
+    $("walletTransferModal").classList.remove("hidden");
+  }
+  function closeWalletTransfer(){ pendingArchiveWalletId="";$("walletTransferModal").classList.add("hidden"); }
+
+  async function confirmWalletTransfer(){
+    if(walletBusy) return;
+    const from=$("walletTransferFrom").value,to=$("walletTransferTo").value,amount=parseMoneyInput($("walletTransferAmount").value),comment=$("walletTransferComment").value.trim(),err=$("walletTransferError");
+    const fw=walletDef(from),tw=walletDef(to);
+    if(!fw||!tw||fw.archived||tw.archived){err.textContent="Выберите два активных кошелька";return;}
+    if(from===to){err.textContent="Выберите разные кошельки";return;}
+    if(!amount||amount<=0){err.textContent="Введите сумму больше 0";return;}
+    if(amount>walletBalance(from)){err.textContent="В исходном кошельке недостаточно денег";return;}
+    if(fw.protected && !confirm(`Вы переводите ${formatMoney(amount)} из защищённого кошелька «${fw.name}». Продолжить?`)) return;
+
+    walletBusy=true;const busy=beginButtonBusy("confirmWalletTransfer","Переводим…");const previous=clone(walletState);const archiveId=pendingArchiveWalletId;
+    try{
+      const op=buildWalletOperation("transfer",[{walletId:from,amountCents:-amount},{walletId:to,amountCents:amount}],comment);
+      await applyWalletBatchSafely([op]);
+      if(archiveId && archiveId===from){
+        const w=walletDef(archiveId);if(w && walletBalance(archiveId)===0){w.archived=true;await persistWalletConfig({showToast:false});}
+      }
+      closeWalletTransfer();renderWallets();renderWalletManagement();toast(archiveId?"Остаток переведён, кошелёк архивирован":"Перевод выполнен");
+    }catch(e){console.error(e);walletState=previous;try{saveWalletState();}catch(_){}err.textContent=e.message||"Не удалось выполнить перевод";}
+    finally{walletBusy=false;endButtonBusy(busy);}
+  }
+
+  function walletHasHistory(id){ return walletState.transactions.some(t=>t.walletId===id); }
+
+  function renderWalletManagement(){
+    const root=$("walletManageList"); if(!root) return;
+    const active=walletDefinitions({includeArchived:false}),archived=walletDefinitions().filter(w=>w.archived);
+    $("walletManageStrategy").value=walletState.strategy;
+    const row=w=>`<div class="wallet-manage-row ${w.archived?"archived":""}"><div class="wallet-manage-main"><b>${escapeHtml(w.name)}</b><span>${w.type==="savings"?"Накопительный":"Расходный"}${w.systemRole?" · системный":""} · план ${formatMoney(w.monthlyPlanCents||0)} · приоритет ${w.priority}</span></div><div class="wallet-manage-actions">${!w.archived&&!w.systemRole?`<button class="secondary" data-wallet-move="up" data-wallet-id="${escapeHtml(w.id)}" aria-label="Выше">↑</button><button class="secondary" data-wallet-move="down" data-wallet-id="${escapeHtml(w.id)}" aria-label="Ниже">↓</button>`:""}<button class="secondary" data-wallet-edit="${escapeHtml(w.id)}">Изменить</button>${w.archived?`<button class="secondary" data-wallet-restore="${escapeHtml(w.id)}">Восстановить</button>`:(!w.systemRole?`<button class="secondary" data-wallet-archive="${escapeHtml(w.id)}">Архив</button>`:"")}${!w.systemRole&&!walletHasHistory(w.id)&&walletBalance(w.id)===0?`<button class="danger" data-wallet-delete="${escapeHtml(w.id)}">Удалить</button>`:""}</div></div>`;
+    root.innerHTML=`<div class="wallet-manage-section"><h3>Активные кошельки</h3>${active.map(row).join("")||'<div class="wallet-empty">Нет активных кошельков.</div>'}</div><details class="wallet-manage-archive" ${archived.length?"":""}><summary>Архив (${archived.length})</summary><div class="wallet-manage-section">${archived.map(row).join("")||'<div class="wallet-empty">Архив пуст.</div>'}</div></details>`;
+  }
+  function openWalletManagement(){ renderWalletManagement();$("walletManageModal").classList.remove("hidden"); }
+  function closeWalletManagement(){ $("walletManageModal").classList.add("hidden"); }
+
+  function fillWalletEditForm(w=null){
+    walletEditingId=w?.id||"";
+    $("walletEditTitle").textContent=w?`Изменить — ${w.name}`:"Добавить кошелёк";
+    $("walletEditName").value=w?.name||"";
+    $("walletEditType").value=w?.type||"expense";
+    $("walletEditPlan").value=moneyInputValue(w?.monthlyPlanCents||0);
+    $("walletEditGoal").value=moneyInputValue(w?.goalCents||0);
+    $("walletEditPriority").value=String(w?.priority||walletActive().length+1);
+    $("walletEditRollover").value=w?.rollover||"carry";
+    $("walletEditProtected").checked=!!w?.protected;
+    const system=!!w?.systemRole;
+    $("walletEditType").disabled=system;$("walletEditPlan").disabled=system;$("walletEditRollover").disabled=system;
+    $("walletEditSystemNote").classList.toggle("hidden",!system);
+    $("walletEditError").textContent="";
+  }
+  function openWalletEdit(id=""){ const w=id?walletDef(id):null;fillWalletEditForm(w);$("walletEditModal").classList.remove("hidden");setTimeout(()=>$("walletEditName").focus(),60); }
+  function closeWalletEdit(){ walletEditingId="";$("walletEditModal").classList.add("hidden"); }
+
+  async function saveWalletEdit(){
+    if(walletBusy) return;
+    const name=$("walletEditName").value.trim(),plan=parseMoneyInput($("walletEditPlan").value||"0"),goal=parseMoneyInput($("walletEditGoal").value||"0"),priority=Math.max(1,Math.trunc(Number($("walletEditPriority").value)||1)),error=$("walletEditError");
+    if(!name){error.textContent="Введите название";return;}
+    if(plan===null||goal===null){error.textContent="Проверьте суммы";return;}
+    const previous=clone(walletState);walletBusy=true;const busy=beginButtonBusy("saveWalletEdit","Сохраняем…");
+    try{
+      if(walletEditingId){
+        const w=walletDef(walletEditingId);if(!w) throw new Error("Кошелёк не найден");
+        w.name=name.slice(0,60);w.goalCents=goal;w.priority=priority;w.protected=$("walletEditProtected").checked||!!w.systemRole;
+        if(!w.systemRole){w.type=$("walletEditType").value==="savings"?"savings":"expense";w.monthlyPlanCents=plan;w.rollover=$("walletEditRollover").value==="insurance"?"insurance":"carry";}
+      }else{
+        const maxOrder=Math.max(0,...walletState.wallets.map(w=>w.order||0));
+        walletState.wallets.push(normalizeWalletDefinition({id:walletNewId(),name,type:$("walletEditType").value,monthlyPlanCents:plan,goalCents:goal,protected:$("walletEditProtected").checked,archived:false,order:maxOrder+1,priority,rollover:$("walletEditRollover").value},maxOrder));
+      }
+      await persistWalletConfig({showToast:false});closeWalletEdit();renderWalletManagement();renderWallets();toast("Кошелёк сохранён");
+    }catch(e){console.error(e);walletState=previous;try{saveWalletState();}catch(_){}error.textContent=e.message||"Не удалось сохранить";}
+    finally{walletBusy=false;endButtonBusy(busy);}
+  }
+
+  async function moveWalletOrder(id,direction){
+    const list=walletDefinitions({includeArchived:false});
+    const idx=list.findIndex(w=>w.id===id);if(idx<0)return;
+    const target=direction==="up"?idx-1:idx+1;if(target<0||target>=list.length)return;
+    const a=list[idx],b=list[target],tmp=a.order;a.order=b.order;b.order=tmp;
+    try{await persistWalletConfig({showToast:false});renderWalletManagement();renderWallets();}catch(e){toast("Не удалось изменить порядок");}
+  }
+
+  async function archiveWallet(id){
+    const w=walletDef(id);if(!w||w.systemRole)return;
+    const balance=walletBalance(id);
+    if(balance>0){
+      if(!confirm(`В кошельке «${w.name}» есть ${formatMoney(balance)}. Сначала переведём остаток в другой кошелёк.`)) return;
+      openWalletTransfer(id,balance,{archiveAfter:id});return;
+    }
+    if(walletHasHistory(id) && !confirm(`Архивировать «${w.name}»? История и баланс сохранятся.`)) return;
+    w.archived=true;
+    try{await persistWalletConfig({showToast:false});renderWalletManagement();renderWallets();toast("Кошелёк перемещён в архив");}catch(e){w.archived=false;toast("Не удалось архивировать");}
+  }
+
+  async function restoreWallet(id){
+    const w=walletDef(id);if(!w)return;w.archived=false;
+    try{await persistWalletConfig({showToast:false});renderWalletManagement();renderWallets();toast("Кошелёк восстановлен");}catch(e){w.archived=true;toast("Не удалось восстановить");}
+  }
+
+  async function deleteWallet(id){
+    const w=walletDef(id);if(!w||w.systemRole)return;
+    if(walletHasHistory(id)||walletBalance(id)!==0){toast("Кошелёк с историей нельзя удалить — используйте архив");return;}
+    if(!confirm(`Удалить пустой кошелёк «${w.name}»?`)) return;
+    const previous=clone(walletState);walletState.wallets=walletState.wallets.filter(x=>x.id!==id);
+    try{await persistWalletConfig({showToast:false});renderWalletManagement();renderWallets();toast("Кошелёк удалён");}catch(e){walletState=previous;saveWalletState();toast("Не удалось удалить");}
+  }
+
+  async function saveWalletManageStrategy(){
+    const previous=walletState.strategy;walletState.strategy=$("walletManageStrategy").value==="priority"?"priority":"proportional";
+    try{await persistWalletConfig({toastText:"Стратегия распределения сохранена"});renderWallets();}catch(e){walletState.strategy=previous;toast("Не удалось сохранить стратегию");}
   }
 
   function lastUndoableWalletOperation(){
-    const reversed=new Set(walletState.transactions.filter(t=>t.type==="reversal" && t.reversesOperationId).map(t=>t.reversesOperationId));
-    return walletOperationGroups().find(g=>g.type!=="reversal" && !reversed.has(g.operationId))||null;
+    const reversed=walletReversedOperationIds();
+    return walletOperationGroups().find(g=>g.type!=="reversal"&&!reversed.has(g.operationId))||null;
+  }
+
+  function buildReversalOperation(group,label=""){
+    const reversalMap={};group.items.forEach(t=>reversalMap[t.walletId]=t.id);
+    return buildWalletOperation("reversal",group.items.map(t=>({walletId:t.walletId,amountCents:-t.amountCents,reversalOfTransactionId:t.id})),label||`Отмена: ${walletOperationTitle(group)}`,{
+      reversesOperationId:group.operationId,sourceType:group.type,effectiveAt:group.effectiveAt||group.items[0]?.effectiveAt||group.createdAt
+    });
   }
 
   async function undoLastWalletOperation(){
-    if(walletBusy) return;
-    const group=lastUndoableWalletOperation();
-    if(!group){ toast("Нет операции для отмены"); return; }
+    if(walletBusy)return;
+    const group=lastUndoableWalletOperation();if(!group){toast("Нет операции для отмены");return;}
     const label=walletOperationTitle(group);
-    if(!confirm(`Отменить последнюю операцию «${label}»?\n\nИсходная запись останется в истории, а программа создаст обратную операцию.`)) return;
-
-    walletBusy=true;
-    const busy=beginButtonBusy("undoLastWalletOperation","Отменяем…");
-    const previous=clone(walletState);
+    if(!confirm(`Отменить последнюю операцию «${label}»?\n\nИсходная запись останется в истории, а программа создаст обратную операцию.`))return;
+    walletBusy=true;const busy=beginButtonBusy("undoLastWalletOperation","Отменяем…");const previous=clone(walletState);
     try{
-      const reversalMap={};
-      group.items.forEach(t=>reversalMap[t.walletId]=t.id);
-      createWalletOperation("reversal",group.items.map(t=>({walletId:t.walletId,amountCents:-t.amountCents})),`Отмена: ${label}`,{reversesOperationId:group.operationId,reversalOfTransactionId:reversalMap,sourceType:group.type});
-      const synced=await syncWalletsCloud(false,true);
-      toast(synced?"Последняя операция отменена":"Операция отменена. Облако синхронизируется позже");
-    }catch(e){
-      console.error(e); walletState=previous;
-      try{ saveWalletState(); }catch(_){}
-      toast("Не удалось отменить операцию");
-    }finally{
-      walletBusy=false;
-      endButtonBusy(busy);
-      renderWallets();
+      await applyWalletBatchSafely([buildReversalOperation(group)]);renderWallets();toast("Последняя операция отменена");
+    }catch(e){console.error(e);walletState=previous;try{saveWalletState();}catch(_){}toast(e.message||"Не удалось отменить операцию");}
+    finally{walletBusy=false;endButtonBusy(busy);}
+  }
+
+  function openWalletCorrection(operationId){
+    const group=walletOperationGroups().find(g=>g.operationId===operationId);if(!group)return;
+    if(walletReversedOperationIds().has(group.operationId)){toast("Эта операция уже отменена или исправлена");return;}
+    walletCorrectionOperationId=operationId;
+    $("walletCorrectionTitle").textContent=`Исправить — ${walletOperationTitle(group)}`;
+    $("walletCorrectionNote").textContent=`Исходная операция останется в истории. Изменения будут отнесены к ${walletMonthLabel(walletMonthKeyFromIso(group.effectiveAt||group.createdAt))}.`;
+    const root=$("walletCorrectionFields");
+    if(group.type==="transfer"){
+      const from=group.items.find(t=>t.amountCents<0),to=group.items.find(t=>t.amountCents>0);
+      const opts=walletActive().map(w=>`<option value="${escapeHtml(w.id)}">${escapeHtml(w.name)}</option>`).join("");
+      root.innerHTML=`<div class="field"><label>Откуда</label><select id="walletCorrectionFrom">${opts}</select></div><div class="field"><label>Куда</label><select id="walletCorrectionTo">${opts}</select></div><div class="field"><label>Сумма</label><input id="walletCorrectionAmount" inputmode="decimal" value="${moneyInputValue(Math.abs(from?.amountCents||0))}"></div><div class="field"><label>Комментарий</label><input id="walletCorrectionComment" maxlength="120" value="${escapeHtml(group.items[0]?.comment||"")}"></div>`;
+      $("walletCorrectionFrom").value=from?.walletId||"";$("walletCorrectionTo").value=to?.walletId||"";
+    }else if(group.type==="distribution"){
+      root.innerHTML='<div class="wallet-plan-list">'+group.items.map((t,i)=>`<div class="wallet-plan-row"><label>${escapeHtml(walletDef(t.walletId)?.name||t.walletId)}</label><input data-wallet-correction-entry="${escapeHtml(t.walletId)}" inputmode="decimal" value="${moneyInputValue(Math.abs(t.amountCents))}"></div>`).join("")+'</div><div class="field"><label>Комментарий</label><input id="walletCorrectionComment" maxlength="120" value="'+escapeHtml(group.items[0]?.comment||"")+'"></div>';
+    }else{
+      const t=group.items[0];
+      root.innerHTML=`<div class="field"><label>Сумма</label><input id="walletCorrectionAmount" inputmode="decimal" value="${moneyInputValue(Math.abs(t?.amountCents||0))}"></div><div class="field"><label>Комментарий</label><input id="walletCorrectionComment" maxlength="120" value="${escapeHtml(t?.comment||"")}"></div>`;
     }
+    $("walletCorrectionError").textContent="";$("walletCorrectionModal").classList.remove("hidden");
+  }
+  function closeWalletCorrection(){walletCorrectionOperationId="";$("walletCorrectionModal").classList.add("hidden");}
+
+  async function saveWalletCorrection(){
+    if(walletBusy)return;
+    const group=walletOperationGroups().find(g=>g.operationId===walletCorrectionOperationId),err=$("walletCorrectionError");if(!group){err.textContent="Операция не найдена";return;}
+    let entries=[],comment=$("walletCorrectionComment")?.value.trim()||"";
+    if(group.type==="transfer"){
+      const from=$("walletCorrectionFrom").value,to=$("walletCorrectionTo").value,amount=parseMoneyInput($("walletCorrectionAmount").value);
+      if(!from||!to||from===to){err.textContent="Выберите разные кошельки";return;}if(!amount||amount<=0){err.textContent="Введите сумму больше 0";return;}
+      entries=[{walletId:from,amountCents:-amount},{walletId:to,amountCents:amount}];
+    }else if(group.type==="distribution"){
+      for(const inp of document.querySelectorAll("[data-wallet-correction-entry]")){
+        const amount=parseMoneyInput(inp.value||"0");if(amount===null){err.textContent="Проверьте суммы";return;}if(amount>0)entries.push({walletId:inp.dataset.walletCorrectionEntry,amountCents:amount});
+      }
+      if(!entries.length){err.textContent="Оставьте хотя бы одну сумму больше 0";return;}
+    }else{
+      const amount=parseMoneyInput($("walletCorrectionAmount").value);if(!amount||amount<=0){err.textContent="Введите сумму больше 0";return;}
+      entries=[{walletId:group.items[0].walletId,amountCents:group.type==="expense"?-amount:amount}];
+    }
+    if(!confirm("Исправить операцию? Старая запись останется в истории, будет создана отмена и новая правильная запись."))return;
+    walletBusy=true;const busy=beginButtonBusy("saveWalletCorrection","Исправляем…");const previous=clone(walletState);
+    try{
+      const reversal=buildReversalOperation(group,`Исправление: отмена ${walletOperationTitle(group)}`);
+      const corrected=buildWalletOperation(group.type,entries,comment,{effectiveAt:group.effectiveAt||group.createdAt,sourceType:"correction"});
+      await applyWalletBatchSafely([reversal,corrected]);closeWalletCorrection();renderWallets();toast("Операция исправлена");
+    }catch(e){console.error(e);walletState=previous;try{saveWalletState();}catch(_){}err.textContent=e.message||"Не удалось исправить операцию";}
+    finally{walletBusy=false;endButtonBusy(busy);}
+  }
+
+  function walletHasCurrentMonthActivity(id,monthKey){
+    return walletState.transactions.some(t=>t.walletId===id && walletTransactionMonth(t)===monthKey);
+  }
+
+  async function maybeApplyWalletMonthRollover(token=null,ownerId=null){
+    const current=walletCurrentMonthKey();
+    if(walletState.lastRolloverMonth===current) return;
+    const previousMonth=walletShiftMonth(current,-1),insurance=walletInsurance();
+    if(!insurance){walletState.lastRolloverMonth=current;saveWalletState();return;}
+    const ops=[];let skipped=false;
+    walletActive().forEach(w=>{
+      if(w.systemRole || w.rollover!=="insurance") return;
+      const prevBalance=walletBalanceAtMonth(w.id,previousMonth);
+      if(prevBalance<=0) return;
+      // Позднее автоматическое списание не делаем, если в новом месяце уже были операции по этому кошельку.
+      if(walletHasCurrentMonthActivity(w.id,current)){skipped=true;return;}
+      ops.push(buildWalletOperation("auto_carryover",[{walletId:w.id,amountCents:-prevBalance},{walletId:insurance.id,amountCents:prevBalance}],`Остаток за ${walletMonthLabel(previousMonth)} → ${insurance.name}`,{effectiveAt:walletStartOfMonthIso(current)}));
+    });
+    try{
+      if(ops.length) await applyWalletBatchSafely(ops,{skipSync:true});
+      walletState.lastRolloverMonth=current;
+      walletState.configUpdatedAt=new Date().toISOString();
+      saveWalletState();
+      if(cloudConfigured()&&isAdmin()){
+        token=token||await getAdminToken();ownerId=ownerId||currentAdminUserId();if(token&&ownerId)await uploadWalletConfig(token,ownerId,walletState);
+      }
+      if(skipped) toast("Правило остатка не применено к части кошельков: в новом месяце уже были операции");
+    }catch(e){console.error("wallet rollover",e);}
   }
 
 
@@ -8336,12 +9005,18 @@ body{padding-bottom:88px}
   $("confirmWalletDistribution").onclick=confirmWalletDistribution;
 
   $("walletSyncBtn").onclick=()=>syncWalletsCloud(true);
-  $("walletPlanBtn").onclick=openWalletPlan;
+  $("walletPlanBtn").onclick=openWalletManagement;
   $("closeWalletPlan").onclick=closeWalletPlan;
   $("cancelWalletPlan").onclick=closeWalletPlan;
   $("walletPlanModal").addEventListener("click",e=>{ if(e.target===$("walletPlanModal")) closeWalletPlan(); });
   $("walletPlanFields").addEventListener("input",updateWalletPlanTotal);
   $("saveWalletPlan").onclick=saveWalletPlan;
+
+  $("openWalletTransfer").onclick=()=>openWalletTransfer();
+  $("closeWalletTransfer").onclick=closeWalletTransfer;
+  $("cancelWalletTransfer").onclick=closeWalletTransfer;
+  $("walletTransferModal").addEventListener("click",e=>{ if(e.target===$("walletTransferModal")) closeWalletTransfer(); });
+  $("confirmWalletTransfer").onclick=confirmWalletTransfer;
 
   $("closeWalletTransaction").onclick=closeWalletTransaction;
   $("cancelWalletTransaction").onclick=closeWalletTransaction;
@@ -8352,7 +9027,38 @@ body{padding-bottom:88px}
     if(!btn) return;
     openWalletTransaction(btn.dataset.walletId,btn.dataset.walletAction);
   });
+
+  $("walletMonthPrev").onclick=()=>{ walletViewMonthKey=walletShiftMonth(walletViewMonthKey,-1);renderWallets(); };
+  $("walletMonthNext").onclick=()=>{ const next=walletShiftMonth(walletViewMonthKey,1);if(next<=walletCurrentMonthKey()){walletViewMonthKey=next;renderWallets();} };
+  $("walletHistoryType").onchange=()=>renderWalletHistoryList($("walletHistoryList"),0,{filtered:true});
+  $("walletHistoryWallet").onchange=()=>renderWalletHistoryList($("walletHistoryList"),0,{filtered:true});
+  $("walletHistoryMonth").onchange=()=>renderWalletHistoryList($("walletHistoryList"),0,{filtered:true});
+  $("walletRecentList").addEventListener("click",e=>{const b=e.target.closest("[data-wallet-correct]");if(b)openWalletCorrection(b.dataset.walletCorrect);});
+  $("walletHistoryList").addEventListener("click",e=>{const b=e.target.closest("[data-wallet-correct]");if(b)openWalletCorrection(b.dataset.walletCorrect);});
   $("undoLastWalletOperation").onclick=undoLastWalletOperation;
+
+  $("closeWalletManage").onclick=closeWalletManagement;
+  $("walletManageModal").addEventListener("click",e=>{ if(e.target===$("walletManageModal")) closeWalletManagement(); });
+  $("addWalletBtn").onclick=()=>openWalletEdit();
+  $("openWalletPlansFromManage").onclick=()=>{closeWalletManagement();openWalletPlan();};
+  $("walletManageStrategy").onchange=saveWalletManageStrategy;
+  $("walletManageList").addEventListener("click",e=>{
+    const edit=e.target.closest("[data-wallet-edit]");if(edit){openWalletEdit(edit.dataset.walletEdit);return;}
+    const archive=e.target.closest("[data-wallet-archive]");if(archive){archiveWallet(archive.dataset.walletArchive);return;}
+    const restore=e.target.closest("[data-wallet-restore]");if(restore){restoreWallet(restore.dataset.walletRestore);return;}
+    const del=e.target.closest("[data-wallet-delete]");if(del){deleteWallet(del.dataset.walletDelete);return;}
+    const move=e.target.closest("[data-wallet-move]");if(move){moveWalletOrder(move.dataset.walletId,move.dataset.walletMove);return;}
+  });
+
+  $("closeWalletEdit").onclick=closeWalletEdit;
+  $("cancelWalletEdit").onclick=closeWalletEdit;
+  $("walletEditModal").addEventListener("click",e=>{ if(e.target===$("walletEditModal")) closeWalletEdit(); });
+  $("saveWalletEdit").onclick=saveWalletEdit;
+
+  $("closeWalletCorrection").onclick=closeWalletCorrection;
+  $("cancelWalletCorrection").onclick=closeWalletCorrection;
+  $("walletCorrectionModal").addEventListener("click",e=>{ if(e.target===$("walletCorrectionModal")) closeWalletCorrection(); });
+  $("saveWalletCorrection").onclick=saveWalletCorrection;
 
   $("closeMobileMore").onclick=closeMobileMoreMenu;
   $("mobileMoreModal").addEventListener("click",e=>{ if(e.target===$("mobileMoreModal")) closeMobileMoreMenu(); });
