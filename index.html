@@ -1334,6 +1334,8 @@ body{padding-bottom:88px}
 .wallet-total-card b{display:block;margin-top:5px;color:#14532d;font-size:30px;line-height:1.1}
 .wallet-total-card small{display:block;margin-top:7px;color:#52705d;font-size:12px}
 .wallet-main-actions{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr);gap:8px}
+.wallet-readonly-note{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.45;font-weight:750}
+.wallet-main-actions button:disabled,.wallet-card-actions button:disabled{opacity:.48;cursor:not-allowed}
 .wallet-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .wallet-card{border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px;min-width:0}
 .wallet-card.insurance{border-color:#cfe8d7;background:#f8fcf9}
@@ -1829,9 +1831,11 @@ body{padding-bottom:88px}
             <div><span>Получено</span><b id="walletMonthReceived">0 ₽</b></div>
             <div><span>Распределено</span><b id="walletMonthDistributed">0 ₽</b></div>
             <div><span>Потрачено</span><b id="walletMonthSpent">0 ₽</b></div>
-            <div><span>Осталось</span><b id="walletMonthRemaining">0 ₽</b></div>
+            <div><span id="walletMonthRemainingLabel">Баланс</span><b id="walletMonthRemaining">0 ₽</b></div>
           </div>
         </div>
+
+        <div class="wallet-readonly-note hidden" id="walletReadonlyNote">Исторический просмотр. Новые операции создаются только в текущем месяце. Старые операции можно исправлять через историю.</div>
 
         <div class="wallet-main-actions">
           <button class="primary" id="openWalletDistribution">+ Распределить деньги</button>
@@ -2110,7 +2114,6 @@ body{padding-bottom:88px}
       <button class="primary" id="addWalletBtn">+ Добавить кошелёк</button>
       <button class="secondary" id="openWalletPlansFromManage">Планы месяца</button>
     </div>
-    <div class="field"><label>Стратегия при нехватке денег</label><select id="walletManageStrategy"><option value="proportional">Пропорционально</option><option value="priority">По приоритетам</option></select></div>
     <div id="walletManageList"></div>
   </div>
 </div>
@@ -3459,7 +3462,7 @@ body{padding-bottom:88px}
   }
 
   function walletMonthMetrics(monthKey,walletId=""){
-    let received=0,distributed=0,spent=0,allocated=0;
+    let received=0,distributed=0,toppedUp=0,spent=0,allocated=0;
     walletState.transactions.forEach(t=>{
       if(walletId && t.walletId!==walletId) return;
       if(walletTransactionMonth(t)!==monthKey) return;
@@ -3470,12 +3473,23 @@ body{padding-bottom:88px}
         allocated+=t.amountCents;
       }else if(source==="topup"){
         received+=t.amountCents;
+        toppedUp+=t.amountCents;
         allocated+=t.amountCents;
       }else if(source==="expense"){
         spent+=-t.amountCents;
       }
     });
-    return {received:Math.max(0,received),distributed:Math.max(0,distributed),spent:Math.max(0,spent),allocated:Math.max(0,allocated)};
+    return {received:Math.max(0,received),distributed:Math.max(0,distributed),toppedUp:Math.max(0,toppedUp),spent:Math.max(0,spent),allocated:Math.max(0,allocated)};
+  }
+
+  function walletMonthFlow(monthKey,walletId){
+    let incoming=0,outgoing=0;
+    walletState.transactions.forEach(t=>{
+      if(t.walletId!==walletId || walletTransactionMonth(t)!==monthKey) return;
+      if(t.amountCents>0) incoming+=t.amountCents;
+      else outgoing+=-t.amountCents;
+    });
+    return {incoming:Math.max(0,incoming),outgoing:Math.max(0,outgoing)};
   }
 
   function walletMonthAllocated(id,monthKey=walletCurrentMonthKey()){
@@ -3504,6 +3518,13 @@ body{padding-bottom:88px}
     if(group.type==="transfer") return "Перевод";
     if(group.type==="auto_carryover") return "Перенос остатка";
     if(group.type==="correction") return "Корректировка";
+    if(group.type==="reversal"){
+      if(group.sourceType==="distribution") return "Отмена распределения";
+      if(group.sourceType==="topup") return "Отмена пополнения";
+      if(group.sourceType==="expense") return "Отмена расхода";
+      if(group.sourceType==="transfer") return "Отмена перевода";
+      if(group.sourceType==="auto_carryover") return "Отмена переноса";
+    }
     return "Отмена операции";
   }
 
@@ -3519,6 +3540,11 @@ body{padding-bottom:88px}
       const from=items.find(t=>t.amountCents<0),to=items.find(t=>t.amountCents>0);
       return `${walletDef(from?.walletId)?.name||"Кошелёк"} → ${walletDef(to?.walletId)?.name||"Кошелёк"}`;
     }
+    if(group.type==="reversal" && ["transfer","auto_carryover"].includes(group.sourceType)){
+      // В reversal знаки обратные исходной операции: плюс — исходный источник, минус — исходное назначение.
+      const originalFrom=items.find(t=>t.amountCents>0),originalTo=items.find(t=>t.amountCents<0);
+      return `${walletDef(originalFrom?.walletId)?.name||"Кошелёк"} → ${walletDef(originalTo?.walletId)?.name||"Кошелёк"}`;
+    }
     if(items.length===1) return walletDef(items[0].walletId)?.name||"Кошелёк";
     return `${items.length} кошельков`;
   }
@@ -3527,6 +3553,10 @@ body{padding-bottom:88px}
     if(group.type==="transfer" || group.type==="auto_carryover"){
       const out=group.items.find(t=>t.amountCents<0);
       return out?formatMoney(Math.abs(out.amountCents)):formatMoney(0);
+    }
+    if(group.type==="reversal" && ["transfer","auto_carryover"].includes(group.sourceType)){
+      const leg=group.items.find(t=>t.amountCents!==0);
+      return leg?formatMoney(Math.abs(leg.amountCents)):formatMoney(0);
     }
     const total=group.items.reduce((sum,t)=>sum+t.amountCents,0);
     if(group.type==="reversal") return formatMoney(Math.abs(total));
@@ -3538,11 +3568,12 @@ body{padding-bottom:88px}
     const type=$("walletHistoryType")?.value||"all";
     const walletId=$("walletHistoryWallet")?.value||"all";
     const gMonth=walletMonthKeyFromIso(group.effectiveAt||group.createdAt);
+    const effectiveType=group.type==="reversal"?(group.sourceType||"reversal"):group.type;
     if(month!=="all" && gMonth!==month) return false;
     if(walletId!=="all" && !group.items.some(t=>t.walletId===walletId)) return false;
-    if(type==="income" && !["distribution","topup"].includes(group.type)) return false;
-    if(type==="expense" && group.type!=="expense") return false;
-    if(type==="transfer" && !["transfer","auto_carryover"].includes(group.type)) return false;
+    if(type==="income" && !["distribution","topup"].includes(effectiveType)) return false;
+    if(type==="expense" && effectiveType!=="expense") return false;
+    if(type==="transfer" && !["transfer","auto_carryover"].includes(effectiveType)) return false;
     return true;
   }
 
@@ -3664,6 +3695,27 @@ body{padding-bottom:88px}
     };
   }
 
+  function walletViewingCurrentMonth(){ return walletViewMonthKey===walletCurrentMonthKey(); }
+  function requireWalletCurrentMonth(){
+    if(walletViewingCurrentMonth()) return true;
+    toast("Это прошлый месяц. Новые операции создаются только в текущем месяце");
+    return false;
+  }
+
+  function validateLocalWalletBatchBalances(operations){
+    const deltas=new Map();
+    operations.forEach(op=>op.items.forEach(t=>{
+      deltas.set(t.walletId,(deltas.get(t.walletId)||0)+t.amountCents);
+    }));
+    for(const [walletId,delta] of deltas){
+      const projected=walletBalance(walletId)+delta;
+      if(projected<0){
+        const name=walletDef(walletId)?.name||"Кошелёк";
+        throw new Error(`Недостаточно денег в кошельке «${name}»`);
+      }
+    }
+  }
+
   async function applyWalletBatchSafely(operations,{allowLocalWithoutCloud=true,skipSync=false}={}){
     const hasNegative=operations.some(op=>op.items.some(t=>t.amountCents<0));
     if(cloudConfigured()){
@@ -3686,6 +3738,7 @@ body{padding-bottom:88px}
       return true;
     }
     if(!allowLocalWithoutCloud && hasNegative) throw new Error("Для списания требуется подключённое облако");
+    validateLocalWalletBatchBalances(operations);
     appendWalletOperationsLocally(operations);
     return true;
   }
@@ -3722,6 +3775,8 @@ body{padding-bottom:88px}
     $("walletMonthReceived").textContent=formatMoney(m.received);
     $("walletMonthDistributed").textContent=formatMoney(m.distributed);
     $("walletMonthSpent").textContent=formatMoney(m.spent);
+    const remainingLabel=$("walletMonthRemainingLabel");
+    if(remainingLabel) remainingLabel.textContent=current?"Баланс":"Баланс на конец месяца";
     $("walletMonthRemaining").textContent=formatMoney(total);
   }
 
@@ -3741,23 +3796,43 @@ body{padding-bottom:88px}
     $("walletsInsurance").textContent=`${insurance?.name||"Страховка"}: ${formatMoney(currentIsNow?walletBalance(insurance?.id||"insurance"):walletBalanceAtMonth(insurance?.id||"insurance",currentMonth))}`;
     renderWalletMonthSummary();
 
+    const readonlyNote=$("walletReadonlyNote");
+    if(readonlyNote) readonlyNote.classList.toggle("hidden",currentIsNow);
+    const distributeBtn=$("openWalletDistribution"),transferBtn=$("openWalletTransfer"),nextBtn=$("walletMonthNext");
+    if(distributeBtn) distributeBtn.disabled=!currentIsNow;
+    if(transferBtn) transferBtn.disabled=!currentIsNow;
+    if(nextBtn) nextBtn.disabled=currentIsNow;
+
     grid.innerHTML=active.map(w=>{
       const balance=currentIsNow?walletBalance(w.id):walletBalanceAtMonth(w.id,currentMonth);
       const mm=walletMonthMetrics(currentMonth,w.id);
       const plan=Math.max(0,w.monthlyPlanCents||0);
       const left=Math.max(0,plan-mm.allocated);
       const typeLabel=w.type==="savings"?"Накопительный":"Расходный";
-      const planBlock=w.systemRole
-        ? `<div class="wallet-card-plan">Системный · остаток распределения</div>`
-        : `<div class="wallet-card-plan">${typeLabel} · план ${formatMoney(plan)}</div>`;
-      const stats=w.type==="savings"
-        ? `<div class="wallet-card-stats wallet-card-stats-3"><div class="wallet-card-stat"><span>Выделено</span><b>${formatMoney(mm.allocated)}</b></div><div class="wallet-card-stat"><span>Осталось по плану</span><b>${formatMoney(left)}</b></div><div class="wallet-card-stat"><span>Добавлено/получено</span><b>${formatMoney(mm.received)}</b></div></div>`
-        : `<div class="wallet-card-stats wallet-card-stats-3"><div class="wallet-card-stat"><span>Выделено</span><b>${formatMoney(mm.allocated)}</b></div><div class="wallet-card-stat"><span>Осталось по плану</span><b>${formatMoney(left)}</b></div><div class="wallet-card-stat"><span>Потрачено</span><b>${formatMoney(mm.spent)}</b></div></div>`;
+      let planBlock="",stats="";
+
+      if(w.systemRole){
+        const flow=walletMonthFlow(currentMonth,w.id);
+        planBlock='<div class="wallet-card-plan">Системный кошелёк · свободный остаток распределения</div>';
+        stats=`<div class="wallet-card-stats"><div class="wallet-card-stat"><span>Поступило за месяц</span><b>${formatMoney(flow.incoming)}</b></div><div class="wallet-card-stat"><span>Выбыло за месяц</span><b>${formatMoney(flow.outgoing)}</b></div></div>`;
+      }else if(!currentIsNow){
+        planBlock='<div class="wallet-card-plan">Исторический просмотр · месячный план отдельно не сохранялся</div>';
+        stats=w.type==="savings"
+          ? `<div class="wallet-card-stats"><div class="wallet-card-stat"><span>По распределению</span><b>${formatMoney(mm.distributed)}</b></div><div class="wallet-card-stat"><span>Пополнено вручную</span><b>${formatMoney(mm.toppedUp)}</b></div></div>`
+          : `<div class="wallet-card-stats"><div class="wallet-card-stat"><span>Поступило за месяц</span><b>${formatMoney(mm.received)}</b></div><div class="wallet-card-stat"><span>Потрачено</span><b>${formatMoney(mm.spent)}</b></div></div>`;
+      }else{
+        planBlock=`<div class="wallet-card-plan">${typeLabel} · план ${formatMoney(plan)}</div>`;
+        stats=w.type==="savings"
+          ? `<div class="wallet-card-stats wallet-card-stats-3"><div class="wallet-card-stat"><span>По распределению</span><b>${formatMoney(mm.distributed)}</b></div><div class="wallet-card-stat"><span>Пополнено вручную</span><b>${formatMoney(mm.toppedUp)}</b></div><div class="wallet-card-stat"><span>Осталось по плану</span><b>${formatMoney(left)}</b></div></div>`
+          : `<div class="wallet-card-stats wallet-card-stats-3"><div class="wallet-card-stat"><span>Поступило за месяц</span><b>${formatMoney(mm.received)}</b></div><div class="wallet-card-stat"><span>Потрачено</span><b>${formatMoney(mm.spent)}</b></div><div class="wallet-card-stat"><span>Осталось по плану</span><b>${formatMoney(left)}</b></div></div>`;
+      }
+
+      const actionsDisabled=currentIsNow?"":" disabled";
       return `<article class="wallet-card${w.systemRole?" insurance":""}${w.type==="savings"?" savings":""}" data-wallet-id="${escapeHtml(w.id)}">
         <div class="wallet-card-top"><h3>${escapeHtml(w.name)}</h3>${w.protected?'<span class="wallet-protected" title="Защищённый кошелёк">Защищён</span>':""}</div>
         <div class="wallet-card-balance">${formatMoney(balance)}</div>
-        ${planBlock}${stats}${walletGoalHtml(w,balance)}
-        <div class="wallet-card-actions"><button class="secondary" data-wallet-action="topup" data-wallet-id="${escapeHtml(w.id)}">+ Пополнить</button><button class="secondary" data-wallet-action="expense" data-wallet-id="${escapeHtml(w.id)}">− Расход</button></div>
+        ${planBlock}${stats}${currentIsNow?walletGoalHtml(w,balance):""}
+        <div class="wallet-card-actions"><button class="secondary" data-wallet-action="topup" data-wallet-id="${escapeHtml(w.id)}"${actionsDisabled}>+ Пополнить</button><button class="secondary" data-wallet-action="expense" data-wallet-id="${escapeHtml(w.id)}"${actionsDisabled}>− Расход</button></div>
       </article>`;
     }).join("");
 
@@ -3765,10 +3840,13 @@ body{padding-bottom:88px}
     populateWalletHistoryFilters();
     renderWalletHistoryList($("walletHistoryList"),0,{filtered:true});
     const undo=$("undoLastWalletOperation");
-    if(undo) undo.disabled=!lastUndoableWalletOperation();
+    if(undo){
+      undo.disabled=!currentIsNow || !lastUndoableWalletOperation();
+      undo.title=currentIsNow?"":"В прошлом месяце используйте «Исправить» у нужной операции";
+    }
   }
-
   function openWalletDistribution(){
+    if(!requireWalletCurrentMonth()) return;
     $("walletDistributionAmount").value="";
     $("walletDistributionPreview").innerHTML='<div class="wallet-empty">Введите общую сумму — здесь появится распределение.</div>';
     $("confirmWalletDistribution").disabled=true;
@@ -3793,7 +3871,7 @@ body{padding-bottom:88px}
   }
 
   async function confirmWalletDistribution(){
-    if(walletBusy) return;
+    if(walletBusy || !requireWalletCurrentMonth()) return;
     const amount=parseMoneyInput($("walletDistributionAmount").value);
     if(!amount || amount<=0){ toast("Введите сумму больше 0"); return; }
     const calc=calculateWalletDistribution(amount,walletCurrentMonthKey());
@@ -3814,6 +3892,7 @@ body{padding-bottom:88px}
   }
 
   function openWalletTransaction(walletId,type){
+    if(!requireWalletCurrentMonth()) return;
     const w=walletDef(walletId); if(!w || w.archived) return;
     const expense=type==="expense";
     $("walletTransactionWalletId").value=walletId;
@@ -3828,7 +3907,7 @@ body{padding-bottom:88px}
   function closeWalletTransaction(){ $("walletTransactionModal").classList.add("hidden"); }
 
   async function confirmWalletTransaction(){
-    if(walletBusy) return;
+    if(walletBusy || !requireWalletCurrentMonth()) return;
     const walletId=$("walletTransactionWalletId").value,type=$("walletTransactionType").value;
     const amount=parseMoneyInput($("walletTransactionAmount").value),comment=$("walletTransactionComment").value.trim(),err=$("walletTransactionError");
     const w=walletDef(walletId);
@@ -3910,6 +3989,7 @@ body{padding-bottom:88px}
   }
 
   function openWalletTransfer(sourceId="",amountCents=0,{archiveAfter=""}={}){
+    if(!requireWalletCurrentMonth()) return;
     pendingArchiveWalletId=archiveAfter||"";
     populateWalletTransferSelects(sourceId,"");
     $("walletTransferAmount").value=amountCents?moneyInputValue(amountCents):"";
@@ -3921,7 +4001,7 @@ body{padding-bottom:88px}
   function closeWalletTransfer(){ pendingArchiveWalletId="";$("walletTransferModal").classList.add("hidden"); }
 
   async function confirmWalletTransfer(){
-    if(walletBusy) return;
+    if(walletBusy || !requireWalletCurrentMonth()) return;
     const from=$("walletTransferFrom").value,to=$("walletTransferTo").value,amount=parseMoneyInput($("walletTransferAmount").value),comment=$("walletTransferComment").value.trim(),err=$("walletTransferError");
     const fw=walletDef(from),tw=walletDef(to);
     if(!fw||!tw||fw.archived||tw.archived){err.textContent="Выберите два активных кошелька";return;}
@@ -3934,12 +4014,28 @@ body{padding-bottom:88px}
     try{
       const op=buildWalletOperation("transfer",[{walletId:from,amountCents:-amount},{walletId:to,amountCents:amount}],comment);
       await applyWalletBatchSafely([op]);
+
       if(archiveId && archiveId===from){
-        const w=walletDef(archiveId);if(w && walletBalance(archiveId)===0){w.archived=true;await persistWalletConfig({showToast:false});}
+        const w=walletDef(archiveId);
+        if(w && walletBalance(archiveId)===0){
+          const afterTransfer=clone(walletState);
+          w.archived=true;
+          try{
+            await persistWalletConfig({showToast:false});
+          }catch(archiveError){
+            console.error("wallet archive after transfer",archiveError);
+            walletState=afterTransfer;try{saveWalletState();}catch(_){}
+            closeWalletTransfer();renderWallets();renderWalletManagement();
+            toast("Остаток переведён, но кошелёк не удалось архивировать");
+            return;
+          }
+        }
       }
+
       closeWalletTransfer();renderWallets();renderWalletManagement();toast(archiveId?"Остаток переведён, кошелёк архивирован":"Перевод выполнен");
-    }catch(e){console.error(e);walletState=previous;try{saveWalletState();}catch(_){}err.textContent=e.message||"Не удалось выполнить перевод";}
-    finally{walletBusy=false;endButtonBusy(busy);}
+    }catch(e){
+      console.error(e);walletState=previous;try{saveWalletState();}catch(_){}err.textContent=e.message||"Не удалось выполнить перевод";
+    }finally{walletBusy=false;endButtonBusy(busy);}
   }
 
   function walletHasHistory(id){ return walletState.transactions.some(t=>t.walletId===id); }
@@ -3947,7 +4043,6 @@ body{padding-bottom:88px}
   function renderWalletManagement(){
     const root=$("walletManageList"); if(!root) return;
     const active=walletDefinitions({includeArchived:false}),archived=walletDefinitions().filter(w=>w.archived);
-    $("walletManageStrategy").value=walletState.strategy;
     const row=w=>`<div class="wallet-manage-row ${w.archived?"archived":""}"><div class="wallet-manage-main"><b>${escapeHtml(w.name)}</b><span>${w.type==="savings"?"Накопительный":"Расходный"}${w.systemRole?" · системный":""} · план ${formatMoney(w.monthlyPlanCents||0)} · приоритет ${w.priority}</span></div><div class="wallet-manage-actions">${!w.archived&&!w.systemRole?`<button class="secondary" data-wallet-move="up" data-wallet-id="${escapeHtml(w.id)}" aria-label="Выше">↑</button><button class="secondary" data-wallet-move="down" data-wallet-id="${escapeHtml(w.id)}" aria-label="Ниже">↓</button>`:""}<button class="secondary" data-wallet-edit="${escapeHtml(w.id)}">Изменить</button>${w.archived?`<button class="secondary" data-wallet-restore="${escapeHtml(w.id)}">Восстановить</button>`:(!w.systemRole?`<button class="secondary" data-wallet-archive="${escapeHtml(w.id)}">Архив</button>`:"")}${!w.systemRole&&!walletHasHistory(w.id)&&walletBalance(w.id)===0?`<button class="danger" data-wallet-delete="${escapeHtml(w.id)}">Удалить</button>`:""}</div></div>`;
     root.innerHTML=`<div class="wallet-manage-section"><h3>Активные кошельки</h3>${active.map(row).join("")||'<div class="wallet-empty">Нет активных кошельков.</div>'}</div><details class="wallet-manage-archive" ${archived.length?"":""}><summary>Архив (${archived.length})</summary><div class="wallet-manage-section">${archived.map(row).join("")||'<div class="wallet-empty">Архив пуст.</div>'}</div></details>`;
   }
@@ -3993,14 +4088,22 @@ body{padding-bottom:88px}
   }
 
   async function moveWalletOrder(id,direction){
+    if(walletBusy) return;
     const list=walletDefinitions({includeArchived:false});
     const idx=list.findIndex(w=>w.id===id);if(idx<0)return;
     const target=direction==="up"?idx-1:idx+1;if(target<0||target>=list.length)return;
+    const previous=clone(walletState);
+    walletBusy=true;
     const a=list[idx],b=list[target],tmp=a.order;a.order=b.order;b.order=tmp;
-    try{await persistWalletConfig({showToast:false});renderWalletManagement();renderWallets();}catch(e){toast("Не удалось изменить порядок");}
+    try{
+      await persistWalletConfig({showToast:false});renderWalletManagement();renderWallets();
+    }catch(e){
+      console.error(e);walletState=previous;try{saveWalletState();}catch(_){}renderWalletManagement();renderWallets();toast("Не удалось изменить порядок");
+    }finally{walletBusy=false;}
   }
 
   async function archiveWallet(id){
+    if(walletBusy) return;
     const w=walletDef(id);if(!w||w.systemRole)return;
     const balance=walletBalance(id);
     if(balance>0){
@@ -4008,26 +4111,39 @@ body{padding-bottom:88px}
       openWalletTransfer(id,balance,{archiveAfter:id});return;
     }
     if(walletHasHistory(id) && !confirm(`Архивировать «${w.name}»? История и баланс сохранятся.`)) return;
-    w.archived=true;
-    try{await persistWalletConfig({showToast:false});renderWalletManagement();renderWallets();toast("Кошелёк перемещён в архив");}catch(e){w.archived=false;toast("Не удалось архивировать");}
+    const previous=clone(walletState);
+    walletBusy=true;w.archived=true;
+    try{
+      await persistWalletConfig({showToast:false});renderWalletManagement();renderWallets();toast("Кошелёк перемещён в архив");
+    }catch(e){
+      console.error(e);walletState=previous;try{saveWalletState();}catch(_){}renderWalletManagement();renderWallets();toast("Не удалось архивировать");
+    }finally{walletBusy=false;}
   }
 
   async function restoreWallet(id){
-    const w=walletDef(id);if(!w)return;w.archived=false;
-    try{await persistWalletConfig({showToast:false});renderWalletManagement();renderWallets();toast("Кошелёк восстановлен");}catch(e){w.archived=true;toast("Не удалось восстановить");}
+    if(walletBusy) return;
+    const w=walletDef(id);if(!w)return;
+    const previous=clone(walletState);
+    walletBusy=true;w.archived=false;
+    try{
+      await persistWalletConfig({showToast:false});renderWalletManagement();renderWallets();toast("Кошелёк восстановлен");
+    }catch(e){
+      console.error(e);walletState=previous;try{saveWalletState();}catch(_){}renderWalletManagement();renderWallets();toast("Не удалось восстановить");
+    }finally{walletBusy=false;}
   }
 
   async function deleteWallet(id){
+    if(walletBusy) return;
     const w=walletDef(id);if(!w||w.systemRole)return;
     if(walletHasHistory(id)||walletBalance(id)!==0){toast("Кошелёк с историей нельзя удалить — используйте архив");return;}
     if(!confirm(`Удалить пустой кошелёк «${w.name}»?`)) return;
-    const previous=clone(walletState);walletState.wallets=walletState.wallets.filter(x=>x.id!==id);
-    try{await persistWalletConfig({showToast:false});renderWalletManagement();renderWallets();toast("Кошелёк удалён");}catch(e){walletState=previous;saveWalletState();toast("Не удалось удалить");}
-  }
-
-  async function saveWalletManageStrategy(){
-    const previous=walletState.strategy;walletState.strategy=$("walletManageStrategy").value==="priority"?"priority":"proportional";
-    try{await persistWalletConfig({toastText:"Стратегия распределения сохранена"});renderWallets();}catch(e){walletState.strategy=previous;toast("Не удалось сохранить стратегию");}
+    const previous=clone(walletState);
+    walletBusy=true;walletState.wallets=walletState.wallets.filter(x=>x.id!==id);
+    try{
+      await persistWalletConfig({showToast:false});renderWalletManagement();renderWallets();toast("Кошелёк удалён");
+    }catch(e){
+      console.error(e);walletState=previous;try{saveWalletState();}catch(_){}renderWalletManagement();renderWallets();toast("Не удалось удалить");
+    }finally{walletBusy=false;}
   }
 
   function lastUndoableWalletOperation(){
@@ -4036,14 +4152,13 @@ body{padding-bottom:88px}
   }
 
   function buildReversalOperation(group,label=""){
-    const reversalMap={};group.items.forEach(t=>reversalMap[t.walletId]=t.id);
     return buildWalletOperation("reversal",group.items.map(t=>({walletId:t.walletId,amountCents:-t.amountCents,reversalOfTransactionId:t.id})),label||`Отмена: ${walletOperationTitle(group)}`,{
       reversesOperationId:group.operationId,sourceType:group.type,effectiveAt:group.effectiveAt||group.items[0]?.effectiveAt||group.createdAt
     });
   }
 
   async function undoLastWalletOperation(){
-    if(walletBusy)return;
+    if(walletBusy || !requireWalletCurrentMonth())return;
     const group=lastUndoableWalletOperation();if(!group){toast("Нет операции для отмены");return;}
     const label=walletOperationTitle(group);
     if(!confirm(`Отменить последнюю операцию «${label}»?\n\nИсходная запись останется в истории, а программа создаст обратную операцию.`))return;
@@ -9041,7 +9156,6 @@ body{padding-bottom:88px}
   $("walletManageModal").addEventListener("click",e=>{ if(e.target===$("walletManageModal")) closeWalletManagement(); });
   $("addWalletBtn").onclick=()=>openWalletEdit();
   $("openWalletPlansFromManage").onclick=()=>{closeWalletManagement();openWalletPlan();};
-  $("walletManageStrategy").onchange=saveWalletManageStrategy;
   $("walletManageList").addEventListener("click",e=>{
     const edit=e.target.closest("[data-wallet-edit]");if(edit){openWalletEdit(edit.dataset.walletEdit);return;}
     const archive=e.target.closest("[data-wallet-archive]");if(archive){archiveWallet(archive.dataset.walletArchive);return;}
