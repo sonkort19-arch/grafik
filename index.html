@@ -426,7 +426,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 .service-device-mode #scheduleControls .filters{display:none!important}
 .service-device-mode #monthActions,
 .service-device-mode #monthPhotoNotice{display:none!important}
-.service-device-mode .bottom-inner{grid-template-columns:repeat(2,1fr)!important}
+.service-device-mode .bottom-inner{grid-template-columns:repeat(3,1fr)!important}
 .service-device-mode .bottom-inner .tab.hidden{display:none!important}
 .service-device-mode .shift-card h3{font-size:22px}
 .service-device-mode .shift-card{padding:18px}
@@ -437,7 +437,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 .service-device-mode #scheduleControls .monthnav{margin-top:0}
 .service-device-mode #scheduleControls .today-month-btn{display:none}
 @media(max-width:760px){
-  .service-device-mode .bottom-inner{grid-template-columns:repeat(2,1fr)!important}
+  .service-device-mode .bottom-inner{grid-template-columns:repeat(3,1fr)!important}
 }
 
 /* Рабочий компьютер: упрощённый график своей точки */
@@ -1327,6 +1327,15 @@ body{padding-bottom:88px}
   .authbtn{padding:0 9px;font-size:11px}
 }
 
+
+/* Рабочее устройство точки: тот же цвет сервиса, что и во всём приложении */
+.service-point-schedule.service-s1 .service-point-head h2{color:var(--s1)!important}
+.service-point-schedule.service-s2 .service-point-head h2{color:var(--s2)!important}
+.service-point-schedule.service-s1 .service-day-row.today{background:var(--s1-soft)}
+.service-point-schedule.service-s2 .service-day-row.today{background:var(--s2-soft)}
+.service-point-schedule.service-s1 .service-day-row.today .service-day-date b{color:var(--s1)}
+.service-point-schedule.service-s2 .service-day-row.today .service-day-date b{color:var(--s2)}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1714,8 +1723,8 @@ body{padding-bottom:88px}
 
 <nav class="bottom">
   <div class="desktop-nav-brand">
-    <b>MA График</b>
-    <span>Управление сменами</span>
+    <b id="desktopNavBrandTitle">MA График</b>
+    <span id="desktopNavBrandSubtitle">Управление сменами</span>
   </div>
   <div class="bottom-inner admin-five" id="bottomInner">
     <button class="tab active" id="bottomTab1" data-tab="adminToday">Сегодня</button>
@@ -2010,6 +2019,13 @@ body{padding-bottom:88px}
   let pendingShiftAction = null;
   let editingShiftRow = null;
   let quickReplaceFixedContext = false;
+  let quickReplaceSaving = false;
+  let importSettingsBusy = false;
+  let historyLoadSeq = 0;
+  let historyRowsTruncated = false;
+  let deviceListLoadState = "unknown";
+  let lastDeviceKeyReadFailed = false;
+  const adminMutationLocks = new Set();
   let serviceWorkerRegistration = null;
   let deferredGrafikInstallPrompt=null;
   let grafikAppInstalled=false;
@@ -2035,6 +2051,23 @@ body{padding-bottom:88px}
 
   function stableJson(value){
     try{ return JSON.stringify(value); }catch(e){ return ""; }
+  }
+
+  function beginButtonBusy(id,busyText="Сохраняем…"){
+    const btn=$(id);
+    if(!btn || btn.dataset.busy==="1") return null;
+    const state={btn,text:btn.textContent,disabled:btn.disabled};
+    btn.dataset.busy="1";
+    btn.disabled=true;
+    if(busyText) btn.textContent=busyText;
+    return state;
+  }
+
+  function endButtonBusy(state){
+    if(!state?.btn) return;
+    state.btn.dataset.busy="";
+    state.btn.disabled=state.disabled;
+    state.btn.textContent=state.text;
   }
 
   function serviceKeyForName(name,s=null){
@@ -2119,6 +2152,7 @@ body{padding-bottom:88px}
   }
 
   async function loadDeviceKeyRecord(){
+    lastDeviceKeyReadFailed=false;
     try{
       const db=await openDeviceKeyDB();
       return await new Promise((resolve,reject)=>{
@@ -2128,6 +2162,7 @@ body{padding-bottom:88px}
         req.onerror=()=>reject(req.error);
       });
     }catch(e){
+      lastDeviceKeyReadFailed=true;
       console.error("device key read",e);
       return null;
     }
@@ -2163,7 +2198,7 @@ body{padding-bottom:88px}
     return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
   }
 
-  async function createDeviceKeyRecord(){
+  async function generateDeviceKeyRecord(){
     if(!window.crypto?.subtle) throw new Error("Этот браузер не поддерживает защищённую привязку устройства");
 
     const generated=await crypto.subtle.generateKey(
@@ -2191,7 +2226,11 @@ body{padding-bottom:88px}
       ["verify"]
     );
 
-    const record={privateKey,publicKey,publicJwk,createdAt:Date.now()};
+    return {privateKey,publicKey,publicJwk,createdAt:Date.now()};
+  }
+
+  async function createDeviceKeyRecord(){
+    const record=await generateDeviceKeyRecord();
     await saveDeviceKeyRecord(record);
     return record;
   }
@@ -2448,6 +2487,12 @@ body{padding-bottom:88px}
     if(!isAdmin() && !active.length){
       setSystemHealth("systemS1Icon","systemS1Text","warn","Нужен вход администратора");
       setSystemHealth("systemS2Icon","systemS2Text","warn","Нужен вход администратора");
+    }else if(isAdmin() && deviceListLoadState==="error"){
+      setSystemHealth("systemS1Icon","systemS1Text","warn","Не удалось проверить");
+      setSystemHealth("systemS2Icon","systemS2Text","warn","Не удалось проверить");
+    }else if(isAdmin() && deviceListLoadState!=="ok" && !active.length){
+      setSystemHealth("systemS1Icon","systemS1Text","warn","Проверяем…");
+      setSystemHealth("systemS2Icon","systemS2Text","warn","Проверяем…");
     }else{
       setSystemHealth(
         "systemS1Icon","systemS1Text",
@@ -2465,6 +2510,15 @@ body{padding-bottom:88px}
   function updateCurrentScheduleSummary(){
     const root=$("currentScheduleSummary");
     if(!root) return;
+
+    const today=dateObjectFromKey(moscowParts().date);
+    if(!balancedRosterState(today)){
+      root.innerHTML=`<div class="current-schedule-card" style="grid-column:1/-1">
+        <h3>Индивидуальный график</h3>
+        <div class="current-schedule-row">Текущая команда уже не совпадает с автоматической схемой. Актуальные смены смотрите в разделе <b>График</b>.</div>
+      </div>`;
+      return;
+    }
 
     root.innerHTML=`
       <div class="current-schedule-card service-s1">
@@ -2485,6 +2539,23 @@ body{padding-bottom:88px}
     `;
   }
 
+  function updateDesktopNavBrand(mode="admin",service=""){
+    const title=$("desktopNavBrandTitle");
+    const subtitle=$("desktopNavBrandSubtitle");
+    if(!title || !subtitle) return;
+
+    if(mode==="service"){
+      title.textContent=service || "MA График";
+      subtitle.textContent="Рабочее устройство точки";
+    }else if(mode==="employee"){
+      title.textContent="MA График";
+      subtitle.textContent="График сотрудника";
+    }else{
+      title.textContent="MA График";
+      subtitle.textContent="Управление сменами";
+    }
+  }
+
   function applyUserMode(){
     const employeeMode=isEmployeePhoneMode();
     const serviceMode=isServiceDeviceMode();
@@ -2497,6 +2568,7 @@ body{padding-bottom:88px}
     const brand=document.querySelector(".brand");
 
     if(employeeMode){
+      updateDesktopNavBrand("employee");
       if(brand) brand.textContent="MA График";
       inner.classList.remove("admin-four","admin-five");
       inner.classList.add("employee-three");
@@ -2529,6 +2601,7 @@ body{padding-bottom:88px}
 
     if(serviceMode){
       const service=serviceDeviceName();
+      updateDesktopNavBrand("service",service);
       if(brand) brand.textContent=`${service} · Смена`;
       inner.classList.remove("admin-four","admin-five");
       inner.classList.add("employee-three");
@@ -2555,6 +2628,7 @@ body{padding-bottom:88px}
       return;
     }
 
+    updateDesktopNavBrand("admin");
     if(brand) brand.textContent="MA График";
     if($("attentionTitle")) $("attentionTitle").textContent="Требует внимания";
     inner.classList.remove("employee-three","admin-four");
@@ -2897,15 +2971,21 @@ body{padding-bottom:88px}
     const token=await getAdminToken(); if(!token) throw new Error("Нужно войти как администратор");
     setCloudStatus("Сохранение…","syncing");
     const now=new Date().toISOString();
-    const res=await authFetch(`/rest/v1/${CLOUD_TABLE}?on_conflict=id`,{
-      method:"POST",
-      headers:{"Authorization":"Bearer "+token,"Prefer":"resolution=merge-duplicates,return=representation"},
-      body:JSON.stringify({id:CLOUD_ROW_ID,settings:newSettings,updated_at:now})
-    });
-    const data=await res.json().catch(()=>null);
-    if(!res.ok) throw new Error((data && (data.message||data.error_description)) || "Не удалось сохранить в облако");
-    lastCloudUpdatedAt=(Array.isArray(data)&&data[0]&&data[0].updated_at) || now;
-    setCloudStatus("Онлайн","online"); return true;
+    try{
+      const res=await authFetch(`/rest/v1/${CLOUD_TABLE}?on_conflict=id`,{
+        method:"POST",
+        headers:{"Authorization":"Bearer "+token,"Prefer":"resolution=merge-duplicates,return=representation"},
+        body:JSON.stringify({id:CLOUD_ROW_ID,settings:newSettings,updated_at:now})
+      });
+      const data=await res.json().catch(()=>null);
+      if(!res.ok) throw new Error((data && (data.message||data.error_description)) || "Не удалось сохранить в облако");
+      lastCloudUpdatedAt=(Array.isArray(data)&&data[0]&&data[0].updated_at) || now;
+      setCloudStatus("Онлайн","online");
+      return true;
+    }catch(e){
+      setCloudStatus(navigator.onLine===false?"Нет связи":"Ошибка","offline");
+      throw e;
+    }
   }
 
   function moscowParts(date=new Date()){
@@ -2968,8 +3048,16 @@ body{padding-bottom:88px}
       // При запуске Windows Chrome/IndexedDB/интернет могут быть ещё не готовы.
       // Раньше временный сбой мог стереть локальную привязку устройства.
       if(!keyRecord?.privateKey){
-        saveCachedDeviceView(null);
-        currentDeviceAccess={allowed:false,device:null,verified:false};
+        if(lastDeviceKeyReadFailed){
+          // IndexedDB мог быть временно недоступен сразу после запуска браузера.
+          // Сохраняем известный режим точки, но не разрешаем операции до проверки ключа.
+          const cached=loadCachedDeviceView();
+          currentDeviceAccess=cached || {allowed:false,device:null,verified:false};
+        }else{
+          // Хранилище прочиталось нормально, но ключа действительно нет.
+          saveCachedDeviceView(null);
+          currentDeviceAccess={allowed:false,device:null,verified:false};
+        }
         renderDevicePanel();
         renderTodayShifts();
         applyUserMode();
@@ -3008,15 +3096,21 @@ body{padding-bottom:88px}
   }
 
   async function loadRegisteredDevices(){
-    if(!isAdmin()){ deviceListCache=[]; renderDevicePanel(); return false; }
+    if(!isAdmin()){
+      deviceListCache=[];
+      deviceListLoadState="unknown";
+      renderDevicePanel();
+      return false;
+    }
     try{
       const data=await shiftFunction({op:"list-devices"},{admin:true});
       deviceListCache=data.devices||[];
+      deviceListLoadState="ok";
       renderDevicePanel();
       return true;
     }catch(e){
       console.error("list-devices",e);
-      deviceListCache=[];
+      deviceListLoadState="error";
       renderDevicePanel();
       return false;
     }
@@ -3071,9 +3165,13 @@ body{padding-bottom:88px}
 
     if(!confirm(`Разрешить это устройство для точки «${service}»?\n\nПредыдущее активное устройство этой точки будет отключено.`)) return;
 
+    const busy=beginButtonBusy("pairDeviceBtn","Регистрируем…");
+    if(!busy) return;
+
+    // Старые токен и ключ не трогаем, пока сервер не подтвердит новую регистрацию.
+    // Это защищает рабочее устройство от потери привязки при временном сбое сети.
     try{
-      await clearDeviceKeyRecord();
-      const keyRecord=await createDeviceKeyRecord();
+      const keyRecord=await generateDeviceKeyRecord();
 
       const data=await shiftFunction({
         op:"pair-device",
@@ -3082,6 +3180,7 @@ body{padding-bottom:88px}
         publicKeyJwk:keyRecord.publicJwk
       },{admin:true});
 
+      await saveDeviceKeyRecord(keyRecord);
       saveShiftDeviceToken(data.deviceToken);
       currentDeviceAccess={allowed:true,device:data.device,verified:true,cached:false};
       saveCachedDeviceView(data.device);
@@ -3091,26 +3190,37 @@ body{padding-bottom:88px}
       toast(`${service}: устройство защищённо зарегистрировано`);
     }catch(e){
       console.error(e);
-      saveShiftDeviceToken("");
-      await clearDeviceKeyRecord();
+      // Важно: старую локальную регистрацию не стираем из-за ошибки новой попытки.
+      await refreshDeviceAccess();
       toast(e.message||"Не удалось разрешить устройство");
+    }finally{
+      endButtonBusy(busy);
     }
   }
 
   async function revokeRegisteredDevice(id){
     if(!isAdmin() || !id) return;
+    const lockKey=`revoke-device:${id}`;
+    if(adminMutationLocks.has(lockKey)) return;
     if(!confirm("Отключить это устройство? С него больше нельзя будет открыть или закрыть смену.")) return;
+    adminMutationLocks.add(lockKey);
     try{
       await shiftFunction({op:"revoke-device",id},{admin:true});
       if(currentDeviceAccess.device && String(currentDeviceAccess.device.id)===String(id)){
         saveShiftDeviceToken("");
         saveCachedDeviceView(null);
+        await clearDeviceKeyRecord();
         currentDeviceAccess={allowed:false,device:null,verified:false};
       }
       await loadRegisteredDevices();
       renderTodayShifts();
       toast("Устройство отключено");
-    }catch(e){ toast(e.message||"Не удалось отключить устройство"); }
+    }catch(e){
+      console.error(e);
+      toast(e.message||"Не удалось отключить устройство");
+    }finally{
+      adminMutationLocks.delete(lockKey);
+    }
   }
 
   function expectedForDate(dateStr,serviceName){
@@ -3567,7 +3677,10 @@ body{padding-bottom:88px}
 
   async function annulTodayShift(service,date){
     if(!isAdmin()){ openLoginModal(); return; }
+    const lockKey=`annul:${service}:${date}`;
+    if(adminMutationLocks.has(lockKey)) return;
     if(!confirm(`Аннулировать смену «${service}» за ${date}?\n\nОна останется в истории с отметкой «Аннулирована», а после этого смену можно будет открыть заново.`)) return;
+    adminMutationLocks.add(lockKey);
     try{
       await shiftFunction({
         op:"annul-shift",
@@ -3582,6 +3695,8 @@ body{padding-bottom:88px}
     }catch(e){
       console.error(e);
       toast(e.message || "Не удалось аннулировать смену");
+    }finally{
+      adminMutationLocks.delete(lockKey);
     }
   }
 
@@ -3649,19 +3764,36 @@ body{padding-bottom:88px}
   async function saveManagerPins(){
     if(!isAdmin()){ openLoginModal(); return; }
     const names=activeManagerNames();
-    const filled=names.filter((_,i)=>$(`managerPin${i}`).value.trim()).length;
-    if(!filled){ toast("Новые PIN не введены"); return; }
-    if(!confirm(`Изменить PIN у ${filled} менеджер${filled===1?"а":"ов"}?\n\nСтарые PIN перестанут работать сразу.`)) return;
+    const updates=names.map((name,i)=>({name,pin:$(`managerPin${i}`).value.trim(),index:i})).filter(x=>x.pin);
+    if(!updates.length){ toast("Новые PIN не введены"); return; }
+
+    const invalid=updates.find(x=>!/^[0-9]{4}$/.test(x.pin));
+    if(invalid){
+      toast(`PIN для ${invalid.name} должен быть из 4 цифр`);
+      return;
+    }
+
+    if(!confirm(`Изменить PIN у ${updates.length} менеджер${updates.length===1?"а":"ов"}?\n\nСтарые PIN перестанут работать сразу.`)) return;
+
+    const busy=beginButtonBusy("savePinsBtn","Сохраняем PIN…");
+    if(!busy) return;
+
     let changed=0;
     try{
-      for(let i=0;i<names.length;i++){
-        const pin=$(`managerPin${i}`).value.trim(); if(!pin) continue;
-        if(!/^\d{4}$/.test(pin)) throw new Error(`PIN для ${names[i]} должен быть из 4 цифр`);
-        await shiftFunction({op:"set-pin",employee:names[i],pin},{admin:true});
-        $(`managerPin${i}`).value=""; changed++;
+      for(const item of updates){
+        await shiftFunction({op:"set-pin",employee:item.name,pin:item.pin},{admin:true});
+        $(`managerPin${item.index}`).value="";
+        changed++;
       }
-      toast(changed?`PIN сохранены: ${changed}`:"Новые PIN не введены");
-    }catch(e){ toast(e.message||"Не удалось сохранить PIN"); }
+      toast(`PIN сохранены: ${changed}`);
+    }catch(e){
+      console.error(e);
+      toast(changed
+        ? `Сохранено PIN: ${changed}. Остальные не изменены — повтори попытку.`
+        : (e.message||"Не удалось сохранить PIN"));
+    }finally{
+      endButtonBusy(busy);
+    }
   }
 
   function isStandaloneApp(){
@@ -3752,14 +3884,22 @@ body{padding-bottom:88px}
   async function enablePush(){
     if(!isAdmin()){ openLoginModal(); toast("Сначала войди как администратор"); return; }
     if(!("Notification" in window)){ toast("На iPhone сначала добавь сайт на экран «Домой»"); return; }
+    const busy=beginButtonBusy("enablePushBtn","Включаем…");
+    if(!busy) return;
     try{
       const perm=await Notification.requestPermission(); if(perm!=="granted") throw new Error("Уведомления не разрешены");
       const reg=serviceWorkerRegistration || await registerServiceWorker(); if(!reg) throw new Error("Service Worker не зарегистрирован");
       let sub=await reg.pushManager.getSubscription();
       if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)});
       await shiftFunction({op:"subscribe",subscription:sub.toJSON()},{admin:true});
-      updatePushState(); toast("Push-уведомления включены на этом телефоне");
-    }catch(e){ console.error(e); toast(e.message||"Не удалось включить push"); }
+      toast("Push-уведомления включены на этом телефоне");
+    }catch(e){
+      console.error(e);
+      toast(e.message||"Не удалось включить push");
+    }finally{
+      endButtonBusy(busy);
+      updatePushState();
+    }
   }
 
   async function updateEmployeeReminderState(){
@@ -3828,6 +3968,12 @@ body{padding-bottom:88px}
     if(!name){ openEmployeePicker(); return; }
     if(!("Notification" in window)){ toast("На этом телефоне уведомления недоступны"); return; }
 
+    const btn=$("enableEmployeeReminders");
+    if(btn.dataset.busy==="1") return;
+    btn.dataset.busy="1";
+    btn.disabled=true;
+    btn.textContent="Включаем…";
+
     try{
       const perm=await Notification.requestPermission();
       if(perm!=="granted") throw new Error("Уведомления не разрешены");
@@ -3850,19 +3996,25 @@ body{padding-bottom:88px}
       });
 
       saveEmployeePushName(name);
-      await updateEmployeeReminderState();
       toast(`Напоминания для ${name} включены`);
     }catch(e){
       console.error(e);
       toast(e.message||"Не удалось включить напоминания");
+    }finally{
+      btn.dataset.busy="";
       await updateEmployeeReminderState();
     }
   }
 
   async function disableEmployeeReminders(){
-    const reg=serviceWorkerRegistration || await registerServiceWorker();
-    const sub=reg ? await reg.pushManager.getSubscription() : null;
+    const btn=$("disableEmployeeReminders");
+    if(btn.dataset.busy==="1") return;
+    btn.dataset.busy="1";
+    btn.disabled=true;
+    btn.textContent="Выключаем…";
     try{
+      const reg=serviceWorkerRegistration || await registerServiceWorker();
+      const sub=reg ? await reg.pushManager.getSubscription() : null;
       if(sub){
         await shiftFunction({
           op:"unsubscribe-employee",
@@ -3876,8 +4028,10 @@ body{padding-bottom:88px}
     }catch(e){
       console.error(e);
       toast(e.message||"Не удалось выключить напоминания");
+    }finally{
+      btn.dataset.busy="";
+      await updateEmployeeReminderState();
     }
-    await updateEmployeeReminderState();
   }
 
   function monthStartISO(dateStr){
@@ -3965,21 +4119,31 @@ body{padding-bottom:88px}
 
   async function fetchAllHistoryRows(baseQuery,token){
     const pageSize=300;
-    const maxRows=5000;
+    const maxRows=6000;
     let offset=0;
     const all=[];
+    historyRowsTruncated=false;
 
-    while(offset<maxRows){
+    while(all.length<maxRows){
+      const limit=Math.min(pageSize,maxRows-all.length);
       const joiner=baseQuery.includes("?")?"&":"?";
-      const url=`${baseQuery}${joiner}limit=${pageSize}&offset=${offset}`;
+      const url=`${baseQuery}${joiner}limit=${limit}&offset=${offset}`;
       const res=await authFetch(url,{method:"GET",headers:{Authorization:"Bearer "+token}});
       if(!res.ok) throw new Error(await res.text());
       const part=await res.json();
       all.push(...part);
-      if(part.length<pageSize) break;
-      offset+=pageSize;
+      if(part.length<limit) return all;
+      offset+=part.length;
     }
 
+    // Ровно на границе делаем дешёвую проверку одной следующей записи,
+    // чтобы не показывать ложное предупреждение при ровно 6000 записях.
+    const joiner=baseQuery.includes("?")?"&":"?";
+    const probeUrl=`${baseQuery}${joiner}limit=1&offset=${offset}`;
+    const probe=await authFetch(probeUrl,{method:"GET",headers:{Authorization:"Bearer "+token}});
+    if(!probe.ok) throw new Error(await probe.text());
+    const extra=await probe.json();
+    historyRowsTruncated=Array.isArray(extra) && extra.length>0;
     return all;
   }
 
@@ -4072,6 +4236,7 @@ body{padding-bottom:88px}
     if([...sv.options].some(o=>o.value===svv)) sv.value=svv; if([...emp.options].some(o=>o.value===ev)) emp.value=ev;
   }
   async function loadHistory(){
+    const loadSeq=++historyLoadSeq;
     const root=$("historyList");
     if(!isAdmin()){
       root.innerHTML='<div class="history-empty">Войди как администратор, чтобы смотреть историю.</div>';
@@ -4084,6 +4249,10 @@ body{padding-bottom:88px}
 
     const from=$("historyFrom").value;
     const to=$("historyTo").value;
+    if(from && to && from>to){
+      toast("Дата «с» не может быть позже даты «по»");
+      return;
+    }
     const service=$("historyService").value;
     const employee=$("historyEmployee").value;
     const problem=$("historyProblem").value;
@@ -4100,6 +4269,7 @@ body{padding-bottom:88px}
       root.innerHTML='<div class="history-empty">Загрузка истории…</div>';
 
       let rows=await fetchAllHistoryRows(q,token);
+      if(loadSeq!==historyLoadSeq) return;
 
       if(employee){
         rows=rows.filter(r=>
@@ -4116,7 +4286,11 @@ body{padding-bottom:88px}
 
       renderHistoryStats(rows);
       renderHistory(rows);
+      if(historyRowsTruncated){
+        root.insertAdjacentHTML("afterbegin",'<div class="notice" style="margin-bottom:8px">Период слишком большой: показаны первые 6000 записей. Выберите более короткий период, чтобы статистика была полной.</div>');
+      }
     }catch(e){
+      if(loadSeq!==historyLoadSeq) return;
       console.error(e);
       root.innerHTML='<div class="history-empty">Не удалось загрузить историю.</div>';
       if($("historyStats")) $("historyStats").innerHTML="";
@@ -4240,7 +4414,7 @@ body{padding-bottom:88px}
   function closeEditShift(){ $("editShiftModal").classList.add("hidden"); editingShiftRow=null; }
   async function saveEditShift(){
     if(!editingShiftRow||!isAdmin()) return;
-    const token=await getAdminToken(), date=editingShiftRow.shift_date;
+    const date=editingShiftRow.shift_date;
     const openedTime=$("editOpenedTime").value, closedTime=$("editClosedTime").value;
     const patch={opened_by:$("editOpenedBy").value.trim()||null,opened_at:openedTime?isoAtMoscow(date,openedTime):null,closed_by:$("editClosedBy").value.trim()||null,closed_at:closedTime?isoAtMoscow(date,closedTime):null,updated_at:new Date().toISOString()};
     if(!patch.opened_at){ toast("Время открытия нельзя удалить"); return; }
@@ -4249,10 +4423,24 @@ body{padding-bottom:88px}
     if(patch.closed_at && new Date(patch.closed_at) < new Date(patch.opened_at)){ toast("Закрытие не может быть раньше открытия"); return; }
     patch.open_late_minutes=Math.max(0,shiftMinutes(openedTime)-shiftMinutes(settings.shiftStart));
     patch.early_close_minutes=closedTime?Math.max(0,shiftMinutes(settings.shiftEnd)-shiftMinutes(closedTime)):0;
+
+    const busy=beginButtonBusy("saveEditShift","Сохраняем…");
+    if(!busy) return;
     try{
+      const token=await getAdminToken();
+      if(!token){ openLoginModal(); throw new Error("Сессия администратора закончилась"); }
       const res=await authFetch(`/rest/v1/${SHIFT_TABLE}?id=eq.${editingShiftRow.id}`,{method:"PATCH",headers:{Authorization:"Bearer "+token,Prefer:"return=minimal"},body:JSON.stringify(patch)});
-      if(!res.ok) throw new Error(await res.text()); closeEditShift(); toast("История исправлена"); await loadHistory(); await loadTodayShifts(false);
-    }catch(e){ console.error(e); toast("Не удалось сохранить исправление"); }
+      if(!res.ok) throw new Error(await res.text());
+      closeEditShift();
+      toast("История исправлена");
+      await loadHistory();
+      await loadTodayShifts(false);
+    }catch(e){
+      console.error(e);
+      toast(e.message==="Сессия администратора закончилась" ? e.message : "Не удалось сохранить исправление");
+    }finally{
+      endButtonBusy(busy);
+    }
   }
 
   function loadSettings(){
@@ -5246,7 +5434,8 @@ body{padding-bottom:88px}
     const selected=serviceScheduleSelectedDate || today;
 
     const wrap=document.createElement("section");
-    wrap.className="service-point-schedule";
+    const serviceKey=serviceKeyForName(service);
+    wrap.className=`service-point-schedule ${serviceKey?`service-${serviceKey}`:""}`.trim();
     wrap.innerHTML=`
       <div class="service-point-head">
         <div>
@@ -6126,6 +6315,8 @@ body{padding-bottom:88px}
       return;
     }
 
+    const busy=beginButtonBusy("saveAddEmployee","Добавляем…");
+    if(!busy) return;
     const previous=clone(settings);
 
     try{
@@ -6172,7 +6363,7 @@ body{padding-bottom:88px}
       if(newProblems.length){
         const affected=new Set(newProblems.map(p=>`${p.date}|${p.service}`)).size;
         const ok=confirm(`Этот вариант создаст ${affected} новых смен, которые потребуют внимания в ближайшие 60 дней.\n\nВсё равно добавить сотрудника?`);
-        if(!ok) return;
+        if(!ok){ endButtonBusy(busy); return; }
       }
 
       settings=normalizeScheduleSettings(temp);
@@ -6195,6 +6386,8 @@ body{padding-bottom:88px}
       settings=previous;
       saveSettings();
       toast(e.message||"Не удалось добавить сотрудника");
+    }finally{
+      endButtonBusy(busy);
     }
   }
 
@@ -6299,10 +6492,12 @@ body{padding-bottom:88px}
       return;
     }
 
+    const busy=beginButtonBusy("saveEmployeeSchedule","Сохраняем…");
+    if(!busy) return;
     const previous=clone(settings);
     const temp=clone(settings);
     const tempEmployee=(temp.employeeSchedules||[]).find(x=>String(x.id)===String(id));
-    if(!tempEmployee) return;
+    if(!tempEmployee){ endButtonBusy(busy); return; }
 
     setEmployeeScheduleChange(tempEmployee,effectiveDate,workDays,offDays);
 
@@ -6310,7 +6505,7 @@ body{padding-bottom:88px}
     if(newProblems.length){
       const affected=new Set(newProblems.map(p=>`${p.date}|${p.service}`)).size;
       const ok=confirm(`Этот новый график создаст ${affected} новых смен, которые потребуют внимания в ближайшие 60 дней.\n\nВсё равно сохранить?`);
-      if(!ok) return;
+      if(!ok){ endButtonBusy(busy); return; }
     }
 
     try{
@@ -6333,6 +6528,8 @@ body{padding-bottom:88px}
       settings=previous;
       saveSettings();
       toast(e.message||"Не удалось сохранить график");
+    }finally{
+      endButtonBusy(busy);
     }
   }
 
@@ -6372,6 +6569,21 @@ body{padding-bottom:88px}
   function validateNames(s){
     const all=(s.employeeSchedules||[]).map(x=>x.name.toLowerCase());
     return new Set(all).size===all.length;
+  }
+
+  function coreSettingsValidationError(s){
+    const service1=String(s?.service1||"").trim();
+    const service2=String(s?.service2||"").trim();
+    if(!service1 || !service2) return "Укажи названия обеих точек";
+    if(service1.toLowerCase()===service2.toLowerCase()) return "Названия двух точек должны отличаться";
+    if(!validateNames(s)) return "Имена сотрудников должны отличаться";
+
+    const start=shiftMinutes(s?.shiftStart);
+    const end=shiftMinutes(s?.shiftEnd);
+    if(!Number.isFinite(start) || !Number.isFinite(end) || end<=start){
+      return "Конец смены должен быть позже начала";
+    }
+    return "";
   }
 
 
@@ -6557,6 +6769,7 @@ body{padding-bottom:88px}
 
   async function saveQuickReplacement(){
     if(!isAdmin()){ openLoginModal(); return; }
+    if(quickReplaceSaving) return;
 
     const date=$("quickReplaceDate").value;
     const service=$("quickReplaceService").value;
@@ -6575,6 +6788,11 @@ body{padding-bottom:88px}
       toast("Выбери другого сотрудника");
       return;
     }
+
+    quickReplaceSaving=true;
+    const saveBtn=$("saveQuickReplace"), removeBtn=$("removeQuickReplace");
+    const saveText=saveBtn.textContent, removeDisabled=removeBtn.disabled;
+    saveBtn.disabled=true; removeBtn.disabled=true; saveBtn.textContent="Сохраняем…";
 
     const previousSettings=clone(settings);
     const existing=quickReplacementRecord(date,service);
@@ -6598,17 +6816,30 @@ body{padding-bottom:88px}
     });
     settings.dayOverrides.sort((a,b)=>a.date.localeCompare(b.date));
 
-    await persistQuickReplacement(previousSettings,`${absent} заменён на ${replacement}`);
+    try{
+      await persistQuickReplacement(previousSettings,`${absent} заменён на ${replacement}`);
+    }finally{
+      quickReplaceSaving=false;
+      saveBtn.disabled=false;
+      removeBtn.disabled=removeDisabled;
+      saveBtn.textContent=saveText;
+    }
   }
 
   async function removeQuickReplacement(){
     if(!isAdmin()) return;
+    if(quickReplaceSaving) return;
     const date=$("quickReplaceDate").value;
     const service=$("quickReplaceService").value;
     if(!quickReplacementRecord(date,service)){
       toast("На эту дату замены нет");
       return;
     }
+    quickReplaceSaving=true;
+    const saveBtn=$("saveQuickReplace"), removeBtn=$("removeQuickReplace");
+    const saveDisabled=saveBtn.disabled, removeText=removeBtn.textContent;
+    saveBtn.disabled=true; removeBtn.disabled=true; removeBtn.textContent="Возвращаем…";
+
     const previousSettings=clone(settings);
     {
       const serviceKey=serviceKeyForName(service);
@@ -6617,13 +6848,24 @@ body{padding-bottom:88px}
         ((x.serviceKey && x.serviceKey===serviceKey) || (!x.serviceKey && x.service===service))
       ));
     }
-    await persistQuickReplacement(previousSettings,"Вернули обычный график");
+    try{
+      await persistQuickReplacement(previousSettings,"Вернули обычный график");
+    }finally{
+      quickReplaceSaving=false;
+      saveBtn.disabled=saveDisabled;
+      removeBtn.disabled=false;
+      removeBtn.textContent=removeText;
+    }
   }
 
   async function saveForm(){
     const s=readSettingsFromForm();
-    if(!validateNames(s)){ toast("Имена сотрудников должны отличаться"); return; }
+    const validationError=coreSettingsValidationError(s);
+    if(validationError){ toast(validationError); return; }
     if(cloudConfigured() && !isAdmin()){ openLoginModal(); toast("Сначала войди как администратор"); return; }
+
+    const busy=beginButtonBusy("saveSettingsBtn","Сохраняем…");
+    if(!busy) return;
 
     const renamed=[];
     if(s.service1!==settings.service1) renamed.push(settings.service1);
@@ -6633,12 +6875,14 @@ body{padding-bottom:88px}
       const devicesLoaded=await loadRegisteredDevices();
       if(!devicesLoaded){
         toast("Не удалось проверить рабочие устройства. Переименование отменено.");
+        endButtonBusy(busy);
         return;
       }
       const active=deviceListCache.filter(d=>d.active && renamed.includes(d.service));
       if(active.length){
         const names=[...new Set(active.map(d=>d.service))].join(", ");
         toast(`Сначала отключи рабочее устройство точки: ${names}`);
+        endButtonBusy(busy);
         return;
       }
 
@@ -6648,6 +6892,7 @@ body{padding-bottom:88px}
       );
       if(todayRows.length){
         toast("Сегодня уже есть запись смены со старым названием точки. Переименуй точку после завершения дня.");
+        endButtonBusy(busy);
         return;
       }
     }
@@ -6669,6 +6914,8 @@ body{padding-bottom:88px}
       settings=previous;
       setCloudStatus("Ошибка","offline");
       toast(e.message||"Изменения не сохранены");
+    }finally{
+      endButtonBusy(busy);
     }
   }
 
@@ -6755,10 +7002,29 @@ body{padding-bottom:88px}
   }
 
   function importSettings(file){
+    if(importSettingsBusy) return;
+    const busy=beginButtonBusy("importBtn","Восстанавливаем…");
+    if(!busy) return;
+    importSettingsBusy=true;
+
+    const finish=()=>{
+      importSettingsBusy=false;
+      endButtonBusy(busy);
+    };
+
     const r=new FileReader();
+    r.onerror=()=>{
+      toast("Не удалось прочитать резервную копию");
+      finish();
+    };
     r.onload=async()=>{
       try{
         const s=normalizeScheduleSettings(JSON.parse(r.result));
+        const validationError=coreSettingsValidationError(s);
+        if(validationError){
+          toast(`Резервная копия не загружена: ${validationError}`);
+          return;
+        }
         if(cloudConfigured() && !isAdmin()){
           openLoginModal();
           toast("Для импорта войди как администратор");
@@ -6798,12 +7064,16 @@ body{padding-bottom:88px}
         currentIndex=getCurrentMonthIndex();
         userSelectedMonth=false;
         lastSettingsSignature=stableJson(settings);
+        settingsDirty=false;
         populateSettings();
         renderMonth();
+        renderTodayShifts();
         toast(cloudConfigured()?"Резервная копия загружена для всех":"Резервная копия загружена");
       }catch(e){
         console.error(e);
         toast(e.message||"Не удалось открыть файл");
+      }finally{
+        finish();
       }
     };
     r.readAsText(file);
@@ -6840,9 +7110,7 @@ body{padding-bottom:88px}
     const ctx=canvas.getContext("2d");
     ctx.fillStyle="#f4f7fb";ctx.fillRect(0,0,W,H);
     drawText(ctx,`${info.name} ${info.year}`,W/2,72,54,800,"#0f5bd7","center");
-    const sampleDate=new Date(info.year,info.month,Math.min(20,info.days));
-    const balanced=balancedRosterState(sampleDate);
-    drawText(ctx,`Менеджеры: вт/чт Сергей в ${settings.service1}, Арсен/Дина в ${settings.service2} • остальные будни наоборот`,W/2,122,25,500,"#64748b","center");
+    drawText(ctx,`Смена ${settings.shiftStart}–${settings.shiftEnd} • ${settings.service1} / ${settings.service2}`,W/2,122,25,500,"#64748b","center");
 
     const firstEnd=Math.min(15,info.days);
     const serviceTop=[160,1010];
@@ -6885,17 +7153,32 @@ body{padding-bottom:88px}
 
   async function canvasBlob(){
     const c=renderMonthCanvas();
-    return await new Promise(res=>c.toBlob(res,"image/png",1));
+    const blob=await new Promise(res=>c.toBlob(res,"image/png",1));
+    if(!blob) throw new Error("Не удалось создать изображение графика");
+    return blob;
   }
 
   async function sharePhoto(){
-    const blob=await canvasBlob(), info=monthInfo(currentIndex);
-    const file=new File([blob],`График_${info.name}_${info.year}.png`,{type:"image/png"});
-    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-      try{ await navigator.share({files:[file],title:`График ${info.name} ${info.year}`}); }
-      catch(e){ if(e.name!=="AbortError") toast("Не удалось поделиться"); }
-    }else{
-      downloadBlob(blob); toast("Поделиться не поддерживается — PNG сохранён");
+    const busy=beginButtonBusy("shareBtn","Готовим график…");
+    if(!busy) return;
+    try{
+      const blob=await canvasBlob(), info=monthInfo(currentIndex);
+      const file=new File([blob],`График_${info.name}_${info.year}.png`,{type:"image/png"});
+      if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+        try{
+          await navigator.share({files:[file],title:`График ${info.name} ${info.year}`});
+        }catch(e){
+          if(e.name!=="AbortError") throw e;
+        }
+      }else{
+        downloadBlob(blob);
+        toast("PNG графика сохранён");
+      }
+    }catch(e){
+      console.error(e);
+      toast(e.message||"Не удалось подготовить график");
+    }finally{
+      endButtonBusy(busy);
     }
   }
 
@@ -7046,17 +7329,34 @@ body{padding-bottom:88px}
     if(word!=="СБРОСИТЬ"){ if(word!==null) toast("Сброс отменён"); return; }
     if(!confirm("Последняя проверка: действительно сбросить все настройки графика?")) return;
 
-    settings=normalizeScheduleSettings(clone(DEFAULTS));
-    saveSettings();
+    const busy=beginButtonBusy("resetBtn","Сбрасываем…");
+    if(!busy) return;
+    const previous=clone(settings);
+    const next=normalizeScheduleSettings(clone(DEFAULTS));
+
     try{
+      settings=next;
+      saveSettings();
       if(cloudConfigured()) await saveToCloud(settings);
       settingsDirty=false;
       currentIndex=getCurrentMonthIndex();
       userSelectedMonth=false;
+      lastSettingsSignature=stableJson(settings);
       populateSettings();
       renderMonth();
       toast(cloudConfigured()?"Настройки графика сброшены для всех":"Настройки сброшены");
-    }catch(e){ toast(e.message||"Ошибка сброса"); }
+    }catch(e){
+      console.error(e);
+      settings=previous;
+      saveSettings();
+      settingsDirty=false;
+      lastSettingsSignature=stableJson(settings);
+      populateSettings();
+      renderMonth();
+      toast("Сброс не выполнен — прежние настройки восстановлены");
+    }finally{
+      endButtonBusy(busy);
+    }
   };
 
   $("installGrafikBtn").onclick=installGrafikApp;
@@ -7096,7 +7396,10 @@ body{padding-bottom:88px}
       switchTab(nowEmployee?"employeeToday":"adminToday");
     }
   });
-  $("settingsPage").addEventListener("input",e=>{ if(!e.target.id.startsWith("managerPin")) markDirty(); });
+  const scheduleSettingInputIds=new Set(["service1","service2","shiftStart","shiftEnd"]);
+  $("settingsPage").addEventListener("input",e=>{
+    if(scheduleSettingInputIds.has(e.target.id)) markDirty();
+  });
 
   // Init
   async function initApp(){
