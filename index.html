@@ -1409,6 +1409,95 @@ body{padding-bottom:88px}
 .service-point-schedule.service-s1 .service-day-row.today .service-day-date b{color:var(--s1)}
 .service-point-schedule.service-s2 .service-day-row.today .service-day-date b{color:var(--s2)}
 
+
+
+/* =========================================================
+   MOBILE QA 2026-08 — безопасная доводка телефонной версии
+   Только интерфейс: бизнес-логика, данные и сервер не меняются.
+   ========================================================= */
+#bottomTabMore{display:none}
+.tab[data-tab="more"]::before{content:"⋯";font-size:24px;line-height:20px}
+.mobile-more-actions{display:grid;gap:9px;margin-top:14px}
+.mobile-more-action{width:100%;min-height:64px;display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:center;text-align:left;padding:10px 12px}
+.mobile-more-icon{width:38px;height:38px;border-radius:10px;background:#f1f3f6;display:grid;place-items:center;font-size:20px}
+.mobile-more-action b{display:block;color:#172033;font-size:15px}
+.mobile-more-action small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.mobile-settings-summary{list-style:none;cursor:pointer;padding:0}
+.mobile-settings-summary::-webkit-details-marker{display:none}
+.mobile-settings-summary::after{content:"›";margin-left:auto;font-size:24px;line-height:1;color:#94a3b8;transform:rotate(90deg);transition:transform .15s}
+.mobile-settings-fold[open]>.mobile-settings-summary::after{transform:rotate(-90deg)}
+
+@media(max-width:899px){
+  body:not(.employee-phone-mode):not(.service-device-mode) .bottom-inner.admin-six{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+  body:not(.employee-phone-mode):not(.service-device-mode) #bottomTab4,
+  body:not(.employee-phone-mode):not(.service-device-mode) #bottomTab5{display:none!important}
+  body:not(.employee-phone-mode):not(.service-device-mode) #bottomTabMore:not(.hidden){display:block!important}
+  .bottom .tab{font-size:11px!important;line-height:1.1!important;padding:7px 2px 6px!important;min-height:56px}
+  .bottom .tab::before{margin-bottom:3px}
+}
+@media(min-width:900px){#bottomTabMore{display:none!important}}
+
+@media(max-width:760px){
+  .authbtn{min-height:42px!important;padding:0 11px!important}
+  .close{width:44px;height:44px;min-width:44px}
+  .navbtn{min-height:44px}
+  .employee-calendar-nav button{min-height:44px}
+  .history-custom-range input,.history-custom-range button,.history-filters-clean select{min-height:44px!important;border:1px solid var(--line);border-radius:10px;background:#fff;padding:0 10px}
+  .schedule-manage-actions button{min-height:44px!important;padding:9px 11px!important}
+
+  .history-quick{display:grid;grid-template-columns:1fr 1fr;gap:7px;overflow:visible;padding:0 0 10px}
+  .history-quick button{width:100%;min-height:44px;font-size:13px!important;padding:8px 7px;white-space:normal}
+  .history-filters-clean{gap:7px}
+
+  #desktopCalendarPage .employee-calendar-week{min-width:0!important;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  #desktopCalendarPage .employee-calendar-week div{font-size:9px;padding:3px 0}
+  #desktopCalendarPage .desktop-calendar-wrap{overflow:visible}
+  #desktopCalendarPage .desktop-calendar-grid{min-width:0!important;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  #desktopCalendarPage .desktop-cal-cell{min-width:0;min-height:62px;padding:5px 3px;border-radius:9px}
+  #desktopCalendarPage .desktop-cal-day{font-size:13px;margin-bottom:6px}
+  #desktopCalendarPage .desktop-cal-services{gap:4px}
+  #desktopCalendarPage .desktop-service-chip{height:8px;min-height:8px;padding:0;border-radius:999px;border-width:1px}
+  #desktopCalendarPage .desktop-service-chip strong,#desktopCalendarPage .desktop-service-chip small{display:none!important}
+  #desktopCalendarPage .desktop-cal-cell.blank{min-height:62px}
+  #desktopCalendarPage .desktop-calendar-detail{margin-top:10px}
+  #desktopCalendarPage .calendar-legend{margin-bottom:8px}
+
+  .unified-schedule-card{border:0;background:transparent;overflow:visible;box-shadow:none}
+  .unified-schedule-head{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;padding:9px 10px}
+  .unified-schedule-table,.unified-schedule-table tbody{background:transparent}
+  .unified-schedule-table tbody{display:grid!important;gap:8px}
+  .unified-schedule-table tr{border:1px solid var(--line)!important;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 2px 8px rgba(15,23,42,.025)}
+  .unified-date-cell{border-right:1px solid var(--line);padding:9px 7px!important}
+  .unified-shift-cell{min-height:56px;padding:9px 10px}
+  .unified-service-name{font-size:9px;margin-bottom:3px}
+  .unified-pair{font-size:12px;line-height:1.35}
+
+  .wallets-head{flex-direction:column;align-items:stretch;gap:9px}
+  .wallet-head-actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .wallet-head-actions button{width:100%;min-height:44px;font-size:13px!important}
+  .wallet-main-actions button{min-height:48px;font-size:14px!important}
+  .wallet-card-actions button{min-height:44px!important;font-size:13px!important}
+  .wallet-card{padding:12px}
+  .wallet-total-card{padding:14px}
+  #walletPlanModal .login-actions{position:sticky;bottom:-16px;z-index:4;background:#fff;border-top:1px solid var(--line);padding:10px 0 calc(4px + env(safe-area-inset-bottom));margin-top:10px}
+  #walletPlanModal .sheet{padding-bottom:16px}
+
+  #settingsPage .mobile-settings-fold{padding:13px}
+  #settingsPage .mobile-settings-fold>.mobile-settings-summary{margin:0;display:flex;align-items:center;gap:8px}
+  #settingsPage .mobile-settings-fold:not([open])>.mobile-settings-summary{margin-bottom:0}
+  #settingsPage .mobile-settings-fold[open]>.mobile-settings-summary{margin-bottom:12px}
+  #settingsPage .mobile-settings-fold:not([open]){padding-top:12px;padding-bottom:12px}
+  #settingsPage .mobile-settings-fold:not([open]) .settings-subtitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+  #settingsPage .system-health-row{min-height:56px;padding:9px 10px}
+  #settingsPage .settings-main-section{border-radius:14px}
+}
+@media(max-width:390px){
+  .bottom .tab{font-size:10.5px!important}
+  .bottom{padding-left:5px;padding-right:5px}
+  #desktopCalendarPage .desktop-cal-cell{min-height:58px}
+  .wallet-card-balance{font-size:20px}
+}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1732,36 +1821,36 @@ body{padding-bottom:88px}
       </div>
 
       <!-- 2. ТЕКУЩАЯ СХЕМА -->
-      <div class="section settings-main-section">
-        <div class="settings-title-row">
+      <details class="section settings-main-section mobile-settings-fold" id="settingsScheduleFold" open>
+        <summary class="settings-title-row mobile-settings-summary">
           <div>
             <h2>Текущий график</h2>
             <div class="settings-subtitle">Коротко: кто и где работает сейчас</div>
           </div>
-        </div>
+        </summary>
         <div id="currentScheduleSummary" class="current-schedule-summary"></div>
-      </div>
+      </details>
 
       <!-- 3. PIN -->
-      <div class="section settings-main-section">
-        <div class="settings-title-row">
+      <details class="section settings-main-section mobile-settings-fold" id="settingsPinsFold" open>
+        <summary class="settings-title-row mobile-settings-summary">
           <div>
             <h2>PIN-коды</h2>
             <div class="settings-subtitle">Для открытия и закрытия смены на рабочем устройстве</div>
           </div>
-        </div>
+        </summary>
         <div id="pinFields"></div>
         <button class="secondary" id="savePinsBtn" style="width:100%;margin-top:10px">Сохранить новые PIN</button>
-      </div>
+      </details>
 
       <!-- 4. УСТРОЙСТВА -->
-      <div class="section settings-main-section">
-        <div class="settings-title-row">
+      <details class="section settings-main-section mobile-settings-fold" id="settingsDevicesFold" open>
+        <summary class="settings-title-row mobile-settings-summary">
           <div>
             <h2>Устройства сервисов</h2>
             <div class="settings-subtitle">Какой компьютер или планшет имеет право подтверждать смену</div>
           </div>
-        </div>
+        </summary>
 
         <div class="device-box settings-device-box">
           <div class="grid2">
@@ -1783,7 +1872,7 @@ body{padding-bottom:88px}
             <div class="device-security-note">Разрешение привязано к закрытому криптографическому ключу этого браузера. С другого браузера или устройства подтверждение смены не сработает.</div>
           </details>
         </div>
-      </div>
+      </details>
 
       <!-- 5. ДОПОЛНИТЕЛЬНО -->
       <div class="section settings-main-section">
@@ -1851,10 +1940,25 @@ body{padding-bottom:88px}
     <button class="tab" id="bottomTab4" data-tab="history">История</button>
     <button class="tab" id="bottomTab5" data-tab="settings">Настройки</button>
     <button class="tab" id="bottomTab6" data-tab="wallets">Кошельки</button>
+    <button class="tab hidden" id="bottomTabMore" data-tab="more">Ещё</button>
   </div>
 </nav>
 
-
+<div class="modal hidden mobile-more-modal" id="mobileMoreModal">
+  <div class="sheet mobile-more-sheet">
+    <div class="sheet-head">
+      <div>
+        <h2>Ещё</h2>
+        <div class="employee-mode-note">Дополнительные разделы администратора</div>
+      </div>
+      <button class="close" id="closeMobileMore" aria-label="Закрыть">×</button>
+    </div>
+    <div class="mobile-more-actions">
+      <button class="secondary mobile-more-action" data-mobile-more-tab="history"><span class="mobile-more-icon">◷</span><span><b>История</b><small>Смены и нарушения</small></span></button>
+      <button class="secondary mobile-more-action" data-mobile-more-tab="settings"><span class="mobile-more-icon">⚙</span><span><b>Настройки</b><small>Система, PIN и устройства</small></span></button>
+    </div>
+  </div>
+</div>
 
 <div class="modal hidden" id="walletDistributionModal">
   <div class="sheet">
@@ -3361,6 +3465,26 @@ body{padding-bottom:88px}
   }
 
 
+  function isMobileAdminNav(){
+    return window.matchMedia("(max-width:899px)").matches && !isEmployeePhoneMode() && !isServiceDeviceMode();
+  }
+
+  function openMobileMoreMenu(){
+    if(!isMobileAdminNav()) return;
+    const modal=$("mobileMoreModal");
+    if(modal) modal.classList.remove("hidden");
+  }
+
+  function closeMobileMoreMenu(){
+    const modal=$("mobileMoreModal");
+    if(modal) modal.classList.add("hidden");
+  }
+
+  function openMobileMoreTab(tab){
+    closeMobileMoreMenu();
+    switchTab(tab);
+  }
+
   function applyUserMode(){
     const employeeMode=isEmployeePhoneMode();
     const serviceMode=isServiceDeviceMode();
@@ -3369,7 +3493,7 @@ body{padding-bottom:88px}
     document.body.classList.toggle("service-device-mode",serviceMode);
 
     const inner=$("bottomInner");
-    const t1=$("bottomTab1"),t2=$("bottomTab2"),t3=$("bottomTab3"),t4=$("bottomTab4"),t5=$("bottomTab5"),t6=$("bottomTab6");
+    const t1=$("bottomTab1"),t2=$("bottomTab2"),t3=$("bottomTab3"),t4=$("bottomTab4"),t5=$("bottomTab5"),t6=$("bottomTab6"),tMore=$("bottomTabMore");
     const brand=document.querySelector(".brand");
 
     if(employeeMode){
@@ -3384,6 +3508,7 @@ body{padding-bottom:88px}
       t4.classList.add("hidden");
       t5.classList.add("hidden");
       t6.classList.add("hidden");
+      if(tMore) tMore.classList.add("hidden");
 
       $("adminBtn").textContent="Админ";
       ensureEmployeeSelected();
@@ -3419,6 +3544,7 @@ body{padding-bottom:88px}
       t4.classList.add("hidden");
       t5.classList.add("hidden");
       t6.classList.add("hidden");
+      if(tMore) tMore.classList.add("hidden");
 
       $("adminBtn").textContent="Админ";
       if($("attentionTitle")) $("attentionTitle").textContent="Контроль смены";
@@ -3449,6 +3575,7 @@ body{padding-bottom:88px}
     t4.textContent="История"; t4.dataset.tab="history"; t4.classList.remove("hidden");
     t5.textContent="Настройки"; t5.dataset.tab="settings"; t5.classList.remove("hidden");
     t6.textContent="Кошельки"; t6.dataset.tab="wallets"; t6.classList.remove("hidden");
+    if(tMore){ tMore.textContent="Ещё"; tMore.dataset.tab="more"; tMore.classList.remove("hidden"); }
 
     $("employeePickerModal").classList.add("hidden");
 
@@ -7735,6 +7862,11 @@ body{padding-bottom:88px}
     const employeeMode=isEmployeePhoneMode();
     const serviceMode=isServiceDeviceMode();
 
+    if(tab==="more"){
+      openMobileMoreMenu();
+      return;
+    }
+
     if(employeeMode && ["adminToday","schedule","desktopCalendar","history","settings","wallets"].includes(tab)){
       tab="employeeToday";
     }
@@ -7776,6 +7908,8 @@ body{padding-bottom:88px}
     document.querySelectorAll(".tab").forEach(b=>{
       if(!b.classList.contains("hidden")) b.classList.toggle("active",b.dataset.tab===tab);
     });
+    const moreTab=$("bottomTabMore");
+    if(moreTab) moreTab.classList.toggle("active",isMobileAdminNav() && (hist || sett));
 
     if(employeeMode && (empToday || empMy || empCal)){
       employeeMobileView=tab;
@@ -8220,6 +8354,9 @@ body{padding-bottom:88px}
   });
   $("undoLastWalletOperation").onclick=undoLastWalletOperation;
 
+  $("closeMobileMore").onclick=closeMobileMoreMenu;
+  $("mobileMoreModal").addEventListener("click",e=>{ if(e.target===$("mobileMoreModal")) closeMobileMoreMenu(); });
+  document.querySelectorAll("[data-mobile-more-tab]").forEach(b=>b.onclick=()=>openMobileMoreTab(b.dataset.mobileMoreTab));
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
   let lastTouchEndForZoom=0;
   document.addEventListener("touchend",(e)=>{
@@ -8231,6 +8368,10 @@ body{padding-bottom:88px}
     lastTouchEndForZoom=now;
   },{passive:false});
 
+  if(window.matchMedia("(max-width:760px)").matches){
+    ["settingsScheduleFold","settingsPinsFold","settingsDevicesFold"].forEach(id=>{ const el=$(id); if(el) el.open=false; });
+  }
+  window.addEventListener("resize",()=>{ if(!isMobileAdminNav()) closeMobileMoreMenu(); });
   window.addEventListener("online",()=>{ setCloudStatus(cloudConfigured()?"Онлайн":"Локально",cloudConfigured()?"online":"offline"); syncFromCloud(false); if(isAdmin()) syncWalletsCloud(false); loadTodayShifts(false); });
   window.addEventListener("offline",()=>{ setCloudStatus("Нет связи","offline"); });
 
