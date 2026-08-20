@@ -1209,6 +1209,7 @@ body{padding-bottom:88px}
 .tab[data-tab="desktopCalendar"]::before,
 .tab[data-tab="employeeCalendar"]::before{content:"□"}
 .tab[data-tab="history"]::before{content:"◷"}
+.tab[data-tab="wallets"]::before{content:"₽"}
 .tab[data-tab="settings"]::before{content:"⚙"}
 .tab.active{
   background:#f1f3f6;
@@ -1275,6 +1276,7 @@ body{padding-bottom:88px}
   }
   body:not(.startup-shift-mode) .bottom-inner,
   body:not(.startup-shift-mode) .bottom-inner.admin-five,
+  body:not(.startup-shift-mode) .bottom-inner.admin-six,
   body:not(.startup-shift-mode) .bottom-inner.employee-three,
   body:not(.startup-shift-mode) .bottom-inner.admin-four,
   body:not(.startup-shift-mode).service-device-mode .bottom-inner{
@@ -1314,6 +1316,73 @@ body{padding-bottom:88px}
   body:not(.startup-shift-mode) .section{
     max-width:none;
   }
+}
+
+
+
+/* Кошельки — изолированный модуль личного распределения денег */
+.bottom-inner.admin-six{grid-template-columns:repeat(6,1fr)!important}
+.wallets-shell{display:grid;gap:12px}
+.wallets-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.wallets-head h2{margin:0;color:#172033;font-size:24px}
+.wallets-sub{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.4}
+.wallet-total-card{border:1px solid #cfe8d7;background:#f4fbf6;border-radius:16px;padding:16px}
+.wallet-total-card span{display:block;color:#52705d;font-size:12px;font-weight:800}
+.wallet-total-card b{display:block;margin-top:5px;color:#14532d;font-size:30px;line-height:1.1}
+.wallet-total-card small{display:block;margin-top:7px;color:#52705d;font-size:12px}
+.wallet-main-actions{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr);gap:8px}
+.wallet-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.wallet-card{border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px;min-width:0}
+.wallet-card.insurance{border-color:#cfe8d7;background:#f8fcf9}
+.wallet-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.wallet-card h3{margin:0;color:#24344d;font-size:16px}
+.wallet-card-balance{margin-top:8px;color:#172033;font-size:22px;font-weight:900;letter-spacing:-.02em}
+.wallet-card-plan{margin-top:4px;color:var(--muted);font-size:11px}
+.wallet-card-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.wallet-card-stat{border-top:1px solid #edf0f4;padding-top:7px;min-width:0}
+.wallet-card-stat span{display:block;color:var(--muted);font-size:10px}
+.wallet-card-stat b{display:block;margin-top:2px;color:#334155;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wallet-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.wallet-card-actions button{min-height:36px;padding:7px 8px;border-radius:9px;font-size:11px}
+.wallet-history-card{border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px}
+.wallet-history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.wallet-history-head h3{margin:0;color:#24344d;font-size:16px}
+.wallet-history-head span{font-size:11px;color:var(--muted)}
+.wallet-history-list{display:grid;gap:7px}
+.wallet-history-item{border:1px solid var(--line);border-radius:11px;padding:9px 10px;background:#fff}
+.wallet-history-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.wallet-history-main{min-width:0}
+.wallet-history-main b{display:block;color:#24344d;font-size:12px}
+.wallet-history-main span{display:block;margin-top:3px;color:var(--muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wallet-history-amount{font-size:12px;font-weight:900;white-space:nowrap}
+.wallet-history-amount.in{color:#13713e}.wallet-history-amount.out{color:#b42318}.wallet-history-amount.neutral{color:#475569}
+.wallet-history-details{margin-top:7px;padding-top:7px;border-top:1px solid #edf0f4;display:grid;gap:4px}
+.wallet-history-detail-row{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#475569}
+.wallet-history-detail-row b{color:#24344d}
+.wallet-full-history{margin-top:10px;border-top:1px solid var(--line);padding-top:9px}
+.wallet-full-history>summary{cursor:pointer;font-size:12px;font-weight:850;color:#334155}
+.wallet-empty{text-align:center;color:var(--muted);font-size:12px;padding:18px 8px}
+.wallet-preview{display:grid;gap:6px;margin-top:10px}
+.wallet-preview-row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #edf0f4;padding:7px 0;font-size:13px}
+.wallet-preview-row:last-child{border-bottom:0}
+.wallet-preview-row b{white-space:nowrap}
+.wallet-preview-total{display:flex;justify-content:space-between;gap:12px;margin-top:8px;padding-top:9px;border-top:2px solid var(--line);font-weight:900}
+.wallet-preview-note{margin-top:10px;border-radius:11px;padding:9px 10px;font-size:12px;line-height:1.4;background:#f8fafc;color:#475569}
+.wallet-preview-note.warn{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}
+.wallet-preview-note.ok{background:#ecfdf3;color:#166534;border:1px solid #bbf7d0}
+.wallet-plan-list{display:grid;gap:8px;margin-top:12px}
+.wallet-plan-row{display:grid;grid-template-columns:minmax(0,1fr) 160px;gap:10px;align-items:center}
+.wallet-plan-row label{font-size:13px;font-weight:800;color:#334155}
+.wallet-plan-row input{width:100%;min-height:42px;border:1px solid var(--line);border-radius:10px;padding:0 10px;background:#fff}
+.wallet-plan-insurance{border:1px solid #cfe8d7;background:#f4fbf6;border-radius:11px;padding:10px 11px;color:#166534;font-size:12px;line-height:1.4}
+.wallet-modal-total{margin-top:10px;font-size:12px;color:var(--muted)}
+@media(max-width:900px){.wallet-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){
+  .bottom-inner.admin-six .tab{font-size:9.5px;padding-left:2px;padding-right:2px}
+  .wallet-grid{grid-template-columns:1fr}
+  .wallet-main-actions{grid-template-columns:1fr}
+  .wallet-plan-row{grid-template-columns:1fr}
+  .wallet-total-card b{font-size:27px}
 }
 
 /* На телефоне чуть меньше визуального шума */
@@ -1569,6 +1638,47 @@ body{padding-bottom:88px}
       </div>
     </section>
 
+
+
+    <section id="walletsPage" class="hidden">
+      <div class="wallets-shell">
+        <div class="wallets-head">
+          <div>
+            <h2>Кошельки</h2>
+            <div class="wallets-sub">Личное распределение денег. Планы можно менять — текущие балансы от этого не изменятся.</div>
+          </div>
+          <button class="secondary" id="walletPlanBtn">Настроить</button>
+        </div>
+
+        <div class="wallet-total-card">
+          <span>Всего во всех кошельках</span>
+          <b id="walletsTotal">0 ₽</b>
+          <small id="walletsInsurance">Страховка: 0 ₽</small>
+        </div>
+
+        <div class="wallet-main-actions">
+          <button class="primary" id="openWalletDistribution">+ Распределить деньги</button>
+          <button class="secondary" id="undoLastWalletOperation">Отменить последнюю операцию</button>
+        </div>
+
+        <div class="wallet-grid" id="walletsGrid"></div>
+
+        <div class="wallet-history-card">
+          <div class="wallet-history-head">
+            <div>
+              <h3>Последние операции</h3>
+              <span>Последние 5 действий</span>
+            </div>
+          </div>
+          <div class="wallet-history-list" id="walletRecentList"></div>
+          <details class="wallet-full-history">
+            <summary>Вся история</summary>
+            <div class="wallet-history-list" id="walletHistoryList" style="margin-top:9px"></div>
+          </details>
+        </div>
+      </div>
+    </section>
+
     <section id="settingsPage" class="hidden">
 
       <!-- 1. СИСТЕМА -->
@@ -1726,14 +1836,84 @@ body{padding-bottom:88px}
     <b id="desktopNavBrandTitle">MA График</b>
     <span id="desktopNavBrandSubtitle">Управление сменами</span>
   </div>
-  <div class="bottom-inner admin-five" id="bottomInner">
+  <div class="bottom-inner admin-six" id="bottomInner">
     <button class="tab active" id="bottomTab1" data-tab="adminToday">Сегодня</button>
     <button class="tab" id="bottomTab2" data-tab="schedule">График</button>
     <button class="tab" id="bottomTab3" data-tab="desktopCalendar">Календарь</button>
     <button class="tab" id="bottomTab4" data-tab="history">История</button>
     <button class="tab" id="bottomTab5" data-tab="settings">Настройки</button>
+    <button class="tab" id="bottomTab6" data-tab="wallets">Кошельки</button>
   </div>
 </nav>
+
+
+
+<div class="modal hidden" id="walletDistributionModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div>
+        <h2>Распределить деньги</h2>
+        <div class="employee-mode-note">Введите общую сумму. Сначала будет показан предпросмотр.</div>
+      </div>
+      <button class="close" id="closeWalletDistribution">×</button>
+    </div>
+    <div class="field" style="margin-top:12px">
+      <label>Общая сумма</label>
+      <input id="walletDistributionAmount" inputmode="decimal" autocomplete="off" placeholder="Например, 150000">
+    </div>
+    <div id="walletDistributionPreview"></div>
+    <div class="login-actions">
+      <button class="secondary" id="cancelWalletDistribution">Отмена</button>
+      <button class="primary" id="confirmWalletDistribution" disabled>Подтвердить распределение</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="walletTransactionModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div>
+        <h2 id="walletTransactionTitle">Операция</h2>
+        <div class="employee-mode-note" id="walletTransactionSubtitle"></div>
+      </div>
+      <button class="close" id="closeWalletTransaction">×</button>
+    </div>
+    <input type="hidden" id="walletTransactionWalletId">
+    <input type="hidden" id="walletTransactionType">
+    <div class="field" style="margin-top:12px">
+      <label>Сумма</label>
+      <input id="walletTransactionAmount" inputmode="decimal" autocomplete="off" placeholder="0">
+    </div>
+    <div class="field">
+      <label>Комментарий — необязательно</label>
+      <input id="walletTransactionComment" maxlength="120" placeholder="Например, Магазин">
+    </div>
+    <div class="login-error" id="walletTransactionError"></div>
+    <div class="login-actions">
+      <button class="secondary" id="cancelWalletTransaction">Отмена</button>
+      <button class="primary" id="confirmWalletTransaction">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="walletPlanModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div>
+        <h2>Настроить распределение</h2>
+        <div class="employee-mode-note">Укажите обычную сумму для каждого кошелька. Остаток всегда идёт в Страховку.</div>
+      </div>
+      <button class="close" id="closeWalletPlan">×</button>
+    </div>
+    <div class="wallet-plan-list" id="walletPlanFields"></div>
+    <div class="wallet-plan-insurance">Страховка не имеет фиксированного плана. Она получает весь остаток после остальных кошельков.</div>
+    <div class="wallet-modal-total" id="walletPlanTotal">План: 0 ₽</div>
+    <div class="login-actions">
+      <button class="secondary" id="cancelWalletPlan">Отмена</button>
+      <button class="primary" id="saveWalletPlan">Сохранить план</button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -1966,6 +2146,19 @@ body{padding-bottom:88px}
   const STORAGE_KEY = "ma_schedule_22_v2";
   const DEVICE_VIEW_CACHE_KEY = "ma_device_view_cache_v1";
   const TODAY_SHIFT_CACHE_KEY = "ma_today_shift_cache_v1";
+  const WALLET_STORAGE_KEY = "ma_personal_wallets_v1";
+  const WALLET_DATA_VERSION = 1;
+  const WALLET_DEFS = [
+    {id:"products",name:"Продукты"},
+    {id:"pocket",name:"Карманные расходы"},
+    {id:"restaurant",name:"Ресторан"},
+    {id:"vacation",name:"Отпуск"},
+    {id:"savings",name:"Накопления"},
+    {id:"clothes",name:"Вещи"},
+    {id:"children",name:"Дети"},
+    {id:"self",name:"На себя"},
+    {id:"insurance",name:"Страховка",insurance:true}
+  ];
 
   // === ОБЩИЙ ОНЛАЙН-ГРАФИК ===
   // Вставь сюда данные Supabase перед загрузкой файла в Vercel.
@@ -2025,6 +2218,8 @@ body{padding-bottom:88px}
   let historyRowsTruncated = false;
   let deviceListLoadState = "unknown";
   let lastDeviceKeyReadFailed = false;
+  let walletState = loadWalletState();
+  let walletBusy = false;
   const adminMutationLocks = new Set();
   let serviceWorkerRegistration = null;
   let deferredGrafikInstallPrompt=null;
@@ -2556,6 +2751,405 @@ body{padding-bottom:88px}
     }
   }
 
+
+
+  // ---------- Кошельки ----------
+  function emptyWalletState(){
+    const plans={};
+    WALLET_DEFS.filter(w=>!w.insurance).forEach(w=>plans[w.id]=0);
+    return {version:WALLET_DATA_VERSION,plans,transactions:[]};
+  }
+
+  function normalizeWalletState(raw){
+    const base=emptyWalletState();
+    if(!raw || typeof raw!=="object") return base;
+    const next={version:WALLET_DATA_VERSION,plans:{...base.plans},transactions:[]};
+    if(raw.plans && typeof raw.plans==="object"){
+      Object.keys(next.plans).forEach(id=>{
+        const n=Number(raw.plans[id]);
+        next.plans[id]=Number.isSafeInteger(n) && n>=0 ? n : 0;
+      });
+    }
+    if(Array.isArray(raw.transactions)){
+      next.transactions=raw.transactions.filter(t=>{
+        return t && typeof t==="object" &&
+          typeof t.id==="string" && typeof t.operationId==="string" &&
+          WALLET_DEFS.some(w=>w.id===t.walletId) &&
+          Number.isSafeInteger(t.amountCents) && t.amountCents!==0 &&
+          ["distribution","topup","expense","reversal"].includes(t.type);
+      }).map(t=>({
+        id:String(t.id),operationId:String(t.operationId),type:String(t.type),walletId:String(t.walletId),
+        amountCents:Number(t.amountCents),comment:String(t.comment||""),createdAt:String(t.createdAt||new Date().toISOString()),
+        reversalOfTransactionId:t.reversalOfTransactionId?String(t.reversalOfTransactionId):"",
+        reversesOperationId:t.reversesOperationId?String(t.reversesOperationId):"",
+        sourceType:t.sourceType?String(t.sourceType):""
+      }));
+    }
+    return next;
+  }
+
+  function loadWalletState(){
+    try{
+      const raw=JSON.parse(localStorage.getItem(WALLET_STORAGE_KEY)||"null");
+      return normalizeWalletState(raw);
+    }catch(e){
+      console.error("wallet load",e);
+      return emptyWalletState();
+    }
+  }
+
+  function saveWalletState(){
+    localStorage.setItem(WALLET_STORAGE_KEY,JSON.stringify(walletState));
+  }
+
+  function walletDef(id){ return WALLET_DEFS.find(w=>w.id===id)||null; }
+
+  function parseMoneyInput(value){
+    const normalized=String(value??"").replace(/[\s\u00a0\u202f₽]/g,"").replace(",",".");
+    if(!normalized) return null;
+    const m=normalized.match(/^(\d+)(?:\.(\d{0,2}))?$/);
+    if(!m) return null;
+    try{
+      const centsBig=BigInt(m[1])*100n+BigInt((m[2]||"").padEnd(2,"0")||"0");
+      if(centsBig>BigInt(Number.MAX_SAFE_INTEGER)) return null;
+      return Number(centsBig);
+    }catch(e){ return null; }
+  }
+
+  function moneyInputValue(cents){
+    const safe=Math.max(0,Math.trunc(Number(cents)||0));
+    const rub=Math.floor(safe/100), kop=safe%100;
+    return kop ? `${rub},${String(kop).padStart(2,"0")}` : String(rub);
+  }
+
+  function formatMoney(cents,{signed=false}={}){
+    const n=Math.trunc(Number(cents)||0);
+    const sign=n<0?"−":(signed&&n>0?"+":"");
+    const abs=Math.abs(n), rub=Math.floor(abs/100), kop=abs%100;
+    const main=rub.toLocaleString("ru-RU");
+    return `${sign}${main}${kop?","+String(kop).padStart(2,"0"):""} ₽`;
+  }
+
+  function walletBalance(id){
+    return walletState.transactions.reduce((sum,t)=>sum+(t.walletId===id?t.amountCents:0),0);
+  }
+
+  function walletStats(id){
+    const byId=new Map(walletState.transactions.map(t=>[t.id,t]));
+    let incoming=0,spent=0;
+    walletState.transactions.forEach(t=>{
+      if(t.walletId!==id) return;
+      if(t.type==="distribution" || t.type==="topup") incoming+=t.amountCents;
+      else if(t.type==="expense") spent+=Math.abs(t.amountCents);
+      else if(t.type==="reversal"){
+        const original=byId.get(t.reversalOfTransactionId);
+        if(!original) return;
+        if(original.type==="distribution" || original.type==="topup") incoming+=t.amountCents;
+        else if(original.type==="expense") spent-=Math.abs(t.amountCents);
+      }
+    });
+    return {balance:walletBalance(id),incoming:Math.max(0,incoming),spent:Math.max(0,spent)};
+  }
+
+  function walletOperationGroups(){
+    const map=new Map();
+    walletState.transactions.forEach(t=>{
+      if(!map.has(t.operationId)) map.set(t.operationId,{operationId:t.operationId,items:[],createdAt:t.createdAt,type:t.type});
+      const g=map.get(t.operationId);
+      g.items.push(t);
+      if(String(t.createdAt)>String(g.createdAt)) g.createdAt=t.createdAt;
+    });
+    return [...map.values()].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+  }
+
+  function walletOperationTitle(group){
+    if(group.type==="distribution") return "Распределение";
+    if(group.type==="topup") return "Пополнение";
+    if(group.type==="expense") return "Расход";
+    return "Отмена операции";
+  }
+
+  function formatWalletDate(iso){
+    try{
+      return new Intl.DateTimeFormat("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",timeZone:SHIFT_TIMEZONE}).format(new Date(iso));
+    }catch(e){ return iso||"—"; }
+  }
+
+  function calculateWalletDistribution(totalCents){
+    totalCents=Math.max(0,Math.trunc(totalCents||0));
+    const planned=WALLET_DEFS.filter(w=>!w.insurance).map(w=>({id:w.id,plan:Math.max(0,Math.trunc(walletState.plans[w.id]||0))}));
+    const planTotal=planned.reduce((sum,x)=>sum+x.plan,0);
+    const allocations={};
+    planned.forEach(x=>allocations[x.id]=0);
+    allocations.insurance=0;
+
+    if(planTotal<=0){
+      allocations.insurance=totalCents;
+      return {allocations,planTotal,totalCents,shortage:false,unconfigured:true};
+    }
+
+    if(totalCents>=planTotal){
+      planned.forEach(x=>allocations[x.id]=x.plan);
+      allocations.insurance=totalCents-planTotal;
+      return {allocations,planTotal,totalCents,shortage:false,unconfigured:false};
+    }
+
+    const totalBig=BigInt(totalCents), planTotalBig=BigInt(planTotal);
+    const shares=planned.map((x,index)=>{
+      const numerator=totalBig*BigInt(x.plan);
+      return {id:x.id,index,base:Number(numerator/planTotalBig),rem:numerator%planTotalBig};
+    });
+    shares.forEach(x=>allocations[x.id]=x.base);
+    let remainder=totalCents-shares.reduce((sum,x)=>sum+x.base,0);
+    shares.sort((a,b)=>a.rem===b.rem?a.index-b.index:(a.rem>b.rem?-1:1));
+    for(let i=0;i<remainder;i++) allocations[shares[i%shares.length].id]+=1;
+    allocations.insurance=0;
+    return {allocations,planTotal,totalCents,shortage:true,unconfigured:false};
+  }
+
+  function createWalletOperation(type,entries,comment="",extra={}){
+    const operationId=`wallet-op-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const createdAt=new Date().toISOString();
+    entries.forEach((entry,index)=>{
+      if(!entry.amountCents) return;
+      walletState.transactions.push({
+        id:`wallet-tx-${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`,
+        operationId,type,walletId:entry.walletId,amountCents:Math.trunc(entry.amountCents),
+        comment:String(comment||""),createdAt,
+        reversalOfTransactionId:String(extra.reversalOfTransactionId?.[entry.walletId]||""),
+        reversesOperationId:String(extra.reversesOperationId||""),
+        sourceType:String(extra.sourceType||"")
+      });
+    });
+    saveWalletState();
+    return operationId;
+  }
+
+  function renderWalletHistoryList(root,limit=0){
+    if(!root) return;
+    let groups=walletOperationGroups();
+    if(limit>0) groups=groups.slice(0,limit);
+    if(!groups.length){ root.innerHTML='<div class="wallet-empty">Операций пока нет.</div>'; return; }
+
+    root.innerHTML=groups.map(g=>{
+      const total=g.items.reduce((sum,t)=>sum+t.amountCents,0);
+      const first=g.items[0];
+      const isExpense=g.type==="expense";
+      const cls=g.type==="reversal"?"neutral":(isExpense?"out":"in");
+      const displayAmount=g.type==="reversal"?formatMoney(Math.abs(total)):(isExpense?formatMoney(total,{signed:true}):formatMoney(total,{signed:true}));
+      const comment=first.comment?` · ${escapeHtml(first.comment)}`:"";
+      const walletText=g.items.length===1?(walletDef(first.walletId)?.name||"Кошелёк"):`${g.items.length} кошельков`;
+      const details=g.items.length>1 ? `<div class="wallet-history-details">${g.items.map(t=>`<div class="wallet-history-detail-row"><span>${escapeHtml(walletDef(t.walletId)?.name||t.walletId)}</span><b>${formatMoney(t.amountCents,{signed:true})}</b></div>`).join("")}</div>` : "";
+      return `<div class="wallet-history-item">
+        <div class="wallet-history-row">
+          <div class="wallet-history-main"><b>${walletOperationTitle(g)} · ${escapeHtml(walletText)}</b><span>${escapeHtml(formatWalletDate(g.createdAt))}${comment}</span></div>
+          <div class="wallet-history-amount ${cls}">${displayAmount}</div>
+        </div>${details}
+      </div>`;
+    }).join("");
+  }
+
+  function renderWallets(){
+    const grid=$("walletsGrid");
+    if(!grid) return;
+    const total=WALLET_DEFS.reduce((sum,w)=>sum+walletBalance(w.id),0);
+    $("walletsTotal").textContent=formatMoney(total);
+    $("walletsInsurance").textContent=`Страховка: ${formatMoney(walletBalance("insurance"))}`;
+
+    grid.innerHTML=WALLET_DEFS.map(w=>{
+      const st=walletStats(w.id);
+      const plan=w.insurance?"Остаток":formatMoney(walletState.plans[w.id]||0);
+      return `<article class="wallet-card${w.insurance?" insurance":""}" data-wallet-id="${w.id}">
+        <div class="wallet-card-top"><h3>${escapeHtml(w.name)}</h3></div>
+        <div class="wallet-card-balance">${formatMoney(st.balance)}</div>
+        <div class="wallet-card-plan">План: ${plan}</div>
+        <div class="wallet-card-stats">
+          <div class="wallet-card-stat"><span>Поступило</span><b>${formatMoney(st.incoming)}</b></div>
+          <div class="wallet-card-stat"><span>Потрачено</span><b>${formatMoney(st.spent)}</b></div>
+        </div>
+        <div class="wallet-card-actions">
+          <button class="secondary" data-wallet-action="topup" data-wallet-id="${w.id}">+ Пополнить</button>
+          <button class="secondary" data-wallet-action="expense" data-wallet-id="${w.id}">− Расход</button>
+        </div>
+      </article>`;
+    }).join("");
+
+    renderWalletHistoryList($("walletRecentList"),5);
+    renderWalletHistoryList($("walletHistoryList"),0);
+    const undo=$("undoLastWalletOperation");
+    if(undo) undo.disabled=!lastUndoableWalletOperation();
+  }
+
+  function openWalletDistribution(){
+    $("walletDistributionAmount").value="";
+    $("walletDistributionPreview").innerHTML='<div class="wallet-empty">Введите общую сумму — здесь появится распределение.</div>';
+    $("confirmWalletDistribution").disabled=true;
+    $("walletDistributionModal").classList.remove("hidden");
+    setTimeout(()=>$("walletDistributionAmount").focus(),60);
+  }
+
+  function closeWalletDistribution(){ $("walletDistributionModal").classList.add("hidden"); }
+
+  function updateWalletDistributionPreview(){
+    const amount=parseMoneyInput($("walletDistributionAmount").value);
+    const root=$("walletDistributionPreview");
+    const btn=$("confirmWalletDistribution");
+    if(!amount || amount<=0){
+      root.innerHTML='<div class="wallet-empty">Введите сумму больше 0.</div>';
+      btn.disabled=true;
+      return;
+    }
+    const calc=calculateWalletDistribution(amount);
+    const rows=WALLET_DEFS.map(w=>`<div class="wallet-preview-row"><span>${escapeHtml(w.name)}</span><b>${formatMoney(calc.allocations[w.id]||0)}</b></div>`).join("");
+    let note="";
+    if(calc.unconfigured) note='<div class="wallet-preview-note warn">Планы ещё не настроены. Вся сумма уйдёт в Страховку.</div>';
+    else if(calc.shortage) note='<div class="wallet-preview-note warn">Денег меньше запланированного. Суммы уменьшены пропорционально. Страховка получает 0 ₽.</div>';
+    else note='<div class="wallet-preview-note ok">Обычные кошельки получат плановые суммы, весь остаток уйдёт в Страховку.</div>';
+    root.innerHTML=`<div class="wallet-preview">${rows}</div><div class="wallet-preview-total"><span>Итого</span><b>${formatMoney(amount)}</b></div>${note}`;
+    btn.disabled=false;
+  }
+
+  async function confirmWalletDistribution(){
+    if(walletBusy) return;
+    const amount=parseMoneyInput($("walletDistributionAmount").value);
+    if(!amount || amount<=0){ toast("Введите сумму больше 0"); return; }
+    const calc=calculateWalletDistribution(amount);
+    const allocated=Object.values(calc.allocations).reduce((sum,n)=>sum+n,0);
+    if(allocated!==amount){ console.error("wallet distribution mismatch",{amount,allocated,calc}); toast("Не удалось точно распределить сумму"); return; }
+
+    walletBusy=true;
+    const busy=beginButtonBusy("confirmWalletDistribution","Распределяем…");
+    const previous=clone(walletState);
+    try{
+      const entries=WALLET_DEFS.map(w=>({walletId:w.id,amountCents:calc.allocations[w.id]||0})).filter(x=>x.amountCents>0);
+      createWalletOperation("distribution",entries,`Общая сумма ${formatMoney(amount)}`);
+      closeWalletDistribution();
+      renderWallets();
+      toast(`${formatMoney(amount)} успешно распределено`);
+    }catch(e){
+      console.error(e); walletState=previous;
+      try{ saveWalletState(); }catch(_){}
+      toast("Не удалось сохранить распределение");
+    }finally{
+      walletBusy=false; endButtonBusy(busy);
+    }
+  }
+
+  function openWalletTransaction(walletId,type){
+    const w=walletDef(walletId); if(!w) return;
+    const expense=type==="expense";
+    $("walletTransactionWalletId").value=walletId;
+    $("walletTransactionType").value=expense?"expense":"topup";
+    $("walletTransactionTitle").textContent=expense?`Расход — ${w.name}`:`Пополнить — ${w.name}`;
+    $("walletTransactionSubtitle").textContent=expense?`Доступно: ${formatMoney(walletBalance(walletId))}`:`Текущий баланс: ${formatMoney(walletBalance(walletId))}`;
+    $("walletTransactionAmount").value="";
+    $("walletTransactionComment").value="";
+    $("walletTransactionError").textContent="";
+    $("confirmWalletTransaction").textContent=expense?"Списать":"Пополнить";
+    $("walletTransactionModal").classList.remove("hidden");
+    setTimeout(()=>$("walletTransactionAmount").focus(),60);
+  }
+
+  function closeWalletTransaction(){ $("walletTransactionModal").classList.add("hidden"); }
+
+  async function confirmWalletTransaction(){
+    if(walletBusy) return;
+    const walletId=$("walletTransactionWalletId").value;
+    const type=$("walletTransactionType").value;
+    const amount=parseMoneyInput($("walletTransactionAmount").value);
+    const comment=$("walletTransactionComment").value.trim();
+    const err=$("walletTransactionError");
+    if(!walletDef(walletId) || !["topup","expense"].includes(type)){ err.textContent="Не удалось определить кошелёк"; return; }
+    if(!amount || amount<=0){ err.textContent="Введите сумму больше 0"; return; }
+    if(type==="expense" && amount>walletBalance(walletId)){ err.textContent="В кошельке недостаточно денег."; return; }
+
+    walletBusy=true;
+    const busy=beginButtonBusy("confirmWalletTransaction",type==="expense"?"Списываем…":"Пополняем…");
+    const previous=clone(walletState);
+    try{
+      createWalletOperation(type,[{walletId,amountCents:type==="expense"?-amount:amount}],comment);
+      closeWalletTransaction(); renderWallets();
+      toast(type==="expense"?`${formatMoney(amount)} списано`:`${formatMoney(amount)} добавлено`);
+    }catch(e){
+      console.error(e); walletState=previous;
+      try{ saveWalletState(); }catch(_){}
+      err.textContent="Не удалось сохранить операцию";
+    }finally{
+      walletBusy=false; endButtonBusy(busy);
+    }
+  }
+
+  function renderWalletPlanFields(){
+    const root=$("walletPlanFields");
+    root.innerHTML=WALLET_DEFS.filter(w=>!w.insurance).map(w=>`<div class="wallet-plan-row"><label for="wallet-plan-${w.id}">${escapeHtml(w.name)}</label><input id="wallet-plan-${w.id}" data-wallet-plan="${w.id}" inputmode="decimal" value="${moneyInputValue(walletState.plans[w.id]||0)}"></div>`).join("");
+    updateWalletPlanTotal();
+  }
+
+  function updateWalletPlanTotal(){
+    let total=0,valid=true;
+    document.querySelectorAll("[data-wallet-plan]").forEach(inp=>{
+      const n=parseMoneyInput(inp.value||"0");
+      if(n===null){ valid=false; inp.setAttribute("aria-invalid","true"); }
+      else{ inp.removeAttribute("aria-invalid"); total+=n; }
+    });
+    $("walletPlanTotal").textContent=valid?`План остальных кошельков: ${formatMoney(total)}`:"Проверьте суммы плана";
+    $("saveWalletPlan").disabled=!valid;
+  }
+
+  function openWalletPlan(){ renderWalletPlanFields(); $("walletPlanModal").classList.remove("hidden"); }
+  function closeWalletPlan(){ $("walletPlanModal").classList.add("hidden"); }
+
+  async function saveWalletPlan(){
+    if(walletBusy) return;
+    const next={};
+    for(const inp of document.querySelectorAll("[data-wallet-plan]")){
+      const n=parseMoneyInput(inp.value||"0");
+      if(n===null || n<0){ toast("Проверьте суммы плана"); return; }
+      next[inp.dataset.walletPlan]=n;
+    }
+    walletBusy=true;
+    const busy=beginButtonBusy("saveWalletPlan","Сохраняем…");
+    const previous=clone(walletState);
+    try{
+      walletState.plans={...walletState.plans,...next};
+      saveWalletState(); closeWalletPlan(); renderWallets(); toast("План распределения сохранён");
+    }catch(e){
+      console.error(e); walletState=previous; toast("Не удалось сохранить план");
+    }finally{ walletBusy=false; endButtonBusy(busy); }
+  }
+
+  function lastUndoableWalletOperation(){
+    const reversed=new Set(walletState.transactions.filter(t=>t.type==="reversal" && t.reversesOperationId).map(t=>t.reversesOperationId));
+    return walletOperationGroups().find(g=>g.type!=="reversal" && !reversed.has(g.operationId))||null;
+  }
+
+  async function undoLastWalletOperation(){
+    if(walletBusy) return;
+    const group=lastUndoableWalletOperation();
+    if(!group){ toast("Нет операции для отмены"); return; }
+    const label=walletOperationTitle(group);
+    if(!confirm(`Отменить последнюю операцию «${label}»?\n\nИсходная запись останется в истории, а программа создаст обратную операцию.`)) return;
+
+    walletBusy=true;
+    const busy=beginButtonBusy("undoLastWalletOperation","Отменяем…");
+    const previous=clone(walletState);
+    try{
+      const reversalMap={};
+      group.items.forEach(t=>reversalMap[t.walletId]=t.id);
+      createWalletOperation("reversal",group.items.map(t=>({walletId:t.walletId,amountCents:-t.amountCents})),`Отмена: ${label}`,{reversesOperationId:group.operationId,reversalOfTransactionId:reversalMap,sourceType:group.type});
+      toast("Последняя операция отменена");
+    }catch(e){
+      console.error(e); walletState=previous;
+      try{ saveWalletState(); }catch(_){}
+      toast("Не удалось отменить операцию");
+    }finally{
+      walletBusy=false;
+      endButtonBusy(busy);
+      renderWallets();
+    }
+  }
+
+
   function applyUserMode(){
     const employeeMode=isEmployeePhoneMode();
     const serviceMode=isServiceDeviceMode();
@@ -2564,13 +3158,13 @@ body{padding-bottom:88px}
     document.body.classList.toggle("service-device-mode",serviceMode);
 
     const inner=$("bottomInner");
-    const t1=$("bottomTab1"),t2=$("bottomTab2"),t3=$("bottomTab3"),t4=$("bottomTab4"),t5=$("bottomTab5");
+    const t1=$("bottomTab1"),t2=$("bottomTab2"),t3=$("bottomTab3"),t4=$("bottomTab4"),t5=$("bottomTab5"),t6=$("bottomTab6");
     const brand=document.querySelector(".brand");
 
     if(employeeMode){
       updateDesktopNavBrand("employee");
       if(brand) brand.textContent="MA График";
-      inner.classList.remove("admin-four","admin-five");
+      inner.classList.remove("admin-four","admin-five","admin-six");
       inner.classList.add("employee-three");
 
       t1.textContent="Сегодня"; t1.dataset.tab="employeeToday"; t1.classList.remove("hidden");
@@ -2578,6 +3172,7 @@ body{padding-bottom:88px}
       t3.textContent="Календарь"; t3.dataset.tab="employeeCalendar"; t3.classList.remove("hidden");
       t4.classList.add("hidden");
       t5.classList.add("hidden");
+      t6.classList.add("hidden");
 
       $("adminBtn").textContent="Админ";
       ensureEmployeeSelected();
@@ -2593,7 +3188,8 @@ body{padding-bottom:88px}
          !$("schedulePage").classList.contains("hidden") ||
          !$("desktopCalendarPage").classList.contains("hidden") ||
          !$("historyPage").classList.contains("hidden") ||
-         !$("settingsPage").classList.contains("hidden")){
+         !$("settingsPage").classList.contains("hidden") ||
+         !$("walletsPage").classList.contains("hidden")){
         switchTab(employeeMobileView || "employeeToday");
       }
       return;
@@ -2603,7 +3199,7 @@ body{padding-bottom:88px}
       const service=serviceDeviceName();
       updateDesktopNavBrand("service",service);
       if(brand) brand.textContent=`${service} · Смена`;
-      inner.classList.remove("admin-four","admin-five");
+      inner.classList.remove("admin-four","admin-five","admin-six");
       inner.classList.add("employee-three");
 
       t1.textContent="Сегодня"; t1.dataset.tab="adminToday"; t1.classList.remove("hidden");
@@ -2611,6 +3207,7 @@ body{padding-bottom:88px}
       t3.textContent="Календарь"; t3.dataset.tab="desktopCalendar"; t3.classList.remove("hidden");
       t4.classList.add("hidden");
       t5.classList.add("hidden");
+      t6.classList.add("hidden");
 
       $("adminBtn").textContent="Админ";
       if($("attentionTitle")) $("attentionTitle").textContent="Контроль смены";
@@ -2618,6 +3215,7 @@ body{padding-bottom:88px}
 
       if(!$("historyPage").classList.contains("hidden") ||
          !$("settingsPage").classList.contains("hidden") ||
+         !$("walletsPage").classList.contains("hidden") ||
          !$("employeeTodayPage").classList.contains("hidden") ||
          !$("employeeMyPage").classList.contains("hidden") ||
          !$("employeeCalendarPage").classList.contains("hidden")){
@@ -2631,14 +3229,15 @@ body{padding-bottom:88px}
     updateDesktopNavBrand("admin");
     if(brand) brand.textContent="MA График";
     if($("attentionTitle")) $("attentionTitle").textContent="Требует внимания";
-    inner.classList.remove("employee-three","admin-four");
-    inner.classList.add("admin-five");
+    inner.classList.remove("employee-three","admin-four","admin-five","admin-six");
+    inner.classList.add("admin-six");
 
     t1.textContent="Сегодня"; t1.dataset.tab="adminToday"; t1.classList.remove("hidden");
     t2.textContent="График"; t2.dataset.tab="schedule"; t2.classList.remove("hidden");
     t3.textContent="Календарь"; t3.dataset.tab="desktopCalendar"; t3.classList.remove("hidden");
     t4.textContent="История"; t4.dataset.tab="history"; t4.classList.remove("hidden");
     t5.textContent="Настройки"; t5.dataset.tab="settings"; t5.classList.remove("hidden");
+    t6.textContent="Кошельки"; t6.dataset.tab="wallets"; t6.classList.remove("hidden");
 
     $("employeePickerModal").classList.add("hidden");
 
@@ -2647,7 +3246,8 @@ body{padding-bottom:88px}
       !$("schedulePage").classList.contains("hidden") ||
       !$("desktopCalendarPage").classList.contains("hidden") ||
       !$("historyPage").classList.contains("hidden") ||
-      !$("settingsPage").classList.contains("hidden");
+      !$("settingsPage").classList.contains("hidden") ||
+      !$("walletsPage").classList.contains("hidden");
 
     if(!anyVisible){
       switchTab("adminToday");
@@ -6923,7 +7523,7 @@ body{padding-bottom:88px}
     const employeeMode=isEmployeePhoneMode();
     const serviceMode=isServiceDeviceMode();
 
-    if(employeeMode && ["adminToday","schedule","desktopCalendar","history","settings"].includes(tab)){
+    if(employeeMode && ["adminToday","schedule","desktopCalendar","history","settings","wallets"].includes(tab)){
       tab="employeeToday";
     }
 
@@ -6931,7 +7531,7 @@ body{padding-bottom:88px}
       tab="adminToday";
     }
 
-    if((tab==="settings" || tab==="history") && cloudConfigured() && !isAdmin()){
+    if((tab==="settings" || tab==="history" || tab==="wallets") && cloudConfigured() && !isAdmin()){
       if(serviceMode){
         tab="adminToday";
       }else{
@@ -6948,6 +7548,7 @@ body{padding-bottom:88px}
     const desktopCal=tab==="desktopCalendar";
     const hist=tab==="history";
     const sett=tab==="settings";
+    const wallets=tab==="wallets";
 
     $("employeeTodayPage").classList.toggle("hidden",!empToday);
     $("employeeMyPage").classList.toggle("hidden",!empMy);
@@ -6957,6 +7558,7 @@ body{padding-bottom:88px}
     $("schedulePage").classList.toggle("hidden",!sched);
     $("historyPage").classList.toggle("hidden",!hist);
     $("settingsPage").classList.toggle("hidden",!sett);
+    $("walletsPage").classList.toggle("hidden",!wallets);
     $("scheduleControls").classList.toggle("hidden",!sched);
 
     document.querySelectorAll(".tab").forEach(b=>{
@@ -6979,6 +7581,9 @@ body{padding-bottom:88px}
       populateSettings();
       updateCloudSettingsState();
       updatePushState();
+    }
+    if(wallets){
+      renderWallets();
     }
     if(hist){
       fillHistoryFilters();
@@ -7211,6 +7816,7 @@ body{padding-bottom:88px}
     $("desktopCalendarPage").classList.add("hidden");
     $("historyPage").classList.add("hidden");
     $("settingsPage").classList.toggle("hidden",sched);
+    $("walletsPage").classList.add("hidden");
     $("scheduleControls").classList.toggle("hidden",!sched);
     document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab==="settings"));
     populateSettings(); updateCloudSettingsState();
@@ -7373,6 +7979,32 @@ body{padding-bottom:88px}
     updateInstallUI();
     toast("Приложение установлено");
   });
+
+
+  $("openWalletDistribution").onclick=openWalletDistribution;
+  $("closeWalletDistribution").onclick=closeWalletDistribution;
+  $("cancelWalletDistribution").onclick=closeWalletDistribution;
+  $("walletDistributionModal").addEventListener("click",e=>{ if(e.target===$("walletDistributionModal")) closeWalletDistribution(); });
+  $("walletDistributionAmount").oninput=updateWalletDistributionPreview;
+  $("confirmWalletDistribution").onclick=confirmWalletDistribution;
+
+  $("walletPlanBtn").onclick=openWalletPlan;
+  $("closeWalletPlan").onclick=closeWalletPlan;
+  $("cancelWalletPlan").onclick=closeWalletPlan;
+  $("walletPlanModal").addEventListener("click",e=>{ if(e.target===$("walletPlanModal")) closeWalletPlan(); });
+  $("walletPlanFields").addEventListener("input",updateWalletPlanTotal);
+  $("saveWalletPlan").onclick=saveWalletPlan;
+
+  $("closeWalletTransaction").onclick=closeWalletTransaction;
+  $("cancelWalletTransaction").onclick=closeWalletTransaction;
+  $("walletTransactionModal").addEventListener("click",e=>{ if(e.target===$("walletTransactionModal")) closeWalletTransaction(); });
+  $("confirmWalletTransaction").onclick=confirmWalletTransaction;
+  $("walletsGrid").addEventListener("click",e=>{
+    const btn=e.target.closest("[data-wallet-action]");
+    if(!btn) return;
+    openWalletTransaction(btn.dataset.walletId,btn.dataset.walletAction);
+  });
+  $("undoLastWalletOperation").onclick=undoLastWalletOperation;
 
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
   let lastTouchEndForZoom=0;
