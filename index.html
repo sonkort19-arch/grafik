@@ -1529,6 +1529,11 @@ body{padding-bottom:88px}
 .wallet-manage-top{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
 .wallet-manage-section{display:grid;gap:8px;margin-top:12px}
 .wallet-manage-section h3{margin:0;color:#24344d;font-size:14px}
+.wallet-reset-box{margin-top:16px;border:1px solid #fecaca;border-radius:14px;background:#fff7f7;padding:12px}
+.wallet-reset-box b{display:block;color:#991b1b;font-size:14px;margin-bottom:4px}
+.wallet-reset-box span{display:block;color:#64748b;font-size:12px;line-height:1.45;margin-bottom:10px}
+.wallet-reset-box .danger{width:100%}
+.wallet-reset-box .danger:disabled{opacity:.45;cursor:not-allowed}
 .wallet-manage-row{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
 .wallet-manage-row.archived{background:#f8fafc}
 .wallet-manage-main{min-width:0}
@@ -2115,6 +2120,11 @@ body{padding-bottom:88px}
       <button class="secondary" id="openWalletPlansFromManage">Планы месяца</button>
     </div>
     <div id="walletManageList"></div>
+    <div class="wallet-reset-box">
+      <b>Очистить финансовую историю</b>
+      <span id="walletClearHistoryState">Удалятся только операции и рассчитанные из них балансы. Кошельки, планы, цели, приоритеты и настройки останутся.</span>
+      <button class="danger" id="clearWalletHistoryBtn">Очистить историю и балансы</button>
+    </div>
   </div>
 </div>
 
@@ -4045,9 +4055,75 @@ body{padding-bottom:88px}
     const active=walletDefinitions({includeArchived:false}),archived=walletDefinitions().filter(w=>w.archived);
     const row=w=>`<div class="wallet-manage-row ${w.archived?"archived":""}"><div class="wallet-manage-main"><b>${escapeHtml(w.name)}</b><span>${w.type==="savings"?"Накопительный":"Расходный"}${w.systemRole?" · системный":""} · план ${formatMoney(w.monthlyPlanCents||0)} · приоритет ${w.priority}</span></div><div class="wallet-manage-actions">${!w.archived&&!w.systemRole?`<button class="secondary" data-wallet-move="up" data-wallet-id="${escapeHtml(w.id)}" aria-label="Выше">↑</button><button class="secondary" data-wallet-move="down" data-wallet-id="${escapeHtml(w.id)}" aria-label="Ниже">↓</button>`:""}<button class="secondary" data-wallet-edit="${escapeHtml(w.id)}">Изменить</button>${w.archived?`<button class="secondary" data-wallet-restore="${escapeHtml(w.id)}">Восстановить</button>`:(!w.systemRole?`<button class="secondary" data-wallet-archive="${escapeHtml(w.id)}">Архив</button>`:"")}${!w.systemRole&&!walletHasHistory(w.id)&&walletBalance(w.id)===0?`<button class="danger" data-wallet-delete="${escapeHtml(w.id)}">Удалить</button>`:""}</div></div>`;
     root.innerHTML=`<div class="wallet-manage-section"><h3>Активные кошельки</h3>${active.map(row).join("")||'<div class="wallet-empty">Нет активных кошельков.</div>'}</div><details class="wallet-manage-archive" ${archived.length?"":""}><summary>Архив (${archived.length})</summary><div class="wallet-manage-section">${archived.map(row).join("")||'<div class="wallet-empty">Архив пуст.</div>'}</div></details>`;
+    const clearBtn=$("clearWalletHistoryBtn"),clearState=$("walletClearHistoryState");
+    const operationCount=walletOperationGroups().length;
+    if(clearBtn) clearBtn.disabled=operationCount===0 || walletBusy;
+    if(clearState) clearState.textContent=operationCount
+      ? `Будет удалено операций: ${operationCount}. Балансы станут 0 ₽. Кошельки, планы, цели, приоритеты и настройки останутся.`
+      : "История уже пустая. Кошельки, планы, цели, приоритеты и настройки сохранены.";
   }
   function openWalletManagement(){ renderWalletManagement();$("walletManageModal").classList.remove("hidden"); }
   function closeWalletManagement(){ $("walletManageModal").classList.add("hidden"); }
+
+  async function clearWalletHistoryAndBalances(){
+    if(walletBusy) return;
+    const operationCount=walletOperationGroups().length;
+    if(!operationCount){toast("История уже пустая");renderWalletManagement();return;}
+
+    if(cloudConfigured()){
+      if(!isAdmin()){toast("Для очистки облачной истории войдите как администратор");return;}
+      if(navigator.onLine===false){toast("Для безопасной очистки истории нужен интернет");return;}
+    }
+
+    const typed=prompt(`Будут безвозвратно удалены все финансовые операции (${operationCount}).\n\nВсе балансы кошельков станут 0 ₽. Сами кошельки, месячные планы, цели, приоритеты и настройки останутся.\n\nДля подтверждения введите УДАЛИТЬ`);
+    if(typed===null) return;
+    if(String(typed).trim().toUpperCase()!=="УДАЛИТЬ"){toast("Очистка отменена: слово введено неверно");return;}
+
+    const previous=clone(walletState);
+    walletBusy=true;
+    const busy=beginButtonBusy("clearWalletHistoryBtn","Удаляем…");
+    let cloudDeleted=false;
+    try{
+      // Сначала очищаем локальную копию, чтобы синхронизация не могла повторно загрузить старые операции.
+      walletState.transactions=[];
+      saveWalletState();
+
+      if(cloudConfigured()){
+        const token=await getAdminToken(),ownerId=currentAdminUserId();
+        if(!token||!ownerId) throw new Error("Сессия администратора закончилась");
+        const res=await authFetch(`/rest/v1/${WALLET_TX_TABLE}?owner_id=eq.${encodeURIComponent(ownerId)}`,{
+          method:"DELETE",
+          headers:{Authorization:"Bearer "+token,Prefer:"return=minimal"}
+        });
+        if(!res.ok) throw new Error(await res.text()||"Не удалось удалить историю из облака");
+        cloudDeleted=true;
+        lastWalletCloudFetchAt=0;
+      }
+
+      walletViewMonthKey=walletCurrentMonthKey();
+      closeWalletManagement();
+      renderWallets();
+      toast("История удалена. Балансы кошельков: 0 ₽");
+    }catch(e){
+      console.error("wallet history clear",e);
+      if(!cloudDeleted){
+        walletState=previous;
+        try{saveWalletState();}catch(_){}
+      }else{
+        // Облачное удаление уже необратимо — не возвращаем старые операции локально,
+        // иначе следующая синхронизация загрузит их обратно в Supabase.
+        walletState.transactions=[];
+        try{saveWalletState();}catch(_){}
+      }
+      renderWallets();
+      renderWalletManagement();
+      toast(e?.message||"Не удалось очистить историю");
+    }finally{
+      walletBusy=false;
+      endButtonBusy(busy);
+      if(!$("walletManageModal").classList.contains("hidden")) renderWalletManagement();
+    }
+  }
 
   function fillWalletEditForm(w=null){
     walletEditingId=w?.id||"";
@@ -9156,6 +9232,7 @@ body{padding-bottom:88px}
   $("walletManageModal").addEventListener("click",e=>{ if(e.target===$("walletManageModal")) closeWalletManagement(); });
   $("addWalletBtn").onclick=()=>openWalletEdit();
   $("openWalletPlansFromManage").onclick=()=>{closeWalletManagement();openWalletPlan();};
+  $("clearWalletHistoryBtn").onclick=clearWalletHistoryAndBalances;
   $("walletManageList").addEventListener("click",e=>{
     const edit=e.target.closest("[data-wallet-edit]");if(edit){openWalletEdit(edit.dataset.walletEdit);return;}
     const archive=e.target.closest("[data-wallet-archive]");if(archive){archiveWallet(archive.dataset.walletArchive);return;}
