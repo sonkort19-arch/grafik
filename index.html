@@ -1324,6 +1324,9 @@ body{padding-bottom:88px}
 .bottom-inner.admin-six{grid-template-columns:repeat(6,1fr)!important}
 .wallets-shell{display:grid;gap:12px}
 .wallets-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.wallet-head-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.wallet-cloud-state{display:block;margin-top:5px;font-size:11px;font-weight:800;color:#64748b}
+.wallet-cloud-state.ok{color:#166534}.wallet-cloud-state.warn{color:#9a3412}.wallet-cloud-state.bad{color:#b42318}
 .wallets-head h2{margin:0;color:#172033;font-size:24px}
 .wallets-sub{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.4}
 .wallet-total-card{border:1px solid #cfe8d7;background:#f4fbf6;border-radius:16px;padding:16px}
@@ -1377,6 +1380,7 @@ body{padding-bottom:88px}
 .wallet-plan-insurance{border:1px solid #cfe8d7;background:#f4fbf6;border-radius:11px;padding:10px 11px;color:#166534;font-size:12px;line-height:1.4}
 .wallet-modal-total{margin-top:10px;font-size:12px;color:var(--muted)}
 @media(max-width:900px){.wallet-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.wallets-head{align-items:stretch}.wallet-head-actions{justify-content:flex-start}.wallet-head-actions button{flex:1}}
 @media(max-width:620px){
   .bottom-inner.admin-six .tab{font-size:9.5px;padding-left:2px;padding-right:2px}
   .wallet-grid{grid-template-columns:1fr}
@@ -1646,8 +1650,12 @@ body{padding-bottom:88px}
           <div>
             <h2>Кошельки</h2>
             <div class="wallets-sub">Личное распределение денег. Планы можно менять — текущие балансы от этого не изменятся.</div>
+            <span class="wallet-cloud-state" id="walletCloudState">Облако: проверяем…</span>
           </div>
-          <button class="secondary" id="walletPlanBtn">Настроить</button>
+          <div class="wallet-head-actions">
+            <button class="secondary" id="walletSyncBtn">Обновить</button>
+            <button class="secondary" id="walletPlanBtn">Настроить</button>
+          </div>
         </div>
 
         <div class="wallet-total-card">
@@ -2147,7 +2155,11 @@ body{padding-bottom:88px}
   const DEVICE_VIEW_CACHE_KEY = "ma_device_view_cache_v1";
   const TODAY_SHIFT_CACHE_KEY = "ma_today_shift_cache_v1";
   const WALLET_STORAGE_KEY = "ma_personal_wallets_v1";
-  const WALLET_DATA_VERSION = 1;
+  const WALLET_DATA_VERSION = 2;
+  const WALLET_PLAN_TABLE = "ma_wallet_plans";
+  const WALLET_TX_TABLE = "ma_wallet_transactions";
+  const WALLET_CLOUD_PAGE_SIZE = 1000;
+  const WALLET_CLOUD_MAX_ROWS = 20000;
   const WALLET_DEFS = [
     {id:"products",name:"Продукты"},
     {id:"pocket",name:"Карманные расходы"},
@@ -2220,6 +2232,9 @@ body{padding-bottom:88px}
   let lastDeviceKeyReadFailed = false;
   let walletState = loadWalletState();
   let walletBusy = false;
+  let walletCloudSyncPromise = null;
+  let lastWalletCloudFetchAt = 0;
+  let walletCloudNeedsSetup = false;
   const adminMutationLocks = new Set();
   let serviceWorkerRegistration = null;
   let deferredGrafikInstallPrompt=null;
@@ -2757,18 +2772,25 @@ body{padding-bottom:88px}
   function emptyWalletState(){
     const plans={};
     WALLET_DEFS.filter(w=>!w.insurance).forEach(w=>plans[w.id]=0);
-    return {version:WALLET_DATA_VERSION,plans,transactions:[]};
+    return {version:WALLET_DATA_VERSION,plans,plansUpdatedAt:"",transactions:[]};
   }
 
   function normalizeWalletState(raw){
     const base=emptyWalletState();
     if(!raw || typeof raw!=="object") return base;
-    const next={version:WALLET_DATA_VERSION,plans:{...base.plans},transactions:[]};
+    const next={version:WALLET_DATA_VERSION,plans:{...base.plans},plansUpdatedAt:"",transactions:[]};
     if(raw.plans && typeof raw.plans==="object"){
       Object.keys(next.plans).forEach(id=>{
         const n=Number(raw.plans[id]);
         next.plans[id]=Number.isSafeInteger(n) && n>=0 ? n : 0;
       });
+    }
+    if(raw.plansUpdatedAt && !Number.isNaN(Date.parse(String(raw.plansUpdatedAt)))){
+      next.plansUpdatedAt=String(raw.plansUpdatedAt);
+    }else if(Object.values(next.plans).some(n=>n>0)){
+      // Миграция v1: существующий локальный план считается реальным, но старым.
+      // Если в облаке уже есть более новая версия, она победит.
+      next.plansUpdatedAt="2000-01-01T00:00:00.000Z";
     }
     if(Array.isArray(raw.transactions)){
       next.transactions=raw.transactions.filter(t=>{
@@ -2800,6 +2822,185 @@ body{padding-bottom:88px}
 
   function saveWalletState(){
     localStorage.setItem(WALLET_STORAGE_KEY,JSON.stringify(walletState));
+  }
+
+  function setWalletCloudState(state,text){
+    const el=$("walletCloudState");
+    if(!el) return;
+    el.classList.remove("ok","warn","bad");
+    if(state) el.classList.add(state);
+    el.textContent=text;
+  }
+
+  function currentAdminUserId(){
+    const direct=adminSession?.user?.id;
+    if(direct) return String(direct);
+    try{
+      const token=String(adminSession?.access_token||"");
+      const payload=token.split(".")[1];
+      if(!payload) return "";
+      const normalized=payload.replace(/-/g,"+").replace(/_/g,"/");
+      const json=decodeURIComponent(atob(normalized.padEnd(Math.ceil(normalized.length/4)*4,"=")).split("").map(c=>"%"+("00"+c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+      return String(JSON.parse(json)?.sub||"");
+    }catch(e){ return ""; }
+  }
+
+  function walletCloudTableMissing(errorText){
+    const text=String(errorText||"").toLowerCase();
+    return text.includes("ma_wallet_plans") || text.includes("ma_wallet_transactions") || text.includes("pgrst205") || text.includes("42p01") || text.includes("could not find the table");
+  }
+
+  function walletTransactionPayload(t,ownerId){
+    return {
+      id:t.id,owner_id:ownerId,operation_id:t.operationId,type:t.type,wallet_id:t.walletId,
+      amount_cents:t.amountCents,comment:t.comment||"",created_at:t.createdAt,
+      reversal_of_transaction_id:t.reversalOfTransactionId||"",
+      reverses_operation_id:t.reversesOperationId||"",source_type:t.sourceType||""
+    };
+  }
+
+  function walletTransactionFromCloud(row){
+    return {
+      id:String(row.id||""),operationId:String(row.operation_id||""),type:String(row.type||""),walletId:String(row.wallet_id||""),
+      amountCents:Number(row.amount_cents),comment:String(row.comment||""),createdAt:String(row.created_at||new Date().toISOString()),
+      reversalOfTransactionId:String(row.reversal_of_transaction_id||""),
+      reversesOperationId:String(row.reverses_operation_id||""),sourceType:String(row.source_type||"")
+    };
+  }
+
+  async function fetchWalletCloudTransactions(token){
+    const rows=[];
+    for(let offset=0;offset<WALLET_CLOUD_MAX_ROWS;offset+=WALLET_CLOUD_PAGE_SIZE){
+      const path=`/rest/v1/${WALLET_TX_TABLE}?select=id,operation_id,type,wallet_id,amount_cents,comment,created_at,reversal_of_transaction_id,reverses_operation_id,source_type&order=created_at.asc,id.asc&limit=${WALLET_CLOUD_PAGE_SIZE}&offset=${offset}`;
+      const res=await authFetch(path,{method:"GET",headers:{Authorization:"Bearer "+token}});
+      const text=await res.text();
+      if(!res.ok) throw new Error(text||"Не удалось загрузить кошельки");
+      const part=text?JSON.parse(text):[];
+      rows.push(...part);
+      if(part.length<WALLET_CLOUD_PAGE_SIZE) break;
+    }
+    return rows;
+  }
+
+  async function fetchWalletCloudPlans(token){
+    const res=await authFetch(`/rest/v1/${WALLET_PLAN_TABLE}?select=plans,updated_at&limit=1`,{method:"GET",headers:{Authorization:"Bearer "+token}});
+    const text=await res.text();
+    if(!res.ok) throw new Error(text||"Не удалось загрузить планы кошельков");
+    return text?JSON.parse(text):[];
+  }
+
+  async function uploadWalletTransactions(token,ownerId,transactions){
+    if(!transactions.length) return;
+    const chunkSize=200;
+    for(let i=0;i<transactions.length;i+=chunkSize){
+      const body=transactions.slice(i,i+chunkSize).map(t=>walletTransactionPayload(t,ownerId));
+      const res=await authFetch(`/rest/v1/${WALLET_TX_TABLE}?on_conflict=id`,{
+        method:"POST",
+        headers:{Authorization:"Bearer "+token,Prefer:"resolution=ignore-duplicates,return=minimal"},
+        body:JSON.stringify(body)
+      });
+      if(!res.ok) throw new Error(await res.text());
+    }
+  }
+
+  async function uploadWalletPlans(token,ownerId,plans,updatedAt){
+    const res=await authFetch(`/rest/v1/${WALLET_PLAN_TABLE}?on_conflict=owner_id`,{
+      method:"POST",
+      headers:{Authorization:"Bearer "+token,Prefer:"resolution=merge-duplicates,return=minimal"},
+      body:JSON.stringify({owner_id:ownerId,plans,updated_at:updatedAt})
+    });
+    if(!res.ok) throw new Error(await res.text());
+  }
+
+  function mergeWalletTransactionLists(localList,remoteList){
+    const map=new Map();
+    remoteList.forEach(t=>map.set(t.id,t));
+    localList.forEach(t=>{ if(!map.has(t.id)) map.set(t.id,t); });
+    return [...map.values()].sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)) || String(a.id).localeCompare(String(b.id)));
+  }
+
+  async function syncWalletsCloud(showToast=false,allowBusy=false){
+    if(!cloudConfigured()){
+      setWalletCloudState("warn","Облако: недоступно, данные сохранены на этом устройстве");
+      return false;
+    }
+    if(!isAdmin()){
+      setWalletCloudState("warn","Облако: войдите как администратор");
+      return false;
+    }
+    if(walletBusy && !allowBusy) return false;
+    const now=Date.now();
+    if(!showToast && !allowBusy && now-lastWalletCloudFetchAt<10000) return true;
+    if(walletCloudSyncPromise) return walletCloudSyncPromise;
+
+    walletCloudSyncPromise=(async()=>{
+      setWalletCloudState("warn","Облако: синхронизация…");
+      try{
+        const token=await getAdminToken();
+        const ownerId=currentAdminUserId();
+        if(!token || !ownerId) throw new Error("Сессия администратора закончилась");
+
+        const [planRows,txRows]=await Promise.all([fetchWalletCloudPlans(token),fetchWalletCloudTransactions(token)]);
+        lastWalletCloudFetchAt=Date.now();
+        walletCloudNeedsSetup=false;
+
+        const remoteState=normalizeWalletState({
+          plans:planRows[0]?.plans||{},
+          plansUpdatedAt:planRows[0]?.updated_at||"",
+          transactions:txRows.map(walletTransactionFromCloud)
+        });
+
+        // История операций объединяется по уникальному id, поэтому операция с одного устройства
+        // не затирает операцию, сделанную на другом устройстве.
+        const remoteIds=new Set(remoteState.transactions.map(t=>t.id));
+        const missingInCloud=walletState.transactions.filter(t=>!remoteIds.has(t.id));
+        if(missingInCloud.length) await uploadWalletTransactions(token,ownerId,missingInCloud);
+
+        const mergedTransactions=mergeWalletTransactionLists(walletState.transactions,remoteState.transactions);
+
+        let nextPlans={...walletState.plans};
+        let nextPlansUpdatedAt=walletState.plansUpdatedAt||"";
+        const hasRemotePlans=!!planRows[0];
+        const localPlanTime=Date.parse(nextPlansUpdatedAt||"")||0;
+        const remotePlanTime=Date.parse(remoteState.plansUpdatedAt||"")||0;
+
+        if(!hasRemotePlans){
+          const stamp=nextPlansUpdatedAt || new Date().toISOString();
+          await uploadWalletPlans(token,ownerId,nextPlans,stamp);
+          nextPlansUpdatedAt=stamp;
+        }else if(localPlanTime>remotePlanTime){
+          await uploadWalletPlans(token,ownerId,nextPlans,nextPlansUpdatedAt);
+        }else{
+          nextPlans={...remoteState.plans};
+          nextPlansUpdatedAt=remoteState.plansUpdatedAt||nextPlansUpdatedAt;
+        }
+
+        walletState=normalizeWalletState({plans:nextPlans,plansUpdatedAt:nextPlansUpdatedAt,transactions:mergedTransactions});
+        saveWalletState();
+        if(!$("walletsPage").classList.contains("hidden")) renderWallets();
+        setWalletCloudState("ok","Облако: синхронизировано");
+        if(showToast) toast("Кошельки обновлены из облака");
+        return true;
+      }catch(e){
+        console.error("wallet cloud sync",e);
+        const text=String(e?.message||e||"");
+        if(walletCloudTableMissing(text)){
+          walletCloudNeedsSetup=true;
+          setWalletCloudState("bad","Облако кошельков: требуется настройка Supabase");
+          if(showToast) toast("Для облака кошельков сначала выполните SQL-настройку");
+        }else if(navigator.onLine===false){
+          setWalletCloudState("warn","Облако: нет интернета, изменения сохранены локально");
+          if(showToast) toast("Нет интернета. Кошельки сохранены на этом устройстве");
+        }else{
+          setWalletCloudState("warn","Облако: не удалось синхронизировать, повторим позже");
+          if(showToast) toast("Не удалось синхронизировать кошельки");
+        }
+        return false;
+      }
+    })();
+
+    try{ return await walletCloudSyncPromise; }
+    finally{ walletCloudSyncPromise=null; }
   }
 
   function walletDef(id){ return WALLET_DEFS.find(w=>w.id===id)||null; }
@@ -2952,6 +3153,9 @@ body{padding-bottom:88px}
   function renderWallets(){
     const grid=$("walletsGrid");
     if(!grid) return;
+    if(!cloudConfigured()) setWalletCloudState("warn","Облако: недоступно, данные сохранены на этом устройстве");
+    else if(!isAdmin()) setWalletCloudState("warn","Облако: войдите как администратор");
+    else if(walletCloudNeedsSetup) setWalletCloudState("bad","Облако кошельков: требуется настройка Supabase");
     const total=WALLET_DEFS.reduce((sum,w)=>sum+walletBalance(w.id),0);
     $("walletsTotal").textContent=formatMoney(total);
     $("walletsInsurance").textContent=`Страховка: ${formatMoney(walletBalance("insurance"))}`;
@@ -3025,7 +3229,8 @@ body{padding-bottom:88px}
       createWalletOperation("distribution",entries,`Общая сумма ${formatMoney(amount)}`);
       closeWalletDistribution();
       renderWallets();
-      toast(`${formatMoney(amount)} успешно распределено`);
+      const synced=await syncWalletsCloud(false,true);
+      toast(synced?`${formatMoney(amount)} успешно распределено`:`${formatMoney(amount)} распределено. Облако синхронизируется позже`);
     }catch(e){
       console.error(e); walletState=previous;
       try{ saveWalletState(); }catch(_){}
@@ -3069,7 +3274,9 @@ body{padding-bottom:88px}
     try{
       createWalletOperation(type,[{walletId,amountCents:type==="expense"?-amount:amount}],comment);
       closeWalletTransaction(); renderWallets();
-      toast(type==="expense"?`${formatMoney(amount)} списано`:`${formatMoney(amount)} добавлено`);
+      const synced=await syncWalletsCloud(false,true);
+      const mainText=type==="expense"?`${formatMoney(amount)} списано`:`${formatMoney(amount)} добавлено`;
+      toast(synced?mainText:`${mainText}. Облако синхронизируется позже`);
     }catch(e){
       console.error(e); walletState=previous;
       try{ saveWalletState(); }catch(_){}
@@ -3112,7 +3319,10 @@ body{padding-bottom:88px}
     const previous=clone(walletState);
     try{
       walletState.plans={...walletState.plans,...next};
-      saveWalletState(); closeWalletPlan(); renderWallets(); toast("План распределения сохранён");
+      walletState.plansUpdatedAt=new Date().toISOString();
+      saveWalletState(); closeWalletPlan(); renderWallets();
+      const synced=await syncWalletsCloud(false,true);
+      toast(synced?"План распределения сохранён":"План сохранён. Облако синхронизируется позже");
     }catch(e){
       console.error(e); walletState=previous; toast("Не удалось сохранить план");
     }finally{ walletBusy=false; endButtonBusy(busy); }
@@ -3137,7 +3347,8 @@ body{padding-bottom:88px}
       const reversalMap={};
       group.items.forEach(t=>reversalMap[t.walletId]=t.id);
       createWalletOperation("reversal",group.items.map(t=>({walletId:t.walletId,amountCents:-t.amountCents})),`Отмена: ${label}`,{reversesOperationId:group.operationId,reversalOfTransactionId:reversalMap,sourceType:group.type});
-      toast("Последняя операция отменена");
+      const synced=await syncWalletsCloud(false,true);
+      toast(synced?"Последняя операция отменена":"Операция отменена. Облако синхронизируется позже");
     }catch(e){
       console.error(e); walletState=previous;
       try{ saveWalletState(); }catch(_){}
@@ -3263,6 +3474,7 @@ body{padding-bottom:88px}
     if($("currentDeviceState")) renderDevicePanel();
     applyUserMode();
     if(!$("schedulePage").classList.contains("hidden")) renderMonth();
+    if(isAdmin() && cloudConfigured() && !document.body.classList.contains("app-booting")) syncWalletsCloud(false);
   }
 
   async function authFetch(path,options={}){
@@ -7584,6 +7796,7 @@ body{padding-bottom:88px}
     }
     if(wallets){
       renderWallets();
+      syncWalletsCloud(false);
     }
     if(hist){
       fillHistoryFilters();
@@ -7988,6 +8201,7 @@ body{padding-bottom:88px}
   $("walletDistributionAmount").oninput=updateWalletDistributionPreview;
   $("confirmWalletDistribution").onclick=confirmWalletDistribution;
 
+  $("walletSyncBtn").onclick=()=>syncWalletsCloud(true);
   $("walletPlanBtn").onclick=openWalletPlan;
   $("closeWalletPlan").onclick=closeWalletPlan;
   $("cancelWalletPlan").onclick=closeWalletPlan;
@@ -8017,7 +8231,7 @@ body{padding-bottom:88px}
     lastTouchEndForZoom=now;
   },{passive:false});
 
-  window.addEventListener("online",()=>{ setCloudStatus(cloudConfigured()?"Онлайн":"Локально",cloudConfigured()?"online":"offline"); syncFromCloud(false); loadTodayShifts(false); });
+  window.addEventListener("online",()=>{ setCloudStatus(cloudConfigured()?"Онлайн":"Локально",cloudConfigured()?"online":"offline"); syncFromCloud(false); if(isAdmin()) syncWalletsCloud(false); loadTodayShifts(false); });
   window.addEventListener("offline",()=>{ setCloudStatus("Нет связи","offline"); });
 
   window.addEventListener("resize",()=>{
@@ -8077,9 +8291,13 @@ body{padding-bottom:88px}
 
     if(cloudConfigured()){
       backgroundTasks.push(syncFromCloud(false));
+      if(isAdmin()) backgroundTasks.push(syncWalletsCloud(false));
 
       syncTimer=setInterval(()=>{
-        if(!document.hidden) syncFromCloud(false);
+        if(!document.hidden){
+          syncFromCloud(false);
+          if(isAdmin()) syncWalletsCloud(false);
+        }
       },SYNC_INTERVAL_MS);
 
       shiftPollTimer=setInterval(()=>{
@@ -8088,6 +8306,7 @@ body{padding-bottom:88px}
 
       const refreshForegroundData=()=>{
         syncFromCloud(false);
+        if(isAdmin()) syncWalletsCloud(false);
         loadTodayShifts(false);
       };
 
