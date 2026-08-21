@@ -1329,10 +1329,6 @@ body{padding-bottom:88px}
 .wallet-cloud-state.ok{color:#166534}.wallet-cloud-state.warn{color:#9a3412}.wallet-cloud-state.bad{color:#b42318}
 .wallets-head h2{margin:0;color:#172033;font-size:24px}
 .wallets-sub{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.4}
-.wallet-total-card{border:1px solid #cfe8d7;background:#f4fbf6;border-radius:16px;padding:16px}
-.wallet-total-card span{display:block;color:#52705d;font-size:12px;font-weight:800}
-.wallet-total-card b{display:block;margin-top:5px;color:#14532d;font-size:30px;line-height:1.1}
-.wallet-total-card small{display:block;margin-top:7px;color:#52705d;font-size:12px}
 .wallet-main-actions{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr);gap:8px}
 .wallet-readonly-note{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.45;font-weight:750}
 .wallet-main-actions button:disabled,.wallet-card-actions button:disabled{opacity:.48;cursor:not-allowed}
@@ -1343,16 +1339,8 @@ body{padding-bottom:88px}
 .wallet-card h3{margin:0;color:#24344d;font-size:16px}
 .wallet-card-balance{margin-top:8px;color:#172033;font-size:22px;font-weight:900;letter-spacing:-.02em}
 .wallet-card-plan{margin-top:4px;color:var(--muted);font-size:11px}
-.wallet-card-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
-.wallet-card-stat{border-top:1px solid #edf0f4;padding-top:7px;min-width:0}
-.wallet-card-stat span{display:block;color:var(--muted);font-size:10px}
-.wallet-card-stat b{display:block;margin-top:2px;color:#334155;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wallet-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
 .wallet-card-actions button{min-height:36px;padding:7px 8px;border-radius:9px;font-size:11px}
-.wallet-history-card{border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px}
-.wallet-history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
-.wallet-history-head h3{margin:0;color:#24344d;font-size:16px}
-.wallet-history-head span{font-size:11px;color:var(--muted)}
 .wallet-history-list{display:grid;gap:7px}
 .wallet-history-item{border:1px solid var(--line);border-radius:11px;padding:9px 10px;background:#fff}
 .wallet-history-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
@@ -1364,8 +1352,6 @@ body{padding-bottom:88px}
 .wallet-history-details{margin-top:7px;padding-top:7px;border-top:1px solid #edf0f4;display:grid;gap:4px}
 .wallet-history-detail-row{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#475569}
 .wallet-history-detail-row b{color:#24344d}
-.wallet-full-history{margin-top:10px;border-top:1px solid var(--line);padding-top:9px}
-.wallet-full-history>summary{cursor:pointer;font-size:12px;font-weight:850;color:#334155}
 .wallet-empty{text-align:center;color:var(--muted);font-size:12px;padding:18px 8px}
 .wallet-preview{display:grid;gap:6px;margin-top:10px}
 .wallet-preview-row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #edf0f4;padding:7px 0;font-size:13px}
@@ -1380,7 +1366,6 @@ body{padding-bottom:88px}
 .wallet-plan-row label{font-size:13px;font-weight:800;color:#334155}
 .wallet-plan-row input{width:100%;min-height:42px;border:1px solid var(--line);border-radius:10px;padding:0 10px;background:#fff}
 .wallet-plan-insurance{border:1px solid #cfe8d7;background:#f4fbf6;border-radius:11px;padding:10px 11px;color:#166534;font-size:12px;line-height:1.4}
-.wallet-modal-total{margin-top:10px;font-size:12px;color:var(--muted)}
 @media(max-width:900px){.wallet-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.wallets-head{align-items:stretch}.wallet-head-actions{justify-content:flex-start}.wallet-head-actions button{flex:1}}
 @media(max-width:620px){
@@ -1388,7 +1373,6 @@ body{padding-bottom:88px}
   .wallet-grid{grid-template-columns:1fr}
   .wallet-main-actions{grid-template-columns:1fr}
   .wallet-plan-row{grid-template-columns:1fr}
-  .wallet-total-card b{font-size:27px}
 }
 
 /* На телефоне чуть меньше визуального шума */
@@ -1480,7 +1464,6 @@ body{padding-bottom:88px}
   .wallet-main-actions button{min-height:48px;font-size:14px!important}
   .wallet-card-actions button{min-height:44px!important;font-size:13px!important}
   .wallet-card{padding:12px}
-  .wallet-total-card{padding:14px}
   #walletPlanModal .login-actions{position:sticky;bottom:-16px;z-index:4;background:#fff;border-top:1px solid var(--line);padding:10px 0 calc(4px + env(safe-area-inset-bottom));margin-top:10px}
   #walletPlanModal .sheet{padding-bottom:16px}
 
@@ -1502,27 +1485,8 @@ body{padding-bottom:88px}
 
 
 /* Кошельки 3.0 — месячные планы, динамические статьи и безопасные переводы */
-.wallet-month-card{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px}
-.wallet-month-head{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:8px;align-items:center;margin-bottom:10px}
-.wallet-month-head>div{text-align:center;min-width:0}
-.wallet-month-head b{display:block;color:#172033;font-size:16px}
-.wallet-month-head span{display:block;margin-top:2px;color:var(--muted);font-size:10px}
 .wallet-month-nav{min-height:40px;padding:4px;font-size:22px}
-.wallet-month-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
-.wallet-month-stats>div{border:1px solid #edf0f4;border-radius:10px;padding:8px;min-width:0}
-.wallet-month-stats span{display:block;color:var(--muted);font-size:9px}
-.wallet-month-stats b{display:block;margin-top:3px;color:#24344d;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wallet-card-stats.wallet-card-stats-3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .wallet-protected{display:inline-flex;align-items:center;border-radius:999px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;padding:3px 6px;font-size:8px;font-weight:900;white-space:nowrap}
-.wallet-goal{margin-top:10px;padding-top:9px;border-top:1px solid #edf0f4}
-.wallet-goal-head{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:10px;color:#475569}
-.wallet-goal-head b{color:#24344d}
-.wallet-progress{height:7px;background:#e7edf3;border-radius:99px;overflow:hidden;margin-top:6px}
-.wallet-progress i{display:block;height:100%;background:#22a35a;border-radius:99px}
-.wallet-goal small{display:block;margin-top:5px;color:var(--muted);font-size:9px}
-.wallet-history-actions{display:flex;justify-content:flex-end;margin-top:7px;padding-top:7px;border-top:1px solid #edf0f4}
-.wallet-history-actions button{min-height:34px;padding:6px 9px;font-size:10px}
-.wallet-undo-btn{min-height:36px;padding:7px 9px;font-size:10px;white-space:nowrap}
 .wallet-history-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}
 .wallet-history-filters select{width:100%;min-width:0}
 .wallet-large-sheet{max-width:720px}
@@ -1549,15 +1513,9 @@ body{padding-bottom:88px}
 .wallet-check small{display:block;color:var(--muted);font-size:10px;line-height:1.35;margin-top:2px}
 #walletCorrectionFields .wallet-plan-list{margin-top:0}
 @media(max-width:760px){
-  .wallet-month-stats{grid-template-columns:1fr 1fr}
-  .wallet-month-stats>div{padding:9px}
-  .wallet-month-stats b{font-size:13px}
-  .wallet-card-stats.wallet-card-stats-3{grid-template-columns:1fr 1fr 1fr}
-  .wallet-card-actions button,.wallet-main-actions button,.wallet-head-actions button,.wallet-month-nav{min-height:44px!important}
+  .wallet-main-actions button,.wallet-head-actions button,.wallet-month-nav{min-height:44px!important}
   .wallet-history-filters{grid-template-columns:1fr}
   .wallet-history-filters select{min-height:44px}
-  .wallet-history-head{align-items:stretch;flex-direction:column}
-  .wallet-undo-btn{width:100%;min-height:44px}
   .wallet-manage-top{grid-template-columns:1fr}
   .wallet-manage-row{grid-template-columns:1fr}
   .wallet-manage-actions{justify-content:flex-start}
@@ -1565,13 +1523,6 @@ body{padding-bottom:88px}
   #walletManageModal .sheet,#walletEditModal .sheet,#walletCorrectionModal .sheet,#walletTransferModal .sheet{max-height:calc(100dvh - 16px);overflow-y:auto}
   #walletEditModal .login-actions,#walletCorrectionModal .login-actions,#walletTransferModal .login-actions{position:sticky;bottom:-16px;z-index:4;background:#fff;border-top:1px solid var(--line);padding:10px 0 calc(4px + env(safe-area-inset-bottom));margin-top:10px}
 }
-@media(max-width:420px){
-  .wallet-card-stats.wallet-card-stats-3{grid-template-columns:1fr}
-  .wallet-card-stat{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px}
-  .wallet-card-stat b{margin-top:0;text-align:right}
-}
-
-
 
 /* =========================================================
    Кошельки 4.0 — быстрый ежедневный бюджет
@@ -1599,10 +1550,6 @@ body{padding-bottom:88px}
 .wallet-overview-grid span{display:block;color:#64748b;font-size:9px}
 .wallet-overview-grid b{display:block;margin-top:3px;color:#24344d;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.wallet-month-compact{padding:8px 10px}
-.wallet-month-compact .wallet-month-head{margin:0}
-.wallet-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:2px}
-.wallet-list-head h3{margin:0;color:#24344d;font-size:16px}
 .wallet-filter{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none}
 .wallet-filter::-webkit-scrollbar{display:none}
 .wallet-filter button{border:1px solid var(--line);background:#fff;color:#64748b;border-radius:999px;min-height:34px;padding:6px 10px;font-size:11px;font-weight:850;white-space:nowrap}
@@ -1619,20 +1566,9 @@ body{padding-bottom:88px}
 .wallet-plan-progress i{display:block;height:100%;background:#0f5bd7;border-radius:99px}
 .wallet-card.savings .wallet-plan-progress i{background:#22a35a}
 .wallet-card.insurance .wallet-card-plan{font-size:11px;color:#52705d}
-.wallet-card.insurance .wallet-card-stats{margin-top:8px}
-.wallet-card-more{margin-top:8px;border-top:1px solid #edf0f4;padding-top:7px}
-.wallet-card-more>summary{cursor:pointer;list-style:none;color:#64748b;font-size:10px;font-weight:850;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.wallet-card-more>summary::-webkit-details-marker{display:none}
-.wallet-card-more>summary::after{content:"+";font-size:14px;color:#94a3b8}
-.wallet-card-more[open]>summary::after{content:"−"}
-.wallet-card-more .wallet-card-stats{margin-top:7px}
 .wallet-card-actions{margin-top:9px}
-.wallet-goal{margin-top:8px;padding-top:8px}
 .wallet-protected{padding:2px 5px;font-size:8px}
 
-.wallet-history-compact{padding:12px}
-.wallet-history-compact .wallet-history-head{align-items:center;margin-bottom:8px}
-.wallet-full-history-btn{min-height:36px;padding:7px 10px;font-size:10px;white-space:nowrap}
 .wallet-history-menu{position:relative;margin-top:7px;padding-top:7px;border-top:1px solid #edf0f4}
 .wallet-history-menu>summary{cursor:pointer;list-style:none;margin-left:auto;width:34px;height:30px;border:1px solid var(--line);border-radius:8px;display:grid;place-items:center;font-size:18px;font-weight:900;color:#475569;background:#fff}
 .wallet-history-menu>summary::-webkit-details-marker{display:none}
@@ -1653,7 +1589,6 @@ body{padding-bottom:88px}
 .wallet-plan-row{grid-template-columns:minmax(0,1fr) 145px;gap:10px;min-height:42px}
 .wallet-plan-row label{font-size:12px}
 .wallet-plan-row input{min-height:40px;text-align:right;font-weight:800}
-.wallet-modal-total{font-size:18px;font-weight:900;color:#0f5bd7}
 
 .wallet-danger-details{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
 .wallet-danger-details>summary{cursor:pointer;color:#991b1b;font-size:12px;font-weight:850}
@@ -1671,13 +1606,10 @@ body{padding-bottom:88px}
   .wallet-overview-total{font-size:28px}
   .wallet-overview-grid{grid-template-columns:1fr 1fr;gap:6px}
   .wallet-overview-grid>div{padding:8px}
-  .wallet-list-head{align-items:flex-start;flex-direction:column;gap:7px}
   .wallet-filter{width:100%}
   .wallet-filter button{flex:1;min-height:38px}
   .wallet-card{padding:11px}
   .wallet-card-actions button{min-height:44px!important;font-size:13px!important}
-  .wallet-card-more>summary{min-height:34px}
-  .wallet-full-history-btn{min-height:40px;font-size:11px}
   .wallet-plan-sticky{top:-16px}
   .wallet-plan-row{grid-template-columns:minmax(0,1fr) 120px;gap:8px}
   .wallet-plan-row input{min-height:44px}
@@ -1690,6 +1622,58 @@ body{padding-bottom:88px}
   .wallet-overview-grid{grid-template-columns:1fr}
   .wallet-plan-row{grid-template-columns:1fr}
   .wallet-plan-row input{text-align:left}
+}
+
+
+/* =========================================================
+   Кошельки 5.0 — второй этап упрощения ежедневного интерфейса
+   Только UI: финансовая математика, данные и Supabase не меняются.
+   ========================================================= */
+.wallet-cloud-state.ok{font-size:16px;line-height:1;color:#16803f}
+.wallet-overview-month{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:8px;align-items:center;margin-bottom:12px}
+.wallet-overview-month>b{text-align:center;color:#172033;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wallet-overview-state.hidden{display:none}
+.wallet-filter{width:max-content;max-width:100%;margin:0;overflow-x:auto;scrollbar-width:none}
+.wallet-filter button{min-height:36px}
+.wallet-card{padding:11px}
+.wallet-card-balance{margin-top:5px}
+.wallet-card-plan{margin-top:6px}
+.wallet-card-plan-main{margin-top:7px}
+.wallet-card-plan-line{font-size:10px}
+.wallet-goal-compact{margin-top:7px;color:#64748b;font-size:10px;line-height:1.35}
+.wallet-goal-compact.good{color:#166534;font-weight:800}
+.wallet-protected{width:23px;height:23px;padding:0;display:grid;place-items:center;font-size:12px;background:#fff7ed}
+.wallet-card-actions{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:7px;margin-top:9px;align-items:stretch}
+.wallet-card-actions>.wallet-expense-btn{width:100%}
+.wallet-overflow-wrap{position:relative;min-width:0}
+.wallet-overflow-toggle{width:44px!important;min-width:44px!important;height:100%;padding:0!important;font-size:20px!important;line-height:1}
+.wallet-overflow-menu{position:absolute;z-index:30;right:0;top:calc(100% + 6px);min-width:170px;max-width:min(220px,calc(100vw - 24px));padding:5px;border:1px solid var(--line);border-radius:11px;background:#fff;box-shadow:0 12px 30px rgba(15,23,42,.16)}
+.wallet-overflow-menu.open-up{top:auto;bottom:calc(100% + 6px)}
+.wallet-overflow-menu button{display:block;width:100%;min-height:40px;padding:8px 10px;border:0;border-radius:8px;background:#fff;color:#24344d;text-align:left;font-size:11px;font-weight:750}
+.wallet-overflow-menu button:hover{background:#f4f6f8}
+.wallet-overflow-menu button.danger-text{color:#b42318}
+.wallet-history-link{width:100%;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;font-size:12px}
+.wallet-manage-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:nowrap}
+.wallet-manage-actions>.secondary{min-height:38px}
+.wallet-manage-actions .wallet-overflow-toggle{height:38px}
+.wallet-edit-advanced{margin-top:10px;border-top:1px solid var(--line);padding-top:9px}
+.wallet-edit-advanced>summary{cursor:pointer;color:#475569;font-size:12px;font-weight:850}
+@media(max-width:760px){
+  .wallet-overview-month{margin-bottom:10px}
+  .wallet-filter{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;overflow:visible}
+  .wallet-filter button{width:100%;min-width:0;padding:6px 5px}
+  .wallet-card{padding:10px}
+  .wallet-card-actions>.wallet-expense-btn,.wallet-overflow-toggle{min-height:44px!important}
+  .wallet-history-link{min-height:46px}
+  .wallet-manage-row{grid-template-columns:minmax(0,1fr) auto;align-items:center}
+  .wallet-manage-actions{justify-content:flex-end}
+  .wallet-manage-actions>.secondary{min-height:44px}
+  .wallet-manage-actions .wallet-overflow-toggle{height:44px}
+}
+@media(max-width:360px){
+  .wallet-overview-grid{grid-template-columns:1fr 1fr}
+  .wallet-head-actions{width:auto}
+  .wallet-head-actions #walletPlanBtn{width:auto}
 }
 
 </style>
@@ -1944,22 +1928,19 @@ body{padding-bottom:88px}
         </div>
 
         <div class="wallet-overview-card">
+          <div class="wallet-overview-month">
+            <button class="secondary wallet-month-nav" id="walletMonthPrev" aria-label="Предыдущий месяц">‹</button>
+            <b id="walletMonthLabel">—</b>
+            <button class="secondary wallet-month-nav" id="walletMonthNext" aria-label="Следующий месяц">›</button>
+          </div>
           <span class="wallet-overview-caption" id="walletOverviewLabel">Всего денег</span>
           <b class="wallet-overview-total" id="walletsTotal">0 ₽</b>
-          <div class="wallet-overview-state neutral" id="walletOverviewState">Считаем планы месяца…</div>
+          <div class="wallet-overview-state neutral hidden" id="walletOverviewState"></div>
           <div class="wallet-overview-grid">
-            <div><span id="walletOverviewStat1Label">План месяца</span><b id="walletOverviewStat1Value">0 ₽</b></div>
-            <div><span id="walletOverviewStat2Label">Распределено</span><b id="walletOverviewStat2Value">0 ₽</b></div>
-            <div><span id="walletOverviewStat3Label">Осталось закрыть</span><b id="walletOverviewStat3Value">0 ₽</b></div>
+            <div><span id="walletOverviewStat1Label">План</span><b id="walletOverviewStat1Value">0 ₽</b></div>
+            <div><span id="walletOverviewStat2Label">Закрыто</span><b id="walletOverviewStat2Value">0 ₽</b></div>
+            <div><span id="walletOverviewStat3Label">Осталось</span><b id="walletOverviewStat3Value">0 ₽</b></div>
             <div><span id="walletOverviewStat4Label">Страховка</span><b id="walletOverviewStat4Value">0 ₽</b></div>
-          </div>
-        </div>
-
-        <div class="wallet-month-card wallet-month-compact">
-          <div class="wallet-month-head">
-            <button class="secondary wallet-month-nav" id="walletMonthPrev" aria-label="Предыдущий месяц">‹</button>
-            <div><b id="walletMonthLabel">—</b><span>Просмотр месяца</span></div>
-            <button class="secondary wallet-month-nav" id="walletMonthNext" aria-label="Следующий месяц">›</button>
           </div>
         </div>
 
@@ -1970,23 +1951,16 @@ body{padding-bottom:88px}
           <button class="secondary" id="openWalletTransfer">Перевести</button>
         </div>
 
-        <div class="wallet-list-head">
-          <h3>Кошельки</h3>
-          <div class="wallet-filter" id="walletFilterButtons" role="group" aria-label="Фильтр кошельков">
-            <button type="button" class="active" data-wallet-filter="all">Все</button>
-            <button type="button" data-wallet-filter="expense">Расходы</button>
-            <button type="button" data-wallet-filter="savings">Накопления</button>
-          </div>
+        <div class="wallet-filter" id="walletFilterButtons" role="group" aria-label="Фильтр кошельков">
+          <button type="button" class="active" data-wallet-filter="all">Все</button>
+          <button type="button" data-wallet-filter="expense">Расходы</button>
+          <button type="button" data-wallet-filter="savings">Накопления</button>
         </div>
         <div class="wallet-grid" id="walletsGrid"></div>
 
-        <div class="wallet-history-card wallet-history-compact">
-          <div class="wallet-history-head">
-            <div><h3>Последние операции</h3><span>Три последних действия</span></div>
-            <button class="secondary wallet-full-history-btn" id="openWalletFullHistory">Вся история</button>
-          </div>
-          <div class="wallet-history-list" id="walletRecentList"></div>
-        </div>
+        <button class="secondary wallet-history-link" id="openWalletFullHistory" type="button">
+          <span>История операций</span><span aria-hidden="true">›</span>
+        </button>
       </div>
     </section>
 
@@ -2278,9 +2252,12 @@ body{padding-bottom:88px}
       <div class="field"><label>Тип</label><select id="walletEditType"><option value="expense">Расходный</option><option value="savings">Накопительный</option></select></div>
       <div class="field" id="walletEditPriorityField"><label>Приоритет (1 — самый высокий)</label><input id="walletEditPriority" inputmode="numeric" type="number" min="1" step="1" value="1"></div>
     </div>
-    <div class="grid2"><div class="field"><label>Месячный план</label><input id="walletEditPlan" inputmode="decimal" value="0"></div><div class="field"><label>Цель — необязательно</label><input id="walletEditGoal" inputmode="decimal" value="0"></div></div>
-    <div class="field"><label>Остаток при новом месяце</label><select id="walletEditRollover"><option value="carry">Перенести дальше</option><option value="insurance">Перевести в Страховку</option></select></div>
-    <label class="wallet-check"><input type="checkbox" id="walletEditProtected"><span><b>Защищённый кошелёк</b><small>Перед расходом будет дополнительное подтверждение</small></span></label>
+    <div class="field hidden" id="walletEditGoalField"><label>Цель — необязательно</label><input id="walletEditGoal" inputmode="decimal" value="0"></div>
+    <label class="wallet-check"><input type="checkbox" id="walletEditProtected"><span><b>Защищённый кошелёк</b><small>Требует дополнительного подтверждения перед списанием</small></span></label>
+    <details class="wallet-edit-advanced" id="walletEditAdvanced">
+      <summary>Дополнительно</summary>
+      <div class="field" style="margin-top:10px"><label>Остаток при новом месяце</label><select id="walletEditRollover"><option value="carry">Перенести дальше</option><option value="insurance">Перевести в Страховку</option></select></div>
+    </details>
     <div class="wallet-plan-insurance hidden" id="walletEditSystemNote">Это системная Страховка. Её нельзя удалить или архивировать, чтобы не сломать распределение.</div>
     <div class="login-error" id="walletEditError"></div>
     <div class="login-actions"><button class="secondary" id="cancelWalletEdit">Отмена</button><button class="primary" id="saveWalletEdit">Сохранить</button></div>
@@ -3352,7 +3329,16 @@ body{padding-bottom:88px}
     if(!el) return;
     el.classList.remove("ok","warn","bad");
     if(state) el.classList.add(state);
-    el.textContent=text;
+    const fullText=String(text||"");
+    if(state==="ok"){
+      el.textContent="●";
+      el.title=fullText||"Облако синхронизировано";
+      el.setAttribute("aria-label",el.title);
+    }else{
+      el.textContent=fullText;
+      el.title="";
+      el.removeAttribute("aria-label");
+    }
   }
 
   function currentAdminUserId(){
@@ -3942,10 +3928,10 @@ body{padding-bottom:88px}
   }
 
   function walletGoalHtml(w,balance){
-    if(w.type!=="savings" || !w.goalCents) return "";
-    const pct=Math.min(100,Math.max(0,Math.round((Math.max(0,balance)/w.goalCents)*100)));
-    const left=Math.max(0,w.goalCents-Math.max(0,balance));
-    return `<div class="wallet-goal"><div class="wallet-goal-head"><span>${balance>=w.goalCents?"Цель достигнута":`До цели ${formatMoney(left)}`}</span><b>${pct}%</b></div><div class="wallet-progress"><i style="width:${pct}%"></i></div><small>Цель: ${formatMoney(w.goalCents)}</small></div>`;
+    if(w.type!=="savings" || !w.goalCents || w.systemRole) return "";
+    const saved=Math.max(0,balance);
+    if(saved>=w.goalCents) return `<div class="wallet-goal-compact good">✓ Цель ${formatMoney(w.goalCents)} достигнута</div>`;
+    return `<div class="wallet-goal-compact">Цель: ${formatMoney(saved)} из ${formatMoney(w.goalCents)}</div>`;
   }
 
   function populateWalletHistoryFilters(){
@@ -3996,42 +3982,33 @@ body{padding-bottom:88px}
     const state=$("walletOverviewState");
     state.classList.remove("good","warn","neutral");
 
+    state.classList.add("hidden");
     if(current){
       const p=walletPlanMonthSummary(walletViewMonthKey);
-      setWalletOverviewStat(1,"План месяца",formatMoney(p.totalPlan));
-      setWalletOverviewStat(2,"Распределено",formatMoney(m.distributed));
-      setWalletOverviewStat(3,"Осталось закрыть",formatMoney(p.remaining));
+      setWalletOverviewStat(1,"План",formatMoney(p.totalPlan));
+      setWalletOverviewStat(2,"Закрыто",formatMoney(p.allocatedToPlans));
+      setWalletOverviewStat(3,"Осталось",formatMoney(p.remaining));
       setWalletOverviewStat(4,insurance?.name||"Страховка",formatMoney(insuranceBalance));
-      if(!p.count){ state.textContent="Месячные планы не заданы";state.classList.add("neutral"); }
-      else if(p.allClosed){ state.textContent="Все планы месяца закрыты";state.classList.add("good"); }
-      else{
-        const pct=p.totalPlan?Math.round((p.allocatedToPlans/p.totalPlan)*100):0;
-        state.textContent=`Закрыто ${Math.min(100,Math.max(0,pct))}% плана · осталось ${formatMoney(p.remaining)}`;
-        state.classList.add(pct>=70?"neutral":"warn");
+      if(!p.count){
+        state.textContent="Планы месяца не заданы";state.classList.add("neutral");state.classList.remove("hidden");
+      }else if(p.allClosed){
+        state.textContent="✓ План месяца закрыт";state.classList.add("good");state.classList.remove("hidden");
       }
     }else{
       setWalletOverviewStat(1,"Получено",formatMoney(m.received));
       setWalletOverviewStat(2,"Распределено",formatMoney(m.distributed));
       setWalletOverviewStat(3,"Потрачено",formatMoney(m.spent));
       setWalletOverviewStat(4,insurance?.name||"Страховка",formatMoney(insuranceBalance));
-      state.textContent="Исторический просмотр";state.classList.add("neutral");
+      state.textContent="Исторический просмотр";state.classList.add("neutral");state.classList.remove("hidden");
     }
   }
 
   function walletPlanProgressHtml(w,mm){
     const plan=Math.max(0,w.monthlyPlanCents||0);
-    if(!plan) return '<div class="wallet-card-plan">План на месяц не задан</div>';
+    if(!plan) return '<div class="wallet-card-plan">Без плана</div>';
     const allocated=Math.max(0,mm.allocated||0),left=Math.max(0,plan-allocated);
     const pct=Math.min(100,Math.max(0,Math.round((allocated/plan)*100)));
-    return `<div class="wallet-card-plan-main"><div class="wallet-card-plan-line"><span>План ${formatMoney(plan)}</span><b>${left?`Осталось ${formatMoney(left)}`:"Закрыт"}</b></div><div class="wallet-plan-progress"><i style="width:${pct}%"></i></div><div class="wallet-card-plan-line"><span>Закрыто ${pct}%</span><span>${formatMoney(Math.min(plan,allocated))}</span></div></div>`;
-  }
-
-  function walletCardDetailsHtml(w,mm,currentMonth){
-    if(w.systemRole){
-      const flow=walletMonthFlow(currentMonth,w.id);
-      return `<div class="wallet-card-stats"><div class="wallet-card-stat"><span>Поступило за месяц</span><b>${formatMoney(flow.incoming)}</b></div><div class="wallet-card-stat"><span>Выбыло за месяц</span><b>${formatMoney(flow.outgoing)}</b></div></div>`;
-    }
-    return `<div class="wallet-card-stats"><div class="wallet-card-stat"><span>По распределению</span><b>${formatMoney(mm.distributed)}</b></div><div class="wallet-card-stat"><span>Пополнено вручную</span><b>${formatMoney(mm.toppedUp)}</b></div><div class="wallet-card-stat"><span>Потрачено</span><b>${formatMoney(mm.spent)}</b></div></div>`;
+    return `<div class="wallet-card-plan-main"><div class="wallet-card-plan-line"><span>План ${formatMoney(plan)}</span><b>${left?`Осталось ${formatMoney(left)}`:"✓ Закрыт"}</b></div><div class="wallet-plan-progress"><i style="width:${pct}%"></i></div></div>`;
   }
 
   function renderWallets(){
@@ -4058,34 +4035,59 @@ body{padding-bottom:88px}
       const balance=currentIsNow?walletBalance(w.id):walletBalanceAtMonth(w.id,currentMonth);
       const mm=walletMonthMetrics(currentMonth,w.id);
       const actionsDisabled=currentIsNow?"":" disabled";
-      let mainPlan="",details="";
+      let mainPlan="";
 
       if(w.systemRole){
-        const flow=walletMonthFlow(currentMonth,w.id);
-        mainPlan=`<div class="wallet-card-plan">Свободный резерв · за месяц +${formatMoney(flow.incoming)} / −${formatMoney(flow.outgoing)}</div>`;
-        details=walletCardDetailsHtml(w,mm,currentMonth);
+        mainPlan='<div class="wallet-card-plan">Свободный резерв</div>';
       }else if(!currentIsNow){
-        mainPlan='<div class="wallet-card-plan">Исторический просмотр · месячный план отдельно не сохранялся</div>';
-        details=walletCardDetailsHtml(w,mm,currentMonth);
+        mainPlan='<div class="wallet-card-plan">Исторический просмотр</div>';
       }else{
         mainPlan=walletPlanProgressHtml(w,mm);
-        details=walletCardDetailsHtml(w,mm,currentMonth);
       }
 
       const goal=currentIsNow?walletGoalHtml(w,balance):"";
       return `<article class="wallet-card${w.systemRole?" insurance":""}${w.type==="savings"?" savings":""}" data-wallet-id="${escapeHtml(w.id)}">
-        <div class="wallet-card-top"><h3>${escapeHtml(w.name)}</h3>${w.protected?'<span class="wallet-protected" title="Перед расходом потребуется подтверждение">Защищён</span>':""}</div>
+        <div class="wallet-card-top"><h3>${escapeHtml(w.name)}</h3>${w.protected?'<span class="wallet-protected" title="Защищённый кошелёк: перед расходом потребуется подтверждение" aria-label="Защищённый кошелёк">🔒</span>':""}</div>
         <div class="wallet-card-balance">${formatMoney(balance)}</div>
-        ${goal}${mainPlan}
-        <details class="wallet-card-more"><summary>Подробнее</summary>${details}</details>
-        <div class="wallet-card-actions"><button class="secondary" data-wallet-action="topup" data-wallet-id="${escapeHtml(w.id)}"${actionsDisabled}>+ Пополнить</button><button class="secondary" data-wallet-action="expense" data-wallet-id="${escapeHtml(w.id)}"${actionsDisabled}>− Расход</button></div>
+        ${mainPlan}${goal}
+        <div class="wallet-card-actions">
+          <button class="secondary wallet-expense-btn" data-wallet-action="expense" data-wallet-id="${escapeHtml(w.id)}"${actionsDisabled}>− Расход</button>
+          <div class="wallet-overflow-wrap">
+            <button class="secondary wallet-overflow-toggle" type="button" data-wallet-overflow-toggle aria-label="Действия кошелька" aria-expanded="false"${actionsDisabled}>⋯</button>
+            <div class="wallet-overflow-menu hidden" data-wallet-overflow-menu>
+              <button type="button" data-wallet-action="topup" data-wallet-id="${escapeHtml(w.id)}"${actionsDisabled}>Пополнить вручную</button>
+            </div>
+          </div>
+        </div>
       </article>`;
     }).join("") || '<div class="wallet-empty">В этой группе кошельков пока нет.</div>';
 
-    renderWalletHistoryList($("walletRecentList"),3);
     populateWalletHistoryFilters();
     if(!$("walletFullHistoryModal").classList.contains("hidden")) renderWalletHistoryList($("walletHistoryList"),0,{filtered:true});
   }
+  function closeWalletOverflowMenus(except=null){
+    document.querySelectorAll("[data-wallet-overflow-menu]").forEach(menu=>{
+      if(menu===except) return;
+      menu.classList.add("hidden");
+      menu.classList.remove("open-up");
+      const toggle=menu.closest(".wallet-overflow-wrap")?.querySelector("[data-wallet-overflow-toggle]");
+      if(toggle) toggle.setAttribute("aria-expanded","false");
+    });
+  }
+  function toggleWalletOverflowMenu(toggle){
+    const wrap=toggle?.closest(".wallet-overflow-wrap"),menu=wrap?.querySelector("[data-wallet-overflow-menu]");
+    if(!menu || toggle.disabled) return;
+    const opening=menu.classList.contains("hidden");
+    closeWalletOverflowMenus(menu);
+    if(!opening){ menu.classList.add("hidden");toggle.setAttribute("aria-expanded","false");return; }
+    menu.classList.remove("hidden","open-up");
+    toggle.setAttribute("aria-expanded","true");
+    requestAnimationFrame(()=>{
+      const r=menu.getBoundingClientRect();
+      if(r.bottom>window.innerHeight-8) menu.classList.add("open-up");
+    });
+  }
+
   function openWalletDistribution(){
     if(!requireWalletCurrentMonth()) return;
     $("walletDistributionAmount").value="";
@@ -4310,7 +4312,19 @@ body{padding-bottom:88px}
   function renderWalletManagement(){
     const root=$("walletManageList"); if(!root) return;
     const active=walletDefinitions({includeArchived:false}),archived=walletDefinitions().filter(w=>w.archived);
-    const row=w=>`<div class="wallet-manage-row ${w.archived?"archived":""}"><div class="wallet-manage-main"><b>${escapeHtml(w.name)}</b><span>${w.type==="savings"?"Накопительный":"Расходный"}${w.systemRole?" · системный":""}${w.systemRole?"":` · план ${formatMoney(w.monthlyPlanCents||0)}`}${walletState.strategy==="priority"&&!w.systemRole?` · приоритет ${w.priority}`:""}</span></div><div class="wallet-manage-actions">${!w.archived&&!w.systemRole?`<button class="secondary" data-wallet-move="up" data-wallet-id="${escapeHtml(w.id)}" aria-label="Выше">↑</button><button class="secondary" data-wallet-move="down" data-wallet-id="${escapeHtml(w.id)}" aria-label="Ниже">↓</button>`:""}<button class="secondary" data-wallet-edit="${escapeHtml(w.id)}">Изменить</button>${w.archived?`<button class="secondary" data-wallet-restore="${escapeHtml(w.id)}">Восстановить</button>`:(!w.systemRole?`<button class="secondary" data-wallet-archive="${escapeHtml(w.id)}">Архив</button>`:"")}${!w.systemRole&&!walletHasHistory(w.id)&&walletBalance(w.id)===0?`<button class="danger" data-wallet-delete="${escapeHtml(w.id)}">Удалить</button>`:""}</div></div>`;
+    const row=w=>{
+      const menu=[];
+      if(w.archived){
+        menu.push(`<button type="button" data-wallet-restore="${escapeHtml(w.id)}">Восстановить</button>`);
+      }else if(!w.systemRole){
+        menu.push(`<button type="button" data-wallet-move="up" data-wallet-id="${escapeHtml(w.id)}">Выше</button>`);
+        menu.push(`<button type="button" data-wallet-move="down" data-wallet-id="${escapeHtml(w.id)}">Ниже</button>`);
+        menu.push(`<button type="button" data-wallet-archive="${escapeHtml(w.id)}">Архивировать</button>`);
+      }
+      if(!w.systemRole&&!walletHasHistory(w.id)&&walletBalance(w.id)===0) menu.push(`<button type="button" class="danger-text" data-wallet-delete="${escapeHtml(w.id)}">Удалить</button>`);
+      const subtitle=w.systemRole?"Системный кошелёк":`${w.type==="savings"?"Накопительный":"Расходный"}${walletState.strategy==="priority"?` · приоритет ${w.priority}`:""}`;
+      return `<div class="wallet-manage-row ${w.archived?"archived":""}"><div class="wallet-manage-main"><b>${escapeHtml(w.name)}</b><span>${subtitle}</span></div><div class="wallet-manage-actions"><button class="secondary" data-wallet-edit="${escapeHtml(w.id)}">Изменить</button>${menu.length?`<div class="wallet-overflow-wrap"><button class="secondary wallet-overflow-toggle" type="button" data-wallet-overflow-toggle aria-label="Действия кошелька" aria-expanded="false">⋯</button><div class="wallet-overflow-menu hidden" data-wallet-overflow-menu>${menu.join("")}</div></div>`:""}</div></div>`;
+    };
     root.innerHTML=`<div class="wallet-manage-section"><h3>Активные кошельки</h3>${active.map(row).join("")||'<div class="wallet-empty">Нет активных кошельков.</div>'}</div><details class="wallet-manage-archive" ${archived.length?"":""}><summary>Архив (${archived.length})</summary><div class="wallet-manage-section">${archived.map(row).join("")||'<div class="wallet-empty">Архив пуст.</div>'}</div></details>`;
     const clearBtn=$("clearWalletHistoryBtn"),clearState=$("walletClearHistoryState");
     const operationCount=walletOperationGroups().length;
@@ -4419,39 +4433,50 @@ body{padding-bottom:88px}
     }
   }
 
+  function syncWalletEditGoalVisibility(){
+    const field=$("walletEditGoalField");
+    if(!field) return;
+    field.classList.toggle("hidden",$("walletEditType")?.value!=="savings");
+  }
   function fillWalletEditForm(w=null){
     walletEditingId=w?.id||"";
     $("walletEditTitle").textContent=w?`Изменить — ${w.name}`:"Добавить кошелёк";
     $("walletEditName").value=w?.name||"";
     $("walletEditType").value=w?.type||"expense";
-    $("walletEditPlan").value=moneyInputValue(w?.monthlyPlanCents||0);
     $("walletEditGoal").value=moneyInputValue(w?.goalCents||0);
     $("walletEditPriority").value=String(w?.priority||walletActive().length+1);
     $("walletEditRollover").value=w?.rollover||"carry";
     $("walletEditProtected").checked=!!w?.protected;
+    if($("walletEditAdvanced")) $("walletEditAdvanced").open=false;
     const system=!!w?.systemRole;
-    $("walletEditType").disabled=system;$("walletEditPlan").disabled=system;$("walletEditRollover").disabled=system;
+    $("walletEditType").disabled=system;$("walletEditRollover").disabled=system;
     $("walletEditSystemNote").classList.toggle("hidden",!system);
     $("walletEditError").textContent="";
     syncWalletEditPriorityVisibility();
+    syncWalletEditGoalVisibility();
   }
   function openWalletEdit(id=""){ const w=id?walletDef(id):null;fillWalletEditForm(w);$("walletEditModal").classList.remove("hidden");setTimeout(()=>$("walletEditName").focus(),60); }
   function closeWalletEdit(){ walletEditingId="";$("walletEditModal").classList.add("hidden"); }
 
   async function saveWalletEdit(){
     if(walletBusy) return;
-    const name=$("walletEditName").value.trim(),plan=parseMoneyInput($("walletEditPlan").value||"0"),goal=parseMoneyInput($("walletEditGoal").value||"0"),priority=Math.max(1,Math.trunc(Number($("walletEditPriority").value)||1)),error=$("walletEditError");
+    const name=$("walletEditName").value.trim(),selectedType=$("walletEditType").value==="savings"?"savings":"expense",goal=parseMoneyInput($("walletEditGoal").value||"0"),priority=Math.max(1,Math.trunc(Number($("walletEditPriority").value)||1)),error=$("walletEditError");
     if(!name){error.textContent="Введите название";return;}
-    if(plan===null||goal===null){error.textContent="Проверьте суммы";return;}
+    if(selectedType==="savings"&&goal===null){error.textContent="Проверьте сумму цели";return;}
     const previous=clone(walletState);walletBusy=true;const busy=beginButtonBusy("saveWalletEdit","Сохраняем…");
     try{
       if(walletEditingId){
         const w=walletDef(walletEditingId);if(!w) throw new Error("Кошелёк не найден");
-        w.name=name.slice(0,60);w.goalCents=goal;w.priority=priority;w.protected=$("walletEditProtected").checked||!!w.systemRole;
-        if(!w.systemRole){w.type=$("walletEditType").value==="savings"?"savings":"expense";w.monthlyPlanCents=plan;w.rollover=$("walletEditRollover").value==="insurance"?"insurance":"carry";}
+        w.name=name.slice(0,60);w.priority=priority;w.protected=$("walletEditProtected").checked||!!w.systemRole;
+        if(w.type==="savings" || (!w.systemRole&&selectedType==="savings")) w.goalCents=Math.max(0,goal||0);
+        if(!w.systemRole){
+          w.type=selectedType;
+          w.rollover=$("walletEditRollover").value==="insurance"?"insurance":"carry";
+          // monthlyPlanCents намеренно не меняется здесь: план редактируется только в «Месячных планах».
+        }
       }else{
         const maxOrder=Math.max(0,...walletState.wallets.map(w=>w.order||0));
-        walletState.wallets.push(normalizeWalletDefinition({id:walletNewId(),name,type:$("walletEditType").value,monthlyPlanCents:plan,goalCents:goal,protected:$("walletEditProtected").checked,archived:false,order:maxOrder+1,priority,rollover:$("walletEditRollover").value},maxOrder));
+        walletState.wallets.push(normalizeWalletDefinition({id:walletNewId(),name,type:selectedType,monthlyPlanCents:0,goalCents:selectedType==="savings"?Math.max(0,goal||0):0,protected:$("walletEditProtected").checked,archived:false,order:maxOrder+1,priority,rollover:$("walletEditRollover").value},maxOrder));
       }
       await persistWalletConfig({showToast:false});closeWalletEdit();renderWalletManagement();renderWallets();toast("Кошелёк сохранён");
     }catch(e){console.error(e);walletState=previous;try{saveWalletState();}catch(_){}error.textContent=e.message||"Не удалось сохранить";}
@@ -9625,8 +9650,11 @@ body{padding-bottom:88px}
   $("walletTransactionModal").addEventListener("click",e=>{ if(e.target===$("walletTransactionModal")) closeWalletTransaction(); });
   $("confirmWalletTransaction").onclick=confirmWalletTransaction;
   $("walletsGrid").addEventListener("click",e=>{
+    const toggle=e.target.closest("[data-wallet-overflow-toggle]");
+    if(toggle){e.stopPropagation();toggleWalletOverflowMenu(toggle);return;}
     const btn=e.target.closest("[data-wallet-action]");
     if(!btn) return;
+    closeWalletOverflowMenus();
     openWalletTransaction(btn.dataset.walletId,btn.dataset.walletAction);
   });
   $("walletFilterButtons").addEventListener("click",e=>{
@@ -9644,7 +9672,6 @@ body{padding-bottom:88px}
     const correct=e.target.closest("[data-wallet-correct]");if(correct){openWalletCorrection(correct.dataset.walletCorrect);return;}
     const undo=e.target.closest("[data-wallet-undo]");if(undo){undoWalletOperation(undo.dataset.walletUndo);return;}
   };
-  $("walletRecentList").addEventListener("click",handleWalletHistoryAction);
   $("walletHistoryList").addEventListener("click",handleWalletHistoryAction);
   $("openWalletFullHistory").onclick=openWalletFullHistory;
   $("closeWalletFullHistory").onclick=closeWalletFullHistory;
@@ -9656,17 +9683,22 @@ body{padding-bottom:88px}
   $("openWalletPlansFromManage").onclick=()=>{closeWalletManagement();openWalletPlan();};
   $("clearWalletHistoryBtn").onclick=clearWalletHistoryAndBalances;
   $("walletManageList").addEventListener("click",e=>{
-    const edit=e.target.closest("[data-wallet-edit]");if(edit){openWalletEdit(edit.dataset.walletEdit);return;}
-    const archive=e.target.closest("[data-wallet-archive]");if(archive){archiveWallet(archive.dataset.walletArchive);return;}
-    const restore=e.target.closest("[data-wallet-restore]");if(restore){restoreWallet(restore.dataset.walletRestore);return;}
-    const del=e.target.closest("[data-wallet-delete]");if(del){deleteWallet(del.dataset.walletDelete);return;}
-    const move=e.target.closest("[data-wallet-move]");if(move){moveWalletOrder(move.dataset.walletId,move.dataset.walletMove);return;}
+    const toggle=e.target.closest("[data-wallet-overflow-toggle]");if(toggle){e.stopPropagation();toggleWalletOverflowMenu(toggle);return;}
+    const edit=e.target.closest("[data-wallet-edit]");if(edit){closeWalletOverflowMenus();openWalletEdit(edit.dataset.walletEdit);return;}
+    const archive=e.target.closest("[data-wallet-archive]");if(archive){closeWalletOverflowMenus();archiveWallet(archive.dataset.walletArchive);return;}
+    const restore=e.target.closest("[data-wallet-restore]");if(restore){closeWalletOverflowMenus();restoreWallet(restore.dataset.walletRestore);return;}
+    const del=e.target.closest("[data-wallet-delete]");if(del){closeWalletOverflowMenus();deleteWallet(del.dataset.walletDelete);return;}
+    const move=e.target.closest("[data-wallet-move]");if(move){closeWalletOverflowMenus();moveWalletOrder(move.dataset.walletId,move.dataset.walletMove);return;}
   });
 
   $("closeWalletEdit").onclick=closeWalletEdit;
   $("cancelWalletEdit").onclick=closeWalletEdit;
   $("walletEditModal").addEventListener("click",e=>{ if(e.target===$("walletEditModal")) closeWalletEdit(); });
+  $("walletEditType").onchange=()=>{syncWalletEditGoalVisibility();syncWalletEditPriorityVisibility();};
   $("saveWalletEdit").onclick=saveWalletEdit;
+
+  document.addEventListener("click",e=>{ if(!e.target.closest(".wallet-overflow-wrap")) closeWalletOverflowMenus(); });
+  window.addEventListener("keydown",e=>{ if(e.key==="Escape") closeWalletOverflowMenus(); });
 
   $("closeWalletCorrection").onclick=closeWalletCorrection;
   $("cancelWalletCorrection").onclick=closeWalletCorrection;
