@@ -2533,6 +2533,7 @@ body{padding-bottom:88px}
   const SHIFT_TIMEZONE = "Europe/Moscow";
   const STARTUP_SHIFT_MODE = new URLSearchParams(location.search).get("startup")==="1";
   const MASTER_ROSTER_FROM = "2026-08-24";
+  const MASTER_TEMP_TO = "2026-08-31";
   const REMOVED_MASTER_NAME = "Ислам";
 
   const DEFAULTS = {
@@ -3085,7 +3086,16 @@ body{padding-bottom:88px}
       return;
     }
 
+    const todayKey=dateKeyFromDate(today);
+    const tempMasterNotice=(todayKey>=MASTER_ROSTER_FROM && todayKey<=MASTER_TEMP_TO)
+      ? `<div class="current-schedule-card" style="grid-column:1/-1;border-color:#f1d79e;background:#fffaf0">
+          <h3>Временный график мастеров · 24–31 августа</h3>
+          <div class="current-schedule-row">Олег в отпуске. Георгий и Асик работают по временному графику, у каждого по одному выходному. С 1 сентября возвращается постоянный цикл.</div>
+        </div>`
+      : "";
+
     root.innerHTML=`
+      ${tempMasterNotice}
       <div class="current-schedule-card service-s1">
         <h3>${escapeHtml(settings.service1)}</h3>
         <div class="current-schedule-row"><b>Менеджеры:</b> Арсен / Дина — 2/2</div>
@@ -6981,13 +6991,47 @@ body{padding-bottom:88px}
     return a.length===b.length && a.every((x,i)=>x===b[i]);
   }
 
+  function legacyMasterPlanBeforeRemoval(date){
+    const key=dateKeyFromDate(date);
+    const from=settings.balancedRosterFrom||"2026-08-01";
+    if(key<from || key>=MASTER_ROSTER_FROM) return null;
+
+    // Исторический график до увольнения Ислама сохраняем только для прошлых дат.
+    // В действующем составе и будущих сменах Ислам больше не участвует.
+    const days=dateDiffDays(from,date);
+    const phase=mod(days,4);
+    const day=date.getDate();
+    const novaMaster=(phase===0 || phase===1) ? "Георгий" : "Асик";
+    const baseMobaMaster=(phase===0 || phase===1) ? "Олег" : "Ислам";
+    const swapPairing=(day>=12 && day<=21);
+    const mobaMaster=swapPairing
+      ? (baseMobaMaster==="Олег" ? "Ислам" : "Олег")
+      : baseMobaMaster;
+
+    return {s1:mobaMaster,s2:novaMaster,historical:true};
+  }
+
   function fixedMasterPlanForDate(date){
     const key=dateKeyFromDate(date);
     if(key<MASTER_ROSTER_FROM) return null;
 
-    // Новый постоянный цикл мастеров с 24.08.2026.
-    // Олег всегда работает только в Мобе с понедельника по пятницу.
-    // Георгий и Асик работают в Нове и по очереди закрывают выходные в Мобе.
+    // Временный график на отпуск Олега: 24–31 августа 2026.
+    // У Георгия и Асика по одному выходному; в эти два дня Нова работает без мастера.
+    const temporary={
+      "2026-08-24":{s1:"Асик",s2:"Без мастера"},
+      "2026-08-25":{s1:"Георгий",s2:"Асик"},
+      "2026-08-26":{s1:"Георгий",s2:"Асик"},
+      "2026-08-27":{s1:"Георгий",s2:"Без мастера"},
+      "2026-08-28":{s1:"Георгий",s2:"Асик"},
+      "2026-08-29":{s1:"Георгий",s2:"Асик"},
+      "2026-08-30":{s1:"Асик",s2:"Георгий"},
+      "2026-08-31":{s1:"Асик",s2:"Георгий"}
+    };
+    if(temporary[key]) return {...temporary[key],temporary:true};
+
+    // Постоянный двухнедельный цикл. Его фаза считается от 24.08.2026,
+    // поэтому после временного периода 01.09.2026 Олег выходит в Мобу,
+    // а Георгий/Асик продолжают нужную неделю цикла без сдвига.
     const days=dateDiffDays(MASTER_ROSTER_FROM,date);
     const week=mod(Math.floor(days/7),2); // 0 = неделя 1, 1 = неделя 2
     const weekday=date.getDay(); // 0 вс, 1 пн ... 6 сб
@@ -6997,8 +7041,6 @@ body{padding-bottom:88px}
     let novaMaster="";
 
     if(week===0){
-      // Неделя 1: Асик Пн–Вт в Нове, Георгий Ср–Вс;
-      // в Сб–Вс Георгий переходит в Мобу, Асик работает в Нове.
       if(weekend){
         mobaMaster="Георгий";
         novaMaster="Асик";
@@ -7006,8 +7048,6 @@ body{padding-bottom:88px}
         novaMaster=(weekday===1 || weekday===2) ? "Асик" : "Георгий";
       }
     }else{
-      // Неделя 2: Георгий Пн–Вт в Нове, Асик Ср–Вс;
-      // в Сб–Вс Асик переходит в Мобу, Георгий работает в Нове.
       if(weekend){
         mobaMaster="Асик";
         novaMaster="Георгий";
@@ -7120,6 +7160,10 @@ body{padding-bottom:88px}
     return String(value||"").trim()==="Без менеджера";
   }
 
+  function isNoMasterValue(value){
+    return String(value||"").trim()==="Без мастера";
+  }
+
   function baseScheduleForDate(date){
     const base=standardBaseScheduleForDate(date);
     const state=balancedRosterState(date);
@@ -7141,13 +7185,21 @@ body{padding-bottom:88px}
       }
     }
 
-    if(state.masterReady){
-      base.s1.master=state.master.s1;
-      base.s2.master=state.master.s2;
+    const historicalMasterDay=legacyMasterPlanBeforeRemoval(date);
+    if(historicalMasterDay){
+      base.s1.master=historicalMasterDay.s1;
+      base.s2.master=historicalMasterDay.s2;
       base.s1.masterCount=1;
       base.s2.masterCount=1;
-      base.s1.masterNames=[state.master.s1];
-      base.s2.masterNames=[state.master.s2];
+      base.s1.masterNames=[historicalMasterDay.s1];
+      base.s2.masterNames=[historicalMasterDay.s2];
+    }else if(state.masterReady){
+      base.s1.master=state.master.s1;
+      base.s2.master=state.master.s2;
+      base.s1.masterCount=isNoMasterValue(state.master.s1)?0:1;
+      base.s2.masterCount=isNoMasterValue(state.master.s2)?0:1;
+      base.s1.masterNames=isNoMasterValue(state.master.s1)?[]:[state.master.s1];
+      base.s2.masterNames=isNoMasterValue(state.master.s2)?[]:[state.master.s2];
     }
 
     // По субботам и воскресеньям в Нове менеджера нет.
@@ -7403,6 +7455,7 @@ body{padding-bottom:88px}
   function calendarPairText(pair){
     if(!pair) return "Нет графика";
     if(isNoManagerValue(pair.manager)) return `Только ${pair.master}`;
+    if(isNoMasterValue(pair.master)) return `${pair.manager} · без мастера`;
     return `${pair.manager} + ${pair.master}`;
   }
 
@@ -7526,7 +7579,7 @@ body{padding-bottom:88px}
 
     function addValue(value){
       const raw=String(value||"").trim();
-      if(!raw || raw==="Не назначен" || isNoManagerValue(raw)) return;
+      if(!raw || raw==="Не назначен" || isNoManagerValue(raw) || isNoMasterValue(raw)) return;
 
       if(raw.startsWith("Конфликт:")){
         raw.replace(/^Конфликт:\s*/,"").split(",").forEach(n=>{
@@ -7757,14 +7810,20 @@ body{padding-bottom:88px}
   function scheduleCellHasProblem(pair){
     if(!pair) return true;
     const managerBad=!isNoManagerValue(pair.manager) && scheduleValueCount(pair.manager)!==1;
-    const masterBad=scheduleValueCount(pair.master)!==1;
+    const masterBad=!isNoMasterValue(pair.master) && scheduleValueCount(pair.master)!==1;
     return managerBad || masterBad;
   }
 
   function unifiedPairHtml(pair){
     if(!pair) return '<div class="unified-pair">Не назначено</div>';
+    if(isNoManagerValue(pair.manager) && isNoMasterValue(pair.master)){
+      return '<div class="unified-pair">Без сотрудников</div>';
+    }
     if(isNoManagerValue(pair.manager)){
       return `<div class="unified-pair">Только <b>${escapeHtml(pair.master)}</b></div>`;
+    }
+    if(isNoMasterValue(pair.master)){
+      return `<div class="unified-pair"><b>${escapeHtml(pair.manager)}</b> <span>· без мастера</span></div>`;
     }
     return `<div class="unified-pair"><b>${escapeHtml(pair.manager)}</b> <span>+ ${escapeHtml(pair.master)}</span></div>`;
   }
@@ -7900,7 +7959,7 @@ body{padding-bottom:88px}
 
   function scheduleValueNames(value){
     const raw=String(value||"").trim();
-    if(!raw || raw==="Не назначен" || isNoManagerValue(raw)) return [];
+    if(!raw || raw==="Не назначен" || isNoManagerValue(raw) || isNoMasterValue(raw)) return [];
     if(raw.startsWith("Конфликт:")){
       return raw.replace(/^Конфликт:\s*/,"").split(",").map(x=>x.trim()).filter(Boolean);
     }
@@ -7916,7 +7975,7 @@ body{padding-bottom:88px}
     const map=new Map();
 
     function add(role,name,service){
-      if(!name || name==="Не назначен" || isNoManagerValue(name)) return;
+      if(!name || name==="Не назначен" || isNoManagerValue(name) || isNoMasterValue(name)) return;
       const key=`${role}|${name}`;
       if(!map.has(key)){
         map.set(key,{
@@ -8016,6 +8075,7 @@ body{padding-bottom:88px}
         {service:settings.service2,role:"master",label:"мастер",value:r.s2.master}
       ]){
         if(item.role==="manager" && isNoManagerValue(item.value)) continue;
+        if(item.role==="master" && isNoMasterValue(item.value)) continue;
         const count=scheduleValueCount(item.value);
         if(count!==1) problems.push({...item,date,count,names:scheduleValueNames(item.value)});
       }
@@ -8042,6 +8102,7 @@ body{padding-bottom:88px}
         {service:settings.service2,role:"master",label:"мастер",value:row.s2.master}
       ]){
         if(item.role==="manager" && isNoManagerValue(item.value)) continue;
+        if(item.role==="master" && isNoMasterValue(item.value)) continue;
         const count=scheduleValueCount(item.value);
         if(count!==1){
           problems.push({...item,date:dateKey,count,names:scheduleValueNames(item.value)});
@@ -8243,6 +8304,14 @@ body{padding-bottom:88px}
         </div>`;
     }
 
+    if(role==="master" && isNoMasterValue(value)){
+      return `
+        <div class="schedule-manage-role">
+          <div><small>${escapeHtml(label)} · временно</small><b>Без мастера</b></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px">Плановый день без мастера на период отпуска Олега.</div>
+        </div>`;
+    }
+
     const names=scheduleValueNames(value);
     const count=names.length;
 
@@ -8358,7 +8427,7 @@ body{padding-bottom:88px}
       tr.dataset.scheduleDate=dateKey;
       tr.dataset.scheduleService=serviceName;
 
-      if((!isNoManagerValue(pair.manager) && scheduleValueCount(pair.manager)!==1) || scheduleValueCount(pair.master)!==1){
+      if((!isNoManagerValue(pair.manager) && scheduleValueCount(pair.manager)!==1) || (!isNoMasterValue(pair.master) && scheduleValueCount(pair.master)!==1)){
         tr.classList.add("has-problem");
       }
 
@@ -8372,7 +8441,9 @@ body{padding-bottom:88px}
       if(today.getFullYear()===r.date.getFullYear() && today.getMonth()===r.date.getMonth() && today.getDate()===d) tr.classList.add("today");
       const pairLabel=isNoManagerValue(pair.manager)
         ? `Только мастер: ${escapeHtml(pair.master)}`
-        : `${escapeHtml(pair.manager)} + ${escapeHtml(pair.master)}`;
+        : (isNoMasterValue(pair.master)
+          ? `${escapeHtml(pair.manager)} · без мастера`
+          : `${escapeHtml(pair.manager)} + ${escapeHtml(pair.master)}`);
       tr.innerHTML=`<td class="date">${d} ${WD[r.date.getDay()]}</td><td class="pair">${pairLabel}</td>`;
       tb.appendChild(tr);
     });
