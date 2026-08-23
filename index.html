@@ -2532,6 +2532,8 @@ body{padding-bottom:88px}
   const SHIFT_POLL_MS = 30000;
   const SHIFT_TIMEZONE = "Europe/Moscow";
   const STARTUP_SHIFT_MODE = new URLSearchParams(location.search).get("startup")==="1";
+  const MASTER_ROSTER_FROM = "2026-08-24";
+  const REMOVED_MASTER_NAME = "Ислам";
 
   const DEFAULTS = {
     anchorDate: "2026-09-01",
@@ -2544,7 +2546,7 @@ body{padding-bottom:88px}
     shiftStart: "08:00",
     shiftEnd: "22:00",
     managers: [["Сергей","Арсен"],["Дина","Амалия"]],
-    masters: [["Олег","Асик"],["Ислам","Георгий"]],
+    masters: [["Олег","Георгий"],["Асик",""]],
     staffChanges: [],
     dayOverrides: []
   };
@@ -3088,8 +3090,8 @@ body{padding-bottom:88px}
         <h3>${escapeHtml(settings.service1)}</h3>
         <div class="current-schedule-row"><b>Менеджеры:</b> Арсен / Дина — 2/2</div>
         <div class="current-schedule-row"><b>Вт и Чт:</b> Сергей работает здесь, Арсен/Дина переходят в ${escapeHtml(settings.service2)}</div>
-        <div class="current-schedule-row"><b>Мастера:</b> Олег / Ислам</div>
-        <div class="current-schedule-row"><b>Связки:</b> менеджер ↔ мастер меняются примерно каждые 10 дней</div>
+        <div class="current-schedule-row"><b>Мастер:</b> Олег — Пн–Пт</div>
+        <div class="current-schedule-row"><b>Сб и Вс:</b> Георгий / Асик работают по очереди неделями</div>
       </div>
 
       <div class="current-schedule-card service-s2">
@@ -3097,7 +3099,7 @@ body{padding-bottom:88px}
         <div class="current-schedule-row"><b>Менеджер:</b> Сергей — Пн / Ср / Пт</div>
         <div class="current-schedule-row"><b>Вт и Чт:</b> работает Арсен или Дина по своему 2/2</div>
         <div class="current-schedule-row"><b>Сб и Вс:</b> без менеджера</div>
-        <div class="current-schedule-row"><b>Мастера:</b> Георгий / Асик — 2/2</div>
+        <div class="current-schedule-row"><b>Мастера:</b> Георгий / Асик — по двухнедельному циклу</div>
       </div>
     `;
   }
@@ -4943,8 +4945,8 @@ body{padding-bottom:88px}
       const phase=legacyPairPhase(s,migrationDate,role,group);
       const firstStart=addDaysToDateString(from,-phase);
       const secondStart=addDaysToDateString(firstStart,2);
-      result.push({id:`${prefix}-a`,name:String(pair[0]),role,group,slot:0,workDays:2,offDays:2,cycleStart:firstStart,employmentStart:from,isExtra:false,scheduleChanges:[]});
-      result.push({id:`${prefix}-b`,name:String(pair[1]),role,group,slot:1,workDays:2,offDays:2,cycleStart:secondStart,employmentStart:from,isExtra:false,scheduleChanges:[]});
+      if(String(pair?.[0]||"").trim()) result.push({id:`${prefix}-a`,name:String(pair[0]),role,group,slot:0,workDays:2,offDays:2,cycleStart:firstStart,employmentStart:from,isExtra:false,scheduleChanges:[]});
+      if(String(pair?.[1]||"").trim()) result.push({id:`${prefix}-b`,name:String(pair[1]),role,group,slot:1,workDays:2,offDays:2,cycleStart:secondStart,employmentStart:from,isExtra:false,scheduleChanges:[]});
     }
 
     addPair("manager",0,managers[0],"mgr-g0");
@@ -5010,7 +5012,7 @@ body{padding-bottom:88px}
       merged.employeeSchedules=makeEmployeesFromLegacy(merged);
     }else{
       merged.employeeSchedules=merged.employeeSchedules
-        .filter(x=>x && x.name && ["manager","master"].includes(x.role))
+        .filter(x=>x && x.name && ["manager","master"].includes(x.role) && !(x.role==="master" && String(x.name)===REMOVED_MASTER_NAME))
         .map((x,i)=>({
           id:String(x.id||`employee-${i}-${Math.random().toString(36).slice(2)}`),
           name:String(x.name),
@@ -5038,11 +5040,14 @@ body{padding-bottom:88px}
       });
 
       const roles={manager:merged.employeeSchedules.filter(x=>x.role==="manager"),master:merged.employeeSchedules.filter(x=>x.role==="master")};
-      if(roles.manager.length<4 || roles.master.length<4){
+      if(roles.manager.length<4 || roles.master.length<3){
         merged.employeeSchedules=makeEmployeesFromLegacy(merged);
       }
     }
 
+    merged.employeeSchedules=(merged.employeeSchedules||[]).filter(emp=>
+      !(emp.role==="master" && emp.name===REMOVED_MASTER_NAME)
+    );
     (merged.employeeSchedules||[]).forEach(emp=>{
       if(emp.name==="Аслан") emp.name="Асик";
     });
@@ -5050,7 +5055,10 @@ body{padding-bottom:88px}
       merged.managers=merged.managers.map(pair=>pair.map(n=>n==="Аслан"?"Асик":n));
     }
     if(Array.isArray(merged.masters)){
-      merged.masters=merged.masters.map(pair=>pair.map(n=>n==="Аслан"?"Асик":n));
+      merged.masters=merged.masters.map(pair=>pair.map(n=>{
+        const name=n==="Аслан"?"Асик":n;
+        return name===REMOVED_MASTER_NAME?"":name;
+      }));
     }
 
     syncLegacyTeamsFromEmployees(merged);
@@ -5074,6 +5082,7 @@ body{padding-bottom:88px}
 
     merged.dayOverrides=merged.dayOverrides
       .filter(x=>x && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date||"")) && (x.service || x.serviceKey) && x.manager && x.master)
+      .filter(x=>String(x.date)<MASTER_ROSTER_FROM || (String(x.master)!==REMOVED_MASTER_NAME && String(x.replacedName||"")!==REMOVED_MASTER_NAME))
       .map(x=>{
         const serviceKey=["s1","s2"].includes(x.serviceKey)
           ? x.serviceKey
@@ -6973,34 +6982,41 @@ body{padding-bottom:88px}
   }
 
   function fixedMasterPlanForDate(date){
-    const days=dateDiffDays(settings.balancedRosterFrom||"2026-08-01",date);
-    const phase=mod(days,4);
-    const day=date.getDate();
+    const key=dateKeyFromDate(date);
+    if(key<MASTER_ROSTER_FROM) return null;
 
-    // Нова не меняется:
-    // Георгий / Асик продолжают обычный 2/2.
-    const novaMaster=(phase===0 || phase===1) ? "Георгий" : "Асик";
+    // Новый постоянный цикл мастеров с 24.08.2026.
+    // Олег всегда работает только в Мобе с понедельника по пятницу.
+    // Георгий и Асик работают в Нове и по очереди закрывают выходные в Мобе.
+    const days=dateDiffDays(MASTER_ROSTER_FROM,date);
+    const week=mod(Math.floor(days/7),2); // 0 = неделя 1, 1 = неделя 2
+    const weekday=date.getDay(); // 0 вс, 1 пн ... 6 сб
+    const weekend=(weekday===0 || weekday===6);
 
-    // Мобильный Ангел:
-    // 1–10: Арсен чаще в связке с Олегом, Дина — с Исламом.
-    // 11-е — переходный день, чтобы не ломать нагрузку резко.
-    // 12–21: пары меняются — Арсен с Исламом, Дина с Олегом.
-    // 21-е является вторым переходным краем блока.
-    // 22–конец: возвращаем первую связку.
-    //
-    // Такой переход сохраняет Олегу/Исламу примерно равное число смен
-    // (15–16 в месяц), вместо перекоса, который получился бы при жёстком
-    // переключении ровно каждые 10 календарных дней.
-    const baseMobaMaster=(phase===0 || phase===1) ? "Олег" : "Ислам";
-    const swapPairing=(day>=12 && day<=21);
-    const mobaMaster=swapPairing
-      ? (baseMobaMaster==="Олег" ? "Ислам" : "Олег")
-      : baseMobaMaster;
+    let mobaMaster="Олег";
+    let novaMaster="";
 
-    return {
-      s1:mobaMaster,
-      s2:novaMaster
-    };
+    if(week===0){
+      // Неделя 1: Асик Пн–Вт в Нове, Георгий Ср–Вс;
+      // в Сб–Вс Георгий переходит в Мобу, Асик работает в Нове.
+      if(weekend){
+        mobaMaster="Георгий";
+        novaMaster="Асик";
+      }else{
+        novaMaster=(weekday===1 || weekday===2) ? "Асик" : "Георгий";
+      }
+    }else{
+      // Неделя 2: Георгий Пн–Вт в Нове, Асик Ср–Вс;
+      // в Сб–Вс Асик переходит в Мобу, Георгий работает в Нове.
+      if(weekend){
+        mobaMaster="Асик";
+        novaMaster="Георгий";
+      }else{
+        novaMaster=(weekday===1 || weekday===2) ? "Георгий" : "Асик";
+      }
+    }
+
+    return {s1:mobaMaster,s2:novaMaster,week:week+1};
   }
 
   function balancedRosterState(date){
@@ -7019,7 +7035,7 @@ body{padding-bottom:88px}
     const masters=[...new Set(active.filter(x=>x.role==="master").map(x=>x.name))];
 
     const managerReady=sameRoster(managers,["Сергей","Арсен","Дина"]);
-    const masterReady=sameRoster(masters,["Олег","Ислам","Георгий","Асик"]);
+    const masterReady=key>=MASTER_ROSTER_FROM && sameRoster(masters,["Олег","Георгий","Асик"]);
 
     if(!managerReady && !masterReady) return null;
 
@@ -7052,9 +7068,8 @@ body{padding-bottom:88px}
       managerOff=["Арсен","Дина","Сергей"].filter(name=>name!==managerS1 && name!==managerS2);
     }
 
-    // Мастера закреплены за своими точками постоянно.
-    // Моба: Олег / Ислам 2/2.
-    // Нова: Георгий / Асик 2/2.
+    // Новый цикл мастеров:
+    // Олег — только Моба Пн–Пт; Георгий и Асик — Нова и выходные в Мобе по очереди.
     let masterS1=null,masterS2=null,masterOff=[];
     let masterTeamS1=[],masterTeamS2=[];
 
@@ -7062,8 +7077,8 @@ body{padding-bottom:88px}
       const masterDay=fixedMasterPlanForDate(date);
       masterS1=masterDay.s1;
       masterS2=masterDay.s2;
-      masterOff=["Олег","Ислам","Георгий","Асик"].filter(n=>n!==masterS1 && n!==masterS2);
-      masterTeamS1=["Олег","Ислам"];
+      masterOff=["Олег","Георгий","Асик"].filter(n=>n!==masterS1 && n!==masterS2);
+      masterTeamS1=["Олег","Георгий","Асик"];
       masterTeamS2=["Георгий","Асик"];
     }
 
@@ -7136,7 +7151,7 @@ body{padding-bottom:88px}
     }
 
     // По субботам и воскресеньям в Нове менеджера нет.
-    // Мастер уже выбран постоянным графиком 2/2 и это всегда Георгий или Асик.
+    // Мастер в Нове выбран новым двухнедельным циклом: Георгий или Асик.
     if(isNovaWeekendRule(date,settings.service2)){
       base.s2.manager="Без менеджера";
       base.s2.managerCount=0;
