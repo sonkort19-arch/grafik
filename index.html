@@ -1889,7 +1889,7 @@ body{padding-bottom:88px}
 
         <div class="history-filters-clean">
           <select id="historyService"><option value="">Все сервисы</option></select>
-          <select id="historyEmployee"><option value="">Все менеджеры</option></select>
+          <select id="historyEmployee"><option value="">Все ответственные</option></select>
           <select id="historyProblem">
             <option value="">Все смены</option>
             <option value="problems">Только нарушения</option>
@@ -2534,7 +2534,9 @@ body{padding-bottom:88px}
   const STARTUP_SHIFT_MODE = new URLSearchParams(location.search).get("startup")==="1";
   const MASTER_ROSTER_FROM = "2026-08-24";
   const MASTER_TEMP_TO = "2026-08-31";
+  const MANAGER_ROSTER_FROM = "2026-09-07";
   const REMOVED_MASTER_NAME = "Ислам";
+  const REMOVED_MANAGER_NAME = "Сергей";
 
   const DEFAULTS = {
     anchorDate: "2026-09-01",
@@ -2849,11 +2851,16 @@ body{padding-bottom:88px}
   }
 
   function activeManagerNames(dateStr=moscowParts().date){
-    return [...new Set(activeEmployeesForDate(dateStr).filter(x=>x.role==="manager").map(x=>x.name).filter(Boolean))];
+    const active=activeEmployeesForDate(dateStr);
+    const names=active.filter(x=>x.role==="manager").map(x=>x.name).filter(Boolean);
+    if(dateStr>=MANAGER_ROSTER_FROM){
+      active.filter(x=>x.role==="master").forEach(x=>{ if(x.name) names.push(x.name); });
+    }
+    return [...new Set(names)];
   }
 
   function allHistoricalManagerNames(){
-    const names=new Set((settings.employeeSchedules||[]).filter(x=>x.role==="manager").map(x=>x.name));
+    const names=new Set((settings.employeeSchedules||[]).filter(x=>x.role==="manager" || x.role==="master").map(x=>x.name));
     const changes=(settings.staffChanges||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
     let changed=true;
     while(changed){
@@ -3098,18 +3105,18 @@ body{padding-bottom:88px}
       ${tempMasterNotice}
       <div class="current-schedule-card service-s1">
         <h3>${escapeHtml(settings.service1)}</h3>
-        <div class="current-schedule-row"><b>Менеджеры:</b> Арсен / Дина — 2/2</div>
-        <div class="current-schedule-row"><b>Вт и Чт:</b> Сергей работает здесь, Арсен/Дина переходят в ${escapeHtml(settings.service2)}</div>
+        <div class="current-schedule-row"><b>Менеджеры:</b> Арсен / Дина — 2/2, только в этой точке</div>
         <div class="current-schedule-row"><b>Мастер:</b> Олег — Пн–Пт</div>
         <div class="current-schedule-row"><b>Сб и Вс:</b> Георгий / Асик работают по очереди неделями</div>
+        <div class="current-schedule-row"><b>На смене:</b> 1 менеджер + 1 мастер</div>
       </div>
 
       <div class="current-schedule-card service-s2">
         <h3>${escapeHtml(settings.service2)}</h3>
-        <div class="current-schedule-row"><b>Менеджер:</b> Сергей — Пн / Ср / Пт</div>
-        <div class="current-schedule-row"><b>Вт и Чт:</b> работает Арсен или Дина по своему 2/2</div>
-        <div class="current-schedule-row"><b>Сб и Вс:</b> без менеджера</div>
-        <div class="current-schedule-row"><b>Мастера:</b> Георгий / Асик — по двухнедельному циклу</div>
+        <div class="current-schedule-row"><b>Отдельного менеджера нет.</b></div>
+        <div class="current-schedule-row"><b>Мастер:</b> Георгий / Асик — по действующему двухнедельному циклу</div>
+        <div class="current-schedule-row"><b>Ответственный:</b> мастер Новы одновременно выполняет функцию менеджера</div>
+        <div class="current-schedule-row"><b>Смена:</b> мастер открывает и закрывает её своим PIN</div>
       </div>
     `;
   }
@@ -5754,6 +5761,7 @@ body{padding-bottom:88px}
       const row=currentShiftRows.find(x=>x.service===service) || null;
       const exp=expectedForDate(now.date,service);
       const soloMaster=!!(exp && isNoManagerValue(exp.manager));
+      const masterActsAsManager=!!(exp && service===settings.service2 && exp.manager===exp.master && !isNoMasterValue(exp.master));
       const currentMins=now.hour*60+now.minute, startMins=shiftMinutes(settings.shiftStart), endMins=shiftMinutes(settings.shiftEnd);
       let cls="wait", label="Ожидаем открытия", meta="";
       if(soloMaster){
@@ -5769,7 +5777,7 @@ body{padding-bottom:88px}
         cls="closed"; label=`Закрыта ${formatMoscowTime(row.closed_at)}`;
         meta=`Открыл: ${escapeHtml(row.opened_by||"—")} ${formatMoscowTime(row.opened_at)}<br>Закрыл: ${escapeHtml(row.closed_by||"—")} ${formatMoscowTime(row.closed_at)}`;
       }else if(currentMins>=startMins){
-        cls="missing"; label="Смена не открыта"; meta="Подтверждения от менеджера ещё нет";
+        cls="missing"; label="Смена не открыта"; meta=masterActsAsManager?"Подтверждения от ответственного мастера ещё нет":"Подтверждения от менеджера ещё нет";
       }else{
         meta=`Начало смены в ${settings.shiftStart}`;
       }
@@ -5777,9 +5785,11 @@ body{padding-bottom:88px}
       const todayServiceKey=serviceKeyForName(service);
       card.className=`shift-card ${todayServiceKey?`service-${todayServiceKey}`:""}`.trim();
       const pairText=exp
-        ? (soloMaster
-          ? `Только мастер: <strong>${escapeHtml(exp.master)}</strong><br>Без менеджера<br>${settings.shiftStart}–${settings.shiftEnd}`
-          : `Менеджер: <strong>${escapeHtml(exp.manager)}</strong><br>Мастер: <strong>${escapeHtml(exp.master)}</strong><br>${settings.shiftStart}–${settings.shiftEnd}`)
+        ? (masterActsAsManager
+          ? `Мастер: <strong>${escapeHtml(exp.master)}</strong><br>Отвечает за точку и открывает смену<br>${settings.shiftStart}–${settings.shiftEnd}`
+          : soloMaster
+            ? `Только мастер: <strong>${escapeHtml(exp.master)}</strong><br>Без менеджера<br>${settings.shiftStart}–${settings.shiftEnd}`
+            : `Менеджер: <strong>${escapeHtml(exp.manager)}</strong><br>Мастер: <strong>${escapeHtml(exp.master)}</strong><br>${settings.shiftStart}–${settings.shiftEnd}`)
         : "График на эту дату не рассчитан";
       const action=soloMaster ? "done" : ((!row || !row.opened_at) ? "open" : (!row.closed_at ? "close" : "done"));
       const allowed=action!=="done" && canUseShiftService(service);
@@ -6453,7 +6463,7 @@ body{padding-bottom:88px}
       </div>
       ${people.length?`
         <div class="discipline-title">
-          <b>Дисциплина менеджеров</b>
+          <b>Дисциплина ответственных</b>
           <span>за выбранный период</span>
         </div>
         <div class="discipline-table-wrap">
@@ -6485,7 +6495,7 @@ body{padding-bottom:88px}
     const sv=$("historyService"), emp=$("historyEmployee"); if(!sv||!emp) return;
     const svv=sv.value, ev=emp.value;
     sv.innerHTML=`<option value="">Все сервисы</option><option>${escapeHtml(settings.service1)}</option><option>${escapeHtml(settings.service2)}</option>`;
-    emp.innerHTML='<option value="">Все менеджеры</option>'+allHistoricalManagerNames().map(n=>`<option>${escapeHtml(n)}</option>`).join("");
+    emp.innerHTML='<option value="">Все ответственные</option>'+allHistoricalManagerNames().map(n=>`<option>${escapeHtml(n)}</option>`).join("");
     if([...sv.options].some(o=>o.value===svv)) sv.value=svv; if([...emp.options].some(o=>o.value===ev)) emp.value=ev;
   }
   async function loadHistory(){
@@ -6830,6 +6840,14 @@ body{padding-bottom:88px}
       });
     });
 
+    // С 07.09.2026 Сергей не участвует в действующем и будущем графике.
+    // История до этой даты остаётся без изменений.
+    if(key>=MANAGER_ROSTER_FROM){
+      list.forEach(emp=>{
+        if(emp.role==="manager" && emp.name===REMOVED_MANAGER_NAME) emp.inactive=true;
+      });
+    }
+
     return list;
   }
 
@@ -7074,7 +7092,9 @@ body{padding-bottom:88px}
     const managers=[...new Set(active.filter(x=>x.role==="manager").map(x=>x.name))];
     const masters=[...new Set(active.filter(x=>x.role==="master").map(x=>x.name))];
 
-    const managerReady=sameRoster(managers,["Сергей","Арсен","Дина"]);
+    const managerReady=key<MANAGER_ROSTER_FROM
+      ? sameRoster(managers,["Сергей","Арсен","Дина"])
+      : sameRoster(managers,["Арсен","Дина"]);
     const masterReady=key>=MASTER_ROSTER_FROM && sameRoster(masters,["Олег","Георгий","Асик"]);
 
     if(!managerReady && !masterReady) return null;
@@ -7093,19 +7113,22 @@ body{padding-bottom:88px}
       const mobaPhase=mod(days,4);
       const mobaRegularManager=(mobaPhase===0 || mobaPhase===1) ? "Арсен" : "Дина";
 
-      const weekday=date.getDay();
-      const swapDay=(weekday===2 || weekday===4); // вторник / четверг
-
-      if(swapDay){
-        // Сергей идёт в Мобу, а Арсен/Дина по своему 2/2 в этот день идут в Нову.
-        managerS1="Сергей";
-        managerS2=mobaRegularManager;
-      }else{
+      if(key>=MANAGER_ROSTER_FROM){
         managerS1=mobaRegularManager;
-        managerS2=(weekday>=1 && weekday<=5) ? "Сергей" : "Без менеджера";
+        managerS2=null;
+        managerOff=["Арсен","Дина"].filter(name=>name!==managerS1);
+      }else{
+        const weekday=date.getDay();
+        const swapDay=(weekday===2 || weekday===4);
+        if(swapDay){
+          managerS1="Сергей";
+          managerS2=mobaRegularManager;
+        }else{
+          managerS1=mobaRegularManager;
+          managerS2=(weekday>=1 && weekday<=5) ? "Сергей" : "Без менеджера";
+        }
+        managerOff=["Арсен","Дина","Сергей"].filter(name=>name!==managerS1 && name!==managerS2);
       }
-
-      managerOff=["Арсен","Дина","Сергей"].filter(name=>name!==managerS1 && name!==managerS2);
     }
 
     // Новый цикл мастеров:
@@ -7122,6 +7145,10 @@ body{padding-bottom:88px}
       masterTeamS2=["Георгий","Асик"];
     }
 
+    if(managerReady && masterReady && key>=MANAGER_ROSTER_FROM){
+      managerS2=masterS2;
+    }
+
     return {
       from,
       block,
@@ -7133,7 +7160,7 @@ body{padding-bottom:88px}
         s2:managerS2,
         off:managerOff,
         fixedS1:"Арсен / Дина",
-        fixedS2:"Сергей",
+        fixedS2:key>=MANAGER_ROSTER_FROM?"Мастер Новы":"Сергей",
         reserve:""
       },
       master:{
@@ -7204,7 +7231,7 @@ body{padding-bottom:88px}
 
     // По субботам и воскресеньям в Нове менеджера нет.
     // Мастер в Нове выбран новым двухнедельным циклом: Георгий или Асик.
-    if(isNovaWeekendRule(date,settings.service2)){
+    if(key<MANAGER_ROSTER_FROM && isNovaWeekendRule(date,settings.service2)){
       base.s2.manager="Без менеджера";
       base.s2.managerCount=0;
       base.s2.managerNames=[];
@@ -7287,7 +7314,7 @@ body{padding-bottom:88px}
       const partner=todayAssignment.pair.manager===name
         ? todayAssignment.pair.master
         : todayAssignment.pair.manager;
-      const solo=isNoManagerValue(partner);
+      const solo=isNoManagerValue(partner) || partner===name;
 
       const state=employeeServiceState(todayAssignment.service);
       let shiftText="Смена ещё не открыта";
@@ -7305,7 +7332,7 @@ body{padding-bottom:88px}
       work.className=`employee-main-status work ${employeeServiceKey?`service-${employeeServiceKey}`:""}`.trim();
       work.innerHTML=`
         <b>Сегодня работаю</b>
-        <span><strong>${escapeHtml(todayAssignment.service)}</strong> · ${settings.shiftStart}–${settings.shiftEnd}<br>${solo?"Работаю один, без менеджера":`Напарник: <strong>${escapeHtml(partner)}</strong>`}</span>
+        <span><strong>${escapeHtml(todayAssignment.service)}</strong> · ${settings.shiftStart}–${settings.shiftEnd}<br>${partner===name?"Работаю один · отвечаю за точку и смену":solo?"Работаю один, без менеджера":`Напарник: <strong>${escapeHtml(partner)}</strong>`}</span>
         <span class="employee-own-shift-status">${escapeHtml(shiftText)}</span>
       `;
     }else{
@@ -7326,11 +7353,11 @@ body{padding-bottom:88px}
     const list=employeeUpcomingShifts(name,{afterToday:false,limit:20});
     $("employeeShiftList").innerHTML=list.length ? list.map(x=>{
       const partner=x.pair.manager===name ? x.pair.master : x.pair.manager;
-      const solo=isNoManagerValue(partner);
+      const solo=isNoManagerValue(partner) || partner===name;
       const serviceKey=serviceKeyForName(x.service);
       return `<div class="employee-shift-item ${serviceKey?`service-${serviceKey}`:""}">
         <div class="employee-shift-date"><b>${x.date.getDate()}</b><span>${MONTHS[x.date.getMonth()].slice(0,3)} · ${WD[x.date.getDay()]}</span></div>
-        <div class="employee-shift-info"><b>${escapeHtml(x.service)} · ${settings.shiftStart}–${settings.shiftEnd}</b><span>${solo?"Работаю один, без менеджера":`Вместе с ${escapeHtml(partner)}`}</span></div>
+        <div class="employee-shift-info"><b>${escapeHtml(x.service)} · ${settings.shiftStart}–${settings.shiftEnd}</b><span>${partner===name?"Работаю один · отвечаю за точку и смену":solo?"Работаю один, без менеджера":`Вместе с ${escapeHtml(partner)}`}</span></div>
       </div>`;
     }).join("") : '<div class="notice">Ближайшие смены не найдены.</div>';
   }
@@ -7371,7 +7398,7 @@ body{padding-bottom:88px}
 
     const partner=assignment.pair.manager===name ? assignment.pair.master : assignment.pair.manager;
     const solo=isNoManagerValue(partner);
-    root.innerHTML=`<b>${escapeHtml(title)} — работаю</b><span>${escapeHtml(assignment.service)} · ${settings.shiftStart}–${settings.shiftEnd}<br>${solo?"Работаю один, без менеджера":`Напарник: ${escapeHtml(partner)}`}</span>`;
+    root.innerHTML=`<b>${escapeHtml(title)} — работаю</b><span>${escapeHtml(assignment.service)} · ${settings.shiftStart}–${settings.shiftEnd}<br>${partner===name?"Работаю один · отвечаю за точку и смену":solo?"Работаю один, без менеджера":`Напарник: ${escapeHtml(partner)}`}</span>`;
   }
 
   function renderEmployeeCalendar(){
@@ -7454,6 +7481,7 @@ body{padding-bottom:88px}
 
   function calendarPairText(pair){
     if(!pair) return "Нет графика";
+    if(pair.manager===pair.master && !isNoMasterValue(pair.master)) return `Только ${pair.master} · отвечает за точку`;
     if(isNoManagerValue(pair.manager)) return `Только ${pair.master}`;
     if(isNoMasterValue(pair.master)) return `${pair.manager} · без мастера`;
     return `${pair.manager} + ${pair.master}`;
@@ -8398,8 +8426,8 @@ body{padding-bottom:88px}
     const card=document.createElement("section"); card.className="service-card";
     const head=document.createElement("div"); head.className="service-head";
     const ruleText=title===settings.service2
-      ? "Сергей обычно здесь · вт/чт Арсен/Дина"
-      : "Арсен/Дина 2/2 · вт/чт Сергей";
+      ? "Мастер Новы = ответственный за смену"
+      : "Арсен/Дина 2/2 · только Моба";
     head.innerHTML=`<h2>${escapeHtml(title)}</h2><div class="small">${ruleText}</div>`;
     card.appendChild(head);
 
