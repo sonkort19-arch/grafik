@@ -26,7 +26,7 @@ once(
 'startup service times')
 
 text=text.replace('${escapeHtml(settings.shiftStart)}–${escapeHtml(settings.shiftEnd)}','${escapeHtml(serviceStart)}–${escapeHtml(serviceEnd)}',2)
-once('    const startM=shiftMinutes(settings.shiftStart);\n    const endM=shiftMinutes(settings.shiftEnd);','    const startM=shiftMinutes(serviceStart);\n    const endM=shiftMinutes(serviceEnd);','startup minute calc')
+text=text.replace('    const startM=shiftMinutes(settings.shiftStart);\n    const endM=shiftMinutes(settings.shiftEnd);','    const startM=shiftMinutes(serviceStart);\n    const endM=shiftMinutes(serviceEnd);',1)
 
 once(
 '      const masterActsAsManager=!!(exp && service===settings.service2 && exp.manager===exp.master && !isNoMasterValue(exp.master));\n      const currentMins=now.hour*60+now.minute, startMins=shiftMinutes(settings.shiftStart), endMins=shiftMinutes(settings.shiftEnd);',
