@@ -1,0 +1,103 @@
+name: Icon refresh
+
+on:
+  push:
+    branches: ["icon-refresh-v3"]
+    paths: [".github/workflows/icon-refresh.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build final icon files
+        shell: bash
+        run: |
+          cat tools/icon_parts/ma512.part*.b64 | base64 -d > ma-icon-green-v3-512.png
+          base64 -d tools/icon_parts/ma192.b64 > ma-icon-green-v3-192.png
+          base64 -d tools/icon_parts/ma180.b64 > ma-apple-touch-green-v3.png
+          base64 -d tools/icon_parts/ma64.b64 > ma-favicon-green-v3.png
+          python3 - <<'PY'
+          import struct
+          expected={
+            'ma-icon-green-v3-192.png':(192,192),
+            'ma-icon-green-v3-512.png':(512,512),
+            'ma-apple-touch-green-v3.png':(180,180),
+            'ma-favicon-green-v3.png':(64,64),
+          }
+          for path,size in expected.items():
+              with open(path,'rb') as f:
+                  head=f.read(24)
+              assert head[:8] == b'\x89PNG\r\n\x1a\n', f'{path}: not PNG'
+              actual=struct.unpack('>II',head[16:24])
+              assert actual == size, f'{path}: {actual} != {size}'
+              print(path, actual)
+          PY
+
+      - name: Update PWA icon references
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,re
+
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          s,n=re.subn(r'<link rel="icon" href="data:image/svg\+xml,[^"]+">','<link rel="icon" type="image/png" sizes="64x64" href="ma-favicon-green-v3.png">',s,count=1)
+          assert n==1, 'old favicon reference not found'
+          old='<link rel="apple-touch-icon" href="icon-192.png">'
+          assert old in s, 'old apple-touch icon reference not found'
+          s=s.replace(old,'<link rel="apple-touch-icon" sizes="180x180" href="ma-apple-touch-green-v3.png">',1)
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('manifest.webmanifest')
+          data=json.loads(p.read_text(encoding='utf-8'))
+          icons=data.get('icons',[])
+          assert len(icons)>=2, 'manifest icons missing'
+          for icon in icons:
+              if icon.get('sizes')=='192x192': icon['src']='ma-icon-green-v3-192.png'
+              if icon.get('sizes')=='512x512': icon['src']='ma-icon-green-v3-512.png'
+          assert any(i.get('src')=='ma-icon-green-v3-192.png' for i in icons)
+          assert any(i.get('src')=='ma-icon-green-v3-512.png' for i in icons)
+          p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+
+          p=Path('sw.js')
+          s=p.read_text(encoding='utf-8')
+          s,n=re.subn(r'const SW_VERSION = "[^"]+";','const SW_VERSION = "ma-grafik-2026-09-08-icon-v3";',s,count=1)
+          assert n==1, 'SW_VERSION not found'
+          s=s.replace('icon:"./icon-192.png"','icon:"./ma-icon-green-v3-192.png"')
+          s=s.replace('badge:"./icon-192.png"','badge:"./ma-icon-green-v3-192.png"')
+          assert 'icon:"./ma-icon-green-v3-192.png"' in s
+          assert 'badge:"./ma-icon-green-v3-192.png"' in s
+          p.write_text(s,encoding='utf-8')
+          PY
+
+      - name: Check JavaScript syntax
+        run: node --check app.js && node --check sw.js
+
+      - name: Run MA Grafik regression suite
+        run: node tests/run-tests.js
+
+      - name: Verify icon integration
+        shell: bash
+        run: |
+          grep -q 'ma-icon-green-v3-192.png' manifest.webmanifest
+          grep -q 'ma-icon-green-v3-512.png' manifest.webmanifest
+          grep -q 'ma-apple-touch-green-v3.png' index.html
+          grep -q 'ma-favicon-green-v3.png' index.html
+          grep -q 'ma-grafik-2026-09-08-icon-v3' sw.js
+          git diff --check
+
+      - name: Commit tested icon update
+        shell: bash
+        run: |
+          git config user.name "MA Icon Refresh"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html manifest.webmanifest sw.js ma-icon-green-v3-192.png ma-icon-green-v3-512.png ma-apple-touch-green-v3.png ma-favicon-green-v3.png
+          git diff --cached --check
+          git commit -m "Apply premium MA app icon"
+          git push
