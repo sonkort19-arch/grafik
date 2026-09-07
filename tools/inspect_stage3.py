@@ -34,17 +34,21 @@ def print_function(text,name):
     print(app[m.start():end])
     print('---END---')
 
-for n in ['logAppError','updateSettingsSystemStatus','populateSettings','updateCloudSettingsState']:
+for n in ['updateSettingsSystemStatus','populateSettings','updateCloudSettingsState']:
     print_function(app,n)
 
-for needle in ['settingsPage','systemStatus','system','pushState','enablePushBtn']:
-    p=index.find(needle)
-    if p>=0:
-        a=max(0,index.rfind('\n',0,max(0,p-2500)))
-        b=min(len(index), index.find('\n',min(len(index),p+4000)))
-        print('INDEX AROUND',needle)
-        print(index[a:b])
-        print('---END INDEX---')
+lines=app.splitlines()
+print('LOGAPPERROR OCCURRENCES')
+for i,line in enumerate(lines):
+    if 'logAppError' in line:
+        print(f'--- around line {i+1} ---')
+        for j in range(max(0,i-4),min(len(lines),i+6)):
+            print(f'{j+1}: {lines[j]}')
+
+print('INDEX SETTINGS SYSTEM BLOCK')
+start=index.find('<!-- 1. СИСТЕМА -->')
+end=index.find('<!-- 2. ТЕКУЩАЯ СХЕМА -->')
+print(index[start:end])
 
 print('SCRIPT TAGS:')
 for line in index.splitlines():
