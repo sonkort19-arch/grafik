@@ -55,6 +55,30 @@
     dayOverrides: []
   };
 
+  const settingsCore=window.MASettings.create({
+    storageKey:STORAGE_KEY,
+    defaults:DEFAULTS,
+    removedMasterName:REMOVED_MASTER_NAME,
+    masterRosterFrom:MASTER_ROSTER_FROM,
+    clone:value=>clone(value),
+    getSettings:()=>settings,
+    legacyPairPhase:(...args)=>legacyPairPhase(...args),
+    addDaysToDateString:(...args)=>addDaysToDateString(...args),
+    serviceKeyForName:(...args)=>serviceKeyForName(...args),
+    serviceNameForKey:(...args)=>serviceNameForKey(...args),
+    shiftMinutes:value=>shiftMinutes(value)
+  });
+  const {
+    makeEmployeesFromLegacy,
+    syncLegacyTeamsFromEmployees,
+    normalizeScheduleSettings,
+    mergeRemoteSettings,
+    loadSettings,
+    saveSettings,
+    validateNames,
+    coreSettingsValidationError
+  }=settingsCore;
+
   let settings = loadSettings();
   let currentIndex = getCurrentMonthIndex();
   let userSelectedMonth = false;
@@ -103,7 +127,6 @@
   let historyLoadSeq = 0;
   let historyRowsTruncated = false;
   let deviceListLoadState = "unknown";
-  let lastDeviceKeyReadFailed = false;
   const {
     walletCurrentMonthKey,walletMonthKeyFromIso,walletMonthLabel,walletShiftMonth,walletStartOfMonthIso,
     walletLegacyDefaults,emptyWalletState,walletBackupBeforeMigration,normalizeWalletDefinition,
@@ -156,6 +179,54 @@
   const monthSelect = $("monthSelect");
   const yearSelect = $("yearSelect");
   const employeeFilter = $("employeeFilter");
+
+  const deviceSecurity=window.MADevices.create({
+    deviceViewCacheKey:DEVICE_VIEW_CACHE_KEY,
+    deviceStorageKey:DEVICE_STORAGE_KEY,
+    deviceKeyDb:DEVICE_KEY_DB,
+    deviceKeyStore:DEVICE_KEY_STORE
+  });
+  const {
+    loadCachedDeviceView,
+    saveCachedDeviceView,
+    loadShiftDeviceToken,
+    saveShiftDeviceToken,
+    loadDeviceKeyRecord,
+    saveDeviceKeyRecord,
+    clearDeviceKeyRecord,
+    generateDeviceKeyRecord,
+    createDeviceKeyRecord,
+    signDeviceProof
+  }=deviceSecurity;
+
+  const {
+    monthStartISO,
+    setHistoryQuickRange,
+    historySourceText,
+    historyServiceClass,
+    historyDateText,
+    historyHasMismatch,
+    historyIsProblem,
+    historyStatus,
+    historyCompactLine,
+    fillEditManagerSelect,
+    renderHistoryStats,
+    defaultHistoryDates,
+    fillHistoryFilters,
+    renderHistory
+  }=window.MAHistory.create({
+    getEl:id=>$(id),
+    moscowParts:(...args)=>moscowParts(...args),
+    addDaysISO:(...args)=>addDaysISO(...args),
+    loadHistory:(...args)=>loadHistory(...args),
+    formatMoscowTime:(...args)=>formatMoscowTime(...args),
+    serviceKeyForName:(...args)=>serviceKeyForName(...args),
+    allHistoricalManagerNames:(...args)=>allHistoricalManagerNames(...args),
+    escapeHtml:(...args)=>escapeHtml(...args),
+    getSettings:()=>settings,
+    isAdmin:()=>isAdmin(),
+    openEditShift:row=>openEditShift(row)
+  });
 
 
   const errorJournal=(window.MAErrors && typeof window.MAErrors.create==="function")
@@ -308,32 +379,6 @@
     return "";
   }
 
-  function loadCachedDeviceView(){
-    try{
-      const raw=JSON.parse(localStorage.getItem(DEVICE_VIEW_CACHE_KEY)||"null");
-      if(!raw?.device?.service || !loadShiftDeviceToken()) return null;
-      if(Date.now()-Number(raw.savedAt||0)>1000*60*60*24*30) return null;
-      return {allowed:true,device:raw.device,verified:false,cached:true};
-    }catch(e){ return null; }
-  }
-
-  function saveCachedDeviceView(device){
-    try{
-      if(device?.service){
-        localStorage.setItem(DEVICE_VIEW_CACHE_KEY,JSON.stringify({
-          savedAt:Date.now(),
-          device:{
-            id:device.id||"",
-            service:String(device.service),
-            label:device.label?String(device.label):""
-          }
-        }));
-      }else{
-        localStorage.removeItem(DEVICE_VIEW_CACHE_KEY);
-      }
-    }catch(e){}
-  }
-
   function loadCachedTodayShifts(){
     try{
       const raw=JSON.parse(localStorage.getItem(TODAY_SHIFT_CACHE_KEY)||"null");
@@ -353,132 +398,6 @@
     }catch(e){}
   }
 
-  function loadShiftDeviceToken(){
-    try{ return localStorage.getItem(DEVICE_STORAGE_KEY) || ""; }catch(e){ return ""; }
-  }
-  function saveShiftDeviceToken(token){
-    try{
-      if(token) localStorage.setItem(DEVICE_STORAGE_KEY,token);
-      else localStorage.removeItem(DEVICE_STORAGE_KEY);
-    }catch(e){}
-  }
-
-  function openDeviceKeyDB(){
-    return new Promise((resolve,reject)=>{
-      const req=indexedDB.open(DEVICE_KEY_DB,1);
-      req.onupgradeneeded=()=>{
-        const db=req.result;
-        if(!db.objectStoreNames.contains(DEVICE_KEY_STORE)) db.createObjectStore(DEVICE_KEY_STORE);
-      };
-      req.onsuccess=()=>resolve(req.result);
-      req.onerror=()=>reject(req.error);
-    });
-  }
-
-  async function loadDeviceKeyRecord(){
-    lastDeviceKeyReadFailed=false;
-    try{
-      const db=await openDeviceKeyDB();
-      return await new Promise((resolve,reject)=>{
-        const tx=db.transaction(DEVICE_KEY_STORE,"readonly");
-        const req=tx.objectStore(DEVICE_KEY_STORE).get("main");
-        req.onsuccess=()=>resolve(req.result||null);
-        req.onerror=()=>reject(req.error);
-      });
-    }catch(e){
-      lastDeviceKeyReadFailed=true;
-      console.error("device key read",e);
-      return null;
-    }
-  }
-
-  async function saveDeviceKeyRecord(record){
-    const db=await openDeviceKeyDB();
-    await new Promise((resolve,reject)=>{
-      const tx=db.transaction(DEVICE_KEY_STORE,"readwrite");
-      tx.objectStore(DEVICE_KEY_STORE).put(record,"main");
-      tx.oncomplete=()=>resolve();
-      tx.onerror=()=>reject(tx.error);
-    });
-  }
-
-  async function clearDeviceKeyRecord(){
-    try{
-      const db=await openDeviceKeyDB();
-      await new Promise((resolve,reject)=>{
-        const tx=db.transaction(DEVICE_KEY_STORE,"readwrite");
-        tx.objectStore(DEVICE_KEY_STORE).delete("main");
-        tx.oncomplete=()=>resolve();
-        tx.onerror=()=>reject(tx.error);
-      });
-    }catch(e){
-      console.error("device key clear",e);
-    }
-  }
-
-  function bytesToBase64Url(bytes){
-    let s="";
-    new Uint8Array(bytes).forEach(b=>s+=String.fromCharCode(b));
-    return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-  }
-
-  async function generateDeviceKeyRecord(){
-    if(!window.crypto?.subtle) throw new Error("Этот браузер не поддерживает защищённую привязку устройства");
-
-    const generated=await crypto.subtle.generateKey(
-      {name:"ECDSA",namedCurve:"P-256"},
-      true,
-      ["sign","verify"]
-    );
-
-    const publicJwk=await crypto.subtle.exportKey("jwk",generated.publicKey);
-    const privateJwk=await crypto.subtle.exportKey("jwk",generated.privateKey);
-
-    const privateKey=await crypto.subtle.importKey(
-      "jwk",
-      privateJwk,
-      {name:"ECDSA",namedCurve:"P-256"},
-      false,
-      ["sign"]
-    );
-
-    const publicKey=await crypto.subtle.importKey(
-      "jwk",
-      publicJwk,
-      {name:"ECDSA",namedCurve:"P-256"},
-      true,
-      ["verify"]
-    );
-
-    return {privateKey,publicKey,publicJwk,createdAt:Date.now()};
-  }
-
-  async function createDeviceKeyRecord(){
-    const record=await generateDeviceKeyRecord();
-    await saveDeviceKeyRecord(record);
-    return record;
-  }
-
-  async function signDeviceProof(kind,fields=[]){
-    const token=loadShiftDeviceToken();
-    const record=await loadDeviceKeyRecord();
-    if(!token || !record?.privateKey){
-      throw new Error("Это устройство нужно заново зарегистрировать администратором");
-    }
-
-    const timestamp=Date.now();
-    const message=[kind,...fields.map(x=>String(x??"")),String(timestamp),token].join("|");
-    const signature=await crypto.subtle.sign(
-      {name:"ECDSA",hash:"SHA-256"},
-      record.privateKey,
-      new TextEncoder().encode(message)
-    );
-
-    return {
-      timestamp,
-      signature:bytesToBase64Url(signature)
-    };
-  }
   function canUseShiftService(service){
     if(isAdmin()) return true;
     return !!(
@@ -2154,183 +2073,6 @@
     return mod(days+baseOffset,4);
   }
 
-  function makeEmployeesFromLegacy(s){
-    const from=/^\d{4}-\d{2}-\d{2}$/.test(String(s.individualScheduleFrom||""))
-      ? String(s.individualScheduleFrom)
-      : String(s.anchorDate||DEFAULTS.anchorDate);
-    const [fy,fm,fd]=from.split("-").map(Number);
-    const migrationDate=new Date(fy,fm-1,fd);
-
-    const managers=Array.isArray(s.managers)&&s.managers.length===2?s.managers:DEFAULTS.managers;
-    const masters=Array.isArray(s.masters)&&s.masters.length===2?s.masters:DEFAULTS.masters;
-    const result=[];
-
-    function addPair(role,group,pair,prefix){
-      const phase=legacyPairPhase(s,migrationDate,role,group);
-      const firstStart=addDaysToDateString(from,-phase);
-      const secondStart=addDaysToDateString(firstStart,2);
-      if(String(pair?.[0]||"").trim()) result.push({id:`${prefix}-a`,name:String(pair[0]),role,group,slot:0,workDays:2,offDays:2,cycleStart:firstStart,employmentStart:from,isExtra:false,scheduleChanges:[]});
-      if(String(pair?.[1]||"").trim()) result.push({id:`${prefix}-b`,name:String(pair[1]),role,group,slot:1,workDays:2,offDays:2,cycleStart:secondStart,employmentStart:from,isExtra:false,scheduleChanges:[]});
-    }
-
-    addPair("manager",0,managers[0],"mgr-g0");
-    addPair("manager",1,managers[1],"mgr-g1");
-    addPair("master",0,masters[0],"mst-g0");
-    addPair("master",1,masters[1],"mst-g1");
-
-    return result;
-  }
-
-  function syncLegacyTeamsFromEmployees(s=settings){
-    if(!s || !Array.isArray(s.employeeSchedules)) return s;
-
-    function groupNames(role,group,fallback){
-      const items=s.employeeSchedules
-        .filter(x=>x.role===role && Number(x.group)===group && x.isExtra!==true)
-        .sort((a,b)=>(Number(a.slot)||0)-(Number(b.slot)||0));
-      return [
-        items[0]?.name || fallback[0],
-        items[1]?.name || fallback[1]
-      ];
-    }
-
-    s.managers=[
-      groupNames("manager",0,DEFAULTS.managers[0]),
-      groupNames("manager",1,DEFAULTS.managers[1])
-    ];
-    s.masters=[
-      groupNames("master",0,DEFAULTS.masters[0]),
-      groupNames("master",1,DEFAULTS.masters[1])
-    ];
-    return s;
-  }
-
-  function normalizeScheduleSettings(raw){
-    const merged=Object.assign(clone(DEFAULTS),raw||{});
-    if(!Array.isArray(merged.managers) || merged.managers.length!==2) merged.managers=clone(DEFAULTS.managers);
-    if(!Array.isArray(merged.masters) || merged.masters.length!==2) merged.masters=clone(DEFAULTS.masters);
-    if(!Array.isArray(merged.staffChanges)) merged.staffChanges=[];
-    if(!Array.isArray(merged.dayOverrides)) merged.dayOverrides=[];
-
-    if(!merged.anchorDate){
-      const oldYear=Number(raw?.startYear)||2026;
-      const oldMonth=(Number(raw?.startMonth)||0)+1;
-      merged.anchorDate=`${oldYear}-${String(oldMonth).padStart(2,"0")}-01`;
-    }
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(String(merged.anchorDate))){
-      merged.anchorDate=DEFAULTS.anchorDate;
-    }
-
-    merged.serviceBlockDays=15;
-    merged.balancedRosterEnabled=merged.balancedRosterEnabled!==false;
-    merged.balancedRosterFrom=/^\d{4}-\d{2}-\d{2}$/.test(String(merged.balancedRosterFrom||""))
-      ? String(merged.balancedRosterFrom)
-      : "2026-08-01";
-    if(!raw?.individualScheduleFrom || !/^\d{4}-\d{2}-\d{2}$/.test(String(raw.individualScheduleFrom||""))){
-      merged.individualScheduleFrom=merged.anchorDate;
-    }else{
-      merged.individualScheduleFrom=String(raw.individualScheduleFrom);
-    }
-
-    if(!Array.isArray(merged.employeeSchedules) || !merged.employeeSchedules.length){
-      merged.employeeSchedules=makeEmployeesFromLegacy(merged);
-    }else{
-      merged.employeeSchedules=merged.employeeSchedules
-        .filter(x=>x && x.name && ["manager","master"].includes(x.role) && !(x.role==="master" && String(x.name)===REMOVED_MASTER_NAME))
-        .map((x,i)=>({
-          id:String(x.id||`employee-${i}-${Math.random().toString(36).slice(2)}`),
-          name:String(x.name),
-          role:x.role==="master"?"master":"manager",
-          group:Number(x.group)===1?1:0,
-          slot:Number(x.slot)===1?1:0,
-          workDays:Math.max(1,Math.min(14,Number(x.workDays)||2)),
-          offDays:Math.max(1,Math.min(14,Number(x.offDays)||2)),
-          cycleStart:/^\d{4}-\d{2}-\d{2}$/.test(String(x.cycleStart||""))?String(x.cycleStart):merged.anchorDate,
-          employmentStart:/^\d{4}-\d{2}-\d{2}$/.test(String(x.employmentStart||""))?String(x.employmentStart):merged.individualScheduleFrom,
-          isExtra:x.isExtra===true,
-          scheduleChanges:(Array.isArray(x.scheduleChanges)?x.scheduleChanges:[])
-            .filter(c=>c && /^\d{4}-\d{2}-\d{2}$/.test(String(c.from||"")))
-            .map(c=>({
-              from:String(c.from),
-              workDays:Math.max(1,Math.min(14,Number(c.workDays)||2)),
-              offDays:Math.max(1,Math.min(14,Number(c.offDays)||2)),
-              cycleStart:/^\d{4}-\d{2}-\d{2}$/.test(String(c.cycleStart||""))?String(c.cycleStart):String(c.from)
-            }))
-            .sort((a,b)=>a.from.localeCompare(b.from))
-        }));
-
-      merged.employeeSchedules.forEach(emp=>{
-        if(emp.name==="Аслан") emp.name="Асик";
-      });
-
-      const roles={manager:merged.employeeSchedules.filter(x=>x.role==="manager"),master:merged.employeeSchedules.filter(x=>x.role==="master")};
-      if(roles.manager.length<4 || roles.master.length<3){
-        merged.employeeSchedules=makeEmployeesFromLegacy(merged);
-      }
-    }
-
-    merged.employeeSchedules=(merged.employeeSchedules||[]).filter(emp=>
-      !(emp.role==="master" && emp.name===REMOVED_MASTER_NAME)
-    );
-    (merged.employeeSchedules||[]).forEach(emp=>{
-      if(emp.name==="Аслан") emp.name="Асик";
-    });
-    if(Array.isArray(merged.managers)){
-      merged.managers=merged.managers.map(pair=>pair.map(n=>n==="Аслан"?"Асик":n));
-    }
-    if(Array.isArray(merged.masters)){
-      merged.masters=merged.masters.map(pair=>pair.map(n=>{
-        const name=n==="Аслан"?"Асик":n;
-        return name===REMOVED_MASTER_NAME?"":name;
-      }));
-    }
-
-    syncLegacyTeamsFromEmployees(merged);
-
-    merged.staffChanges=merged.staffChanges
-      .filter(x=>x && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date||"")) && x.oldName)
-      .map(x=>{
-        const rawNew=String(x.newName||"").trim();
-        const leftText=/^(сотрудник\s+)?уш[её]л$/i.test(rawNew) || /уволил(ся|ась)$/i.test(rawNew);
-        const isLeft=x.type==="left" || leftText;
-        return {
-          id:x.id||(`chg-${Date.now()}-${Math.random().toString(36).slice(2)}`),
-          date:String(x.date),
-          oldName:String(x.oldName)==="Аслан"?"Асик":String(x.oldName),
-          newName:isLeft?"":(rawNew==="Аслан"?"Асик":rawNew),
-          type:isLeft?"left":"replace"
-        };
-      })
-      .filter(x=>x.type==="left" || x.newName)
-      .sort((a,b)=>a.date.localeCompare(b.date));
-
-    merged.dayOverrides=merged.dayOverrides
-      .filter(x=>x && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date||"")) && (x.service || x.serviceKey) && x.manager && x.master)
-      .filter(x=>String(x.date)<MASTER_ROSTER_FROM || (String(x.master)!==REMOVED_MASTER_NAME && String(x.replacedName||"")!==REMOVED_MASTER_NAME))
-      .map(x=>{
-        const serviceKey=["s1","s2"].includes(x.serviceKey)
-          ? x.serviceKey
-          : serviceKeyForName(String(x.service||""),merged);
-        const service=serviceKey ? serviceNameForKey(serviceKey,merged) : String(x.service||"");
-        return {
-          id:x.id||(`chg-${Date.now()}-${Math.random().toString(36).slice(2)}`),
-          date:String(x.date),serviceKey,service,
-          manager:String(x.manager)==="Аслан"?"Асик":String(x.manager),
-          master:String(x.master)==="Аслан"?"Асик":String(x.master),
-          reason:x.reason?String(x.reason):"",
-          replacedRole:x.replacedRole==="master"?"master":(x.replacedRole==="manager"?"manager":""),
-          replacedName:x.replacedName?(String(x.replacedName)==="Аслан"?"Асик":String(x.replacedName)):""
-        };
-      })
-      .sort((a,b)=>a.date.localeCompare(b.date));
-
-    return merged;
-  }
-
-  function mergeRemoteSettings(remote){
-    return normalizeScheduleSettings(remote);
-  }
-
   async function syncFromCloud(showToast=false){
     if(!cloudConfigured()){
       setCloudStatus("Локально","offline");
@@ -2489,7 +2231,7 @@
       // При запуске Windows Chrome/IndexedDB/интернет могут быть ещё не готовы.
       // Раньше временный сбой мог стереть локальную привязку устройства.
       if(!keyRecord?.privateKey){
-        if(lastDeviceKeyReadFailed){
+        if(deviceSecurity.lastKeyReadFailed()){
           // IndexedDB мог быть временно недоступен сразу после запуска браузера.
           // Сохраняем известный режим точки, но не разрешаем операции до проверки ключа.
           const cached=loadCachedDeviceView();
@@ -3518,89 +3260,6 @@
     }
   }
 
-  function monthStartISO(dateStr){
-    const [y,m]=dateStr.split("-").map(Number);
-    return `${y}-${String(m).padStart(2,"0")}-01`;
-  }
-
-  function setHistoryQuickRange(range,load=true){
-    const today=moscowParts().date;
-    let from=today,to=today;
-
-    if(range==="7days"){
-      from=addDaysISO(today,-6);
-    }else if(range==="month"){
-      from=monthStartISO(today);
-    }
-
-    $("historyFrom").value=from;
-    $("historyTo").value=to;
-
-    document.querySelectorAll("#historyQuick [data-range]").forEach(b=>{
-      b.classList.toggle("active",b.dataset.range===range);
-    });
-    if($("historyCustomRange")) $("historyCustomRange").classList.add("hidden");
-    if($("historyCustomBtn")) $("historyCustomBtn").classList.remove("active");
-
-    if(load) loadHistory();
-  }
-
-  function historySourceText(row,kind){
-    const source=kind==="open" ? row.opened_source : row.closed_source;
-    const employee=kind==="open" ? row.opened_by : row.closed_by;
-    if(!source) return "";
-
-    if(String(source).startsWith("admin:")){
-      return `${kind==="open"?"Открыто":"Закрыто"} администратором за ${employee||"сотрудника"}`;
-    }
-    if(String(source).startsWith("device:")){
-      const label=String(source).slice("device:".length);
-      return `Подтверждено на устройстве: ${label}`;
-    }
-    return "";
-  }
-
-  function historyServiceClass(service){
-    const key=serviceKeyForName(service);
-    return key ? `service-${key}` : "";
-  }
-
-  function historyDateText(dateStr){
-    if(!dateStr) return "—";
-    const [y,m,d]=String(dateStr).split("-").map(Number);
-    if(!y||!m||!d) return String(dateStr);
-    return new Intl.DateTimeFormat("ru-RU",{day:"numeric",month:"short"}).format(new Date(y,m-1,d));
-  }
-
-  function historyHasMismatch(row){
-    return !!(row.opened_by && row.expected_manager && row.opened_by!==row.expected_manager);
-  }
-
-  function historyIsProblem(row){
-    if(row.voided_at) return true;
-    if((row.open_late_minutes||0)>0) return true;
-    if((row.early_close_minutes||0)>0) return true;
-    if(row.opened_at && !row.closed_at) return true;
-    if(historyHasMismatch(row)) return true;
-    return false;
-  }
-
-  function historyStatus(row){
-    if(row.voided_at) return {text:"Аннулирована",cls:"voided"};
-    if(row.opened_at && !row.closed_at) return {text:"Не закрыта",cls:"bad"};
-    if((row.open_late_minutes||0)>0) return {text:`Опоздание +${row.open_late_minutes} мин`,cls:"warn"};
-    if((row.early_close_minutes||0)>0) return {text:`Раннее закрытие`,cls:"warn"};
-    if(historyHasMismatch(row)) return {text:"Не тот менеджер",cls:"warn"};
-    return {text:"Вовремя",cls:"ok"};
-  }
-
-  function historyCompactLine(row){
-    const who=row.opened_by||row.expected_manager||"—";
-    const open=formatMoscowTime(row.opened_at);
-    const close=row.closed_at?formatMoscowTime(row.closed_at):"—";
-    return `${who} · ${open} → ${close}`;
-  }
-
   async function fetchAllHistoryRows(baseQuery,token){
     const pageSize=300;
     const maxRows=6000;
@@ -3631,94 +3290,6 @@
     return all;
   }
 
-  function fillEditManagerSelect(select,rowValue,allowEmpty=false){
-    if(!select) return;
-    const names=[...new Set([
-      ...(allHistoricalManagerNames()||[]),
-      rowValue||""
-    ].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ru"));
-
-    select.innerHTML=(allowEmpty?'<option value="">— Не закрыта —</option>':"")+
-      names.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
-
-    if(rowValue && [...select.options].some(o=>o.value===rowValue)){
-      select.value=rowValue;
-    }else if(allowEmpty && !rowValue){
-      select.value="";
-    }
-  }
-
-  function renderHistoryStats(rows){
-    const root=$("historyStats");
-    if(!root) return;
-
-    const active=rows.filter(r=>!r.voided_at);
-    const total=active.length;
-    const late=active.filter(r=>(r.open_late_minutes||0)>0).length;
-    const ontime=active.filter(r=>
-      r.opened_at &&
-      (r.open_late_minutes||0)===0 &&
-      !historyHasMismatch(r)
-    ).length;
-    const unclosed=active.filter(r=>r.opened_at&&!r.closed_at).length;
-
-    const byEmployee={};
-    active.forEach(r=>{
-      const name=r.opened_by||r.expected_manager||"Не указан";
-      if(!byEmployee[name]) byEmployee[name]={total:0,late:0,ontime:0,unclosed:0};
-      byEmployee[name].total++;
-      if((r.open_late_minutes||0)>0) byEmployee[name].late++;
-      if(r.opened_at && (r.open_late_minutes||0)===0 && !historyHasMismatch(r)) byEmployee[name].ontime++;
-      if(r.opened_at&&!r.closed_at) byEmployee[name].unclosed++;
-    });
-
-    const people=Object.entries(byEmployee)
-      .sort((a,b)=>b[1].total-a[1].total);
-
-    root.innerHTML=`
-      <div class="history-stats-grid">
-        <div class="history-stat"><b>${total}</b><span>всего смен</span></div>
-        <div class="history-stat good"><b>${ontime}</b><span>вовремя</span></div>
-        <div class="history-stat ${late?"alert":""}"><b>${late}</b><span>опозданий</span></div>
-        <div class="history-stat ${unclosed?"alert":""}"><b>${unclosed}</b><span>не закрыты</span></div>
-      </div>
-      ${people.length?`
-        <div class="discipline-title">
-          <b>Дисциплина ответственных</b>
-          <span>за выбранный период</span>
-        </div>
-        <div class="discipline-table-wrap">
-          <table class="discipline-table">
-            <thead>
-              <tr><th>Менеджер</th><th>Смен</th><th>Вовремя</th><th>Опозд.</th><th>Не закрыты</th></tr>
-            </thead>
-            <tbody>
-              ${people.map(([name,s])=>`
-                <tr>
-                  <td>${escapeHtml(name)}</td>
-                  <td>${s.total}</td>
-                  <td class="${s.ontime?"discipline-good":""}">${s.ontime}</td>
-                  <td class="${s.late?"discipline-bad":""}">${s.late}</td>
-                  <td class="${s.unclosed?"discipline-bad":""}">${s.unclosed}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      `:""}
-    `;
-  }
-
-  function defaultHistoryDates(){
-    setHistoryQuickRange("month",false);
-  }
-  function fillHistoryFilters(){
-    const sv=$("historyService"), emp=$("historyEmployee"); if(!sv||!emp) return;
-    const svv=sv.value, ev=emp.value;
-    sv.innerHTML=`<option value="">Все сервисы</option><option>${escapeHtml(settings.service1)}</option><option>${escapeHtml(settings.service2)}</option>`;
-    emp.innerHTML='<option value="">Все ответственные</option>'+allHistoricalManagerNames().map(n=>`<option>${escapeHtml(n)}</option>`).join("");
-    if([...sv.options].some(o=>o.value===svv)) sv.value=svv; if([...emp.options].some(o=>o.value===ev)) emp.value=ev;
-  }
   async function loadHistory(){
     const loadSeq=++historyLoadSeq;
     const root=$("historyList");
@@ -3781,107 +3352,6 @@
     }
   }
 
-  function renderHistory(rows){
-    const root=$("historyList");
-    if(!rows.length){
-      root.innerHTML='<div class="history-empty">За выбранный период записей нет.</div>';
-      return;
-    }
-
-    root.innerHTML=rows.map(r=>{
-      const status=historyStatus(r);
-      const serviceClass=historyServiceClass(r.service);
-      const openSource=historySourceText(r,"open");
-      const closeSource=historySourceText(r,"close");
-      const mismatch=historyHasMismatch(r);
-
-      if(r.voided_at){
-        return `<details class="history-item ${serviceClass}">
-          <summary class="history-summary">
-            <div class="history-summary-main">
-              <div class="history-summary-top">
-                <span class="history-summary-service">${escapeHtml(r.service)}</span>
-                <span class="history-summary-date">· ${escapeHtml(historyDateText(r.shift_date))}</span>
-              </div>
-              <div class="history-summary-line">${escapeHtml(r.opened_by||r.expected_manager||"—")} · ${formatMoscowTime(r.opened_at)}</div>
-            </div>
-            <span class="history-summary-status voided">Аннулирована</span>
-          </summary>
-          <div class="history-details">
-            <div class="history-details-grid">
-              <div class="history-detail-card">
-                <b>Была открыта</b>
-                ${escapeHtml(r.opened_by||"—")} · ${formatMoscowTime(r.opened_at)}
-                ${openSource?`<div class="history-detail-meta">${escapeHtml(openSource)}</div>`:""}
-              </div>
-              <div class="history-detail-card">
-                <b>Аннулирование</b>
-                ${formatMoscowTime(r.voided_at)}
-                <div class="history-detail-meta">Кем: ${escapeHtml(r.voided_by||"Администратор")}</div>
-                <div class="history-detail-meta">${escapeHtml(r.void_reason||"Причина не указана")}</div>
-              </div>
-            </div>
-          </div>
-        </details>`;
-      }
-
-      const late=(r.open_late_minutes||0)>0;
-      const early=(r.early_close_minutes||0)>0;
-      const unclosed=r.opened_at&&!r.closed_at;
-
-      return `<details class="history-item ${serviceClass}">
-        <summary class="history-summary">
-          <div class="history-summary-main">
-            <div class="history-summary-top">
-              <span class="history-summary-service">${escapeHtml(r.service)}</span>
-              <span class="history-summary-date">· ${escapeHtml(historyDateText(r.shift_date))}</span>
-            </div>
-            <div class="history-summary-line">${escapeHtml(historyCompactLine(r))}</div>
-          </div>
-          <span class="history-summary-status ${status.cls}">${escapeHtml(status.text)}</span>
-        </summary>
-
-        <div class="history-details">
-          <div class="history-details-grid">
-            <div class="history-detail-card">
-              <b>Открытие</b>
-              ${escapeHtml(r.opened_by||"—")} · ${formatMoscowTime(r.opened_at)}
-              ${late?`<div class="history-status-line warn" style="margin:5px 0 0">Опоздание +${r.open_late_minutes} мин</div>`:`<div class="history-status-line ok" style="margin:5px 0 0">Вовремя</div>`}
-              ${mismatch?`<div class="history-mismatch">По графику: ${escapeHtml(r.expected_manager)}</div>`:""}
-              ${openSource?`<div class="history-detail-meta">${escapeHtml(openSource)}</div>`:""}
-            </div>
-
-            <div class="history-detail-card">
-              <b>Закрытие</b>
-              ${escapeHtml(r.closed_by||"—")} · ${formatMoscowTime(r.closed_at)}
-              ${unclosed
-                ? `<div class="history-status-line bad" style="margin:5px 0 0">Смена не закрыта</div>`
-                : early
-                  ? `<div class="history-status-line warn" style="margin:5px 0 0">Раньше на ${r.early_close_minutes} мин</div>`
-                  : `<div class="history-status-line ok" style="margin:5px 0 0">Закрыта</div>`
-              }
-              ${closeSource?`<div class="history-detail-meta">${escapeHtml(closeSource)}</div>`:""}
-            </div>
-          </div>
-
-          ${isAdmin()?`
-            <div class="history-detail-actions">
-              <button class="secondary edit-shift-btn" data-id="${r.id}">Исправить смену</button>
-            </div>
-          `:""}
-        </div>
-      </details>`;
-    }).join("");
-
-    root.querySelectorAll(".edit-shift-btn").forEach(b=>{
-      b.onclick=e=>{
-        e.preventDefault();
-        e.stopPropagation();
-        openEditShift(rows.find(r=>String(r.id)===b.dataset.id));
-      };
-    });
-  }
-
   function openEditShift(row){
     if(!row) return;
     editingShiftRow=row;
@@ -3925,18 +3395,6 @@
     }finally{
       endButtonBusy(busy);
     }
-  }
-
-  function loadSettings(){
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return normalizeScheduleSettings(clone(DEFAULTS));
-      return normalizeScheduleSettings(JSON.parse(raw));
-    }catch(e){ return normalizeScheduleSettings(clone(DEFAULTS)); }
-  }
-
-  function saveSettings(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   }
 
   function markDirty(){
@@ -5637,27 +5095,6 @@
     syncLegacyTeamsFromEmployees(next);
     return next;
   }
-
-  function validateNames(s){
-    const all=(s.employeeSchedules||[]).map(x=>x.name.toLowerCase());
-    return new Set(all).size===all.length;
-  }
-
-  function coreSettingsValidationError(s){
-    const service1=String(s?.service1||"").trim();
-    const service2=String(s?.service2||"").trim();
-    if(!service1 || !service2) return "Укажи названия обеих точек";
-    if(service1.toLowerCase()===service2.toLowerCase()) return "Названия двух точек должны отличаться";
-    if(!validateNames(s)) return "Имена сотрудников должны отличаться";
-
-    const start=shiftMinutes(s?.shiftStart);
-    const end=shiftMinutes(s?.shiftEnd);
-    if(!Number.isFinite(start) || !Number.isFinite(end) || end<=start){
-      return "Конец смены должен быть позже начала";
-    }
-    return "";
-  }
-
 
   function baseExpectedForDate(dateStr,serviceName){
     try{

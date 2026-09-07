@@ -28,6 +28,9 @@ loadModule("wallets.js");
 loadModule("admin.js");
 loadModule("supabase.js");
 loadModule("errors.js");
+loadModule("settings.js");
+loadModule("devices.js");
+loadModule("history.js");
 
 const settings={
   anchorDate:"2026-09-01",
@@ -348,10 +351,47 @@ test("Одинаковые ошибки подряд объединяются, �
   assert.strictEqual(rows[0].count,2);
 });
 
+// ---- Stage 4 modules ----
+test("Модуль устройств сохраняет токен и кеш точки",()=>{
+  const api=window.MADevices.create({
+    deviceViewCacheKey:"test_device_view",deviceStorageKey:"test_device_token",
+    deviceKeyDb:"test_device_db",deviceKeyStore:"keys"
+  });
+  api.saveShiftDeviceToken("token-test");
+  assert.strictEqual(api.loadShiftDeviceToken(),"token-test");
+  api.saveCachedDeviceView({id:"dev-1",service:"Моба",label:"Компьютер"});
+  const cached=api.loadCachedDeviceView();
+  assert(cached && cached.allowed);
+  assert.strictEqual(cached.device.service,"Моба");
+  api.saveShiftDeviceToken("");
+});
+
+test("Модуль истории правильно определяет нарушения",()=>{
+  const api=window.MAHistory.create({
+    getEl:()=>null,moscowParts:fixedMoscowParts,addDaysISO:()=>"2026-09-01",loadHistory:()=>{},
+    formatMoscowTime:v=>String(v||""),serviceKeyForName,allHistoricalManagerNames:()=>[],
+    escapeHtml:v=>String(v||""),getSettings:()=>settings,isAdmin:()=>true,openEditShift:()=>{}
+  });
+  assert(api.historyIsProblem({open_late_minutes:5}));
+  assert.strictEqual(api.historyStatus({opened_at:"x",closed_at:null}).text,"Не закрыта");
+  assert.strictEqual(api.historyStatus({opened_at:"x",closed_at:"y",open_late_minutes:0,early_close_minutes:0}).text,"Вовремя");
+});
+
+test("Модуль настроек валидирует точки и время смены",()=>{
+  const api=window.MASettings.create({
+    storageKey:"test_settings",defaults:{},removedMasterName:"Ислам",masterRosterFrom:"2026-08-24",
+    clone:v=>JSON.parse(JSON.stringify(v)),getSettings:()=>settings,
+    legacyPairPhase:()=>0,addDaysToDateString:v=>v,serviceKeyForName,serviceNameForKey:k=>k==="s1"?settings.service1:settings.service2,
+    shiftMinutes:shifts.shiftMinutes
+  });
+  assert.strictEqual(api.coreSettingsValidationError({...settings,service2:settings.service1}),"Названия двух точек должны отличаться");
+  assert.strictEqual(api.coreSettingsValidationError({...settings,shiftStart:"22:00",shiftEnd:"08:00"}),"Конец смены должен быть позже начала");
+});
+
 // ---- Project structure ----
 test("index.html подключает модули в безопасном порядке",()=>{
   const html=fs.readFileSync("index.html","utf8");
-  const refs=["schedule.js","shifts.js","employees.js","supabase.js","wallets.js","admin.js","errors.js","app.js"];
+  const refs=["schedule.js","shifts.js","employees.js","supabase.js","wallets.js","admin.js","errors.js","settings.js","devices.js","history.js","app.js"];
   const positions=refs.map(file=>html.indexOf(`<script src="${file}"></script>`));
   assert(positions.every(x=>x>=0));
   assert.deepStrictEqual(positions,[...positions].sort((a,b)=>a-b));
