@@ -3108,7 +3108,7 @@ body{padding-bottom:88px}
         <div class="current-schedule-row"><b>Менеджеры:</b> Арсен / Дина — 2/2, только в этой точке</div>
         <div class="current-schedule-row"><b>Мастер:</b> Олег — Пн–Пт</div>
         <div class="current-schedule-row"><b>Сб и Вс:</b> Георгий / Асик работают по очереди неделями</div>
-        <div class="current-schedule-row"><b>На смене:</b> 1 менеджер + 1 мастер</div>
+        <div class="current-schedule-row"><b>На смене:</b> 1 менеджер + 1 мастер · 08:00–22:00</div>
       </div>
 
       <div class="current-schedule-card service-s2">
@@ -3116,7 +3116,7 @@ body{padding-bottom:88px}
         <div class="current-schedule-row"><b>Отдельного менеджера нет.</b></div>
         <div class="current-schedule-row"><b>Мастер:</b> Георгий / Асик — по действующему двухнедельному циклу</div>
         <div class="current-schedule-row"><b>Ответственный:</b> мастер Новы одновременно выполняет функцию менеджера</div>
-        <div class="current-schedule-row"><b>Смена:</b> мастер открывает и закрывает её своим PIN</div>
+        <div class="current-schedule-row"><b>Смена:</b> 09:00–19:00 · мастер открывает и закрывает её своим PIN</div>
       </div>
     `;
   }
@@ -5469,6 +5469,12 @@ body{padding-bottom:88px}
   }
 
   function shiftMinutes(time){ const [h,m]=String(time||"00:00").split(":").map(Number); return h*60+m; }
+  function shiftStartForService(service){
+    return service===settings.service2 ? (settings.novaShiftStart||"09:00") : settings.shiftStart;
+  }
+  function shiftEndForService(service){
+    return service===settings.service2 ? (settings.novaShiftEnd||"19:00") : settings.shiftEnd;
+  }
 
   function isStartupShiftMode(){
     return STARTUP_SHIFT_MODE;
@@ -5580,6 +5586,8 @@ body{padding-bottom:88px}
 
     const now=moscowParts();
     const service=currentDeviceAccess.device.service;
+    const serviceStart=shiftStartForService(service);
+    const serviceEnd=shiftEndForService(service);
     const expected=expectedForDate(now.date,service);
     const row=currentShiftRows.find(x=>x.service===service)||null;
 
@@ -5590,7 +5598,7 @@ body{padding-bottom:88px}
         <div class="startup-shift-people">
           <div class="startup-shift-person"><span>Сегодня</span><b>Только мастер</b></div>
           <div class="startup-shift-person"><span>Мастер</span><b>${escapeHtml(expected.master||"—")}</b></div>
-          <div class="startup-shift-person"><span>Смена</span><b>${escapeHtml(settings.shiftStart)}–${escapeHtml(settings.shiftEnd)}</b></div>
+          <div class="startup-shift-person"><span>Смена</span><b>${escapeHtml(serviceStart)}–${escapeHtml(serviceEnd)}</b></div>
         </div>
         <div class="startup-shift-status ok">В субботу и воскресенье в ${escapeHtml(settings.service2)} менеджер не требуется. Открывать смену по PIN не нужно.</div>
         <button class="startup-shift-close" id="startupCloseWindow">Закрыть окно</button>`;
@@ -5600,8 +5608,8 @@ body{padding-bottom:88px}
     }
 
     const nowM=now.hour*60+now.minute;
-    const startM=shiftMinutes(settings.shiftStart);
-    const endM=shiftMinutes(settings.shiftEnd);
+    const startM=shiftMinutes(serviceStart);
+    const endM=shiftMinutes(serviceEnd);
 
     let action=null;
     if(!row?.opened_at) action="open";
@@ -5667,7 +5675,7 @@ body{padding-bottom:88px}
       <div class="startup-shift-people">
         <div class="startup-shift-person"><span>Менеджер</span><b>${escapeHtml(expectedManager||"—")}</b></div>
         <div class="startup-shift-person"><span>Мастер</span><b>${escapeHtml(expectedMaster)}</b></div>
-        <div class="startup-shift-person"><span>Смена</span><b>${escapeHtml(settings.shiftStart)}–${escapeHtml(settings.shiftEnd)}</b></div>
+        <div class="startup-shift-person"><span>Смена</span><b>${escapeHtml(serviceStart)}–${escapeHtml(serviceEnd)}</b></div>
       </div>
 
       <div class="startup-shift-status ${statusClass}">${escapeHtml(statusText)}</div>
@@ -5762,7 +5770,9 @@ body{padding-bottom:88px}
       const exp=expectedForDate(now.date,service);
       const soloMaster=!!(exp && isNoManagerValue(exp.manager));
       const masterActsAsManager=!!(exp && service===settings.service2 && exp.manager===exp.master && !isNoMasterValue(exp.master));
-      const currentMins=now.hour*60+now.minute, startMins=shiftMinutes(settings.shiftStart), endMins=shiftMinutes(settings.shiftEnd);
+      const serviceStart=shiftStartForService(service);
+      const serviceEnd=shiftEndForService(service);
+      const currentMins=now.hour*60+now.minute, startMins=shiftMinutes(serviceStart), endMins=shiftMinutes(serviceEnd);
       let cls="wait", label="Ожидаем открытия", meta="";
       if(soloMaster){
         cls="open";
@@ -5779,17 +5789,17 @@ body{padding-bottom:88px}
       }else if(currentMins>=startMins){
         cls="missing"; label="Смена не открыта"; meta=masterActsAsManager?"Подтверждения от ответственного мастера ещё нет":"Подтверждения от менеджера ещё нет";
       }else{
-        meta=`Начало смены в ${settings.shiftStart}`;
+        meta=`Начало смены в ${serviceStart}`;
       }
       const card=document.createElement("div");
       const todayServiceKey=serviceKeyForName(service);
       card.className=`shift-card ${todayServiceKey?`service-${todayServiceKey}`:""}`.trim();
       const pairText=exp
         ? (masterActsAsManager
-          ? `Мастер: <strong>${escapeHtml(exp.master)}</strong><br>Отвечает за точку и открывает смену<br>${settings.shiftStart}–${settings.shiftEnd}`
+          ? `Мастер: <strong>${escapeHtml(exp.master)}</strong><br>Отвечает за точку и открывает смену<br>${serviceStart}–${serviceEnd}`
           : soloMaster
-            ? `Только мастер: <strong>${escapeHtml(exp.master)}</strong><br>Без менеджера<br>${settings.shiftStart}–${settings.shiftEnd}`
-            : `Менеджер: <strong>${escapeHtml(exp.manager)}</strong><br>Мастер: <strong>${escapeHtml(exp.master)}</strong><br>${settings.shiftStart}–${settings.shiftEnd}`)
+            ? `Только мастер: <strong>${escapeHtml(exp.master)}</strong><br>Без менеджера<br>${serviceStart}–${serviceEnd}`
+            : `Менеджер: <strong>${escapeHtml(exp.manager)}</strong><br>Мастер: <strong>${escapeHtml(exp.master)}</strong><br>${serviceStart}–${serviceEnd}`)
         : "График на эту дату не рассчитан";
       const action=soloMaster ? "done" : ((!row || !row.opened_at) ? "open" : (!row.closed_at ? "close" : "done"));
       const allowed=action!=="done" && canUseShiftService(service);
@@ -5814,19 +5824,21 @@ body{padding-bottom:88px}
 
     const now=moscowParts();
     const nowM=now.hour*60+now.minute;
-    const startM=shiftMinutes(settings.shiftStart);
-    const endM=shiftMinutes(settings.shiftEnd);
     const problems=[];
 
     const attentionServices=isServiceDeviceMode() ? [serviceDeviceName()] : [settings.service1,settings.service2];
     for(const service of attentionServices){
       const row=currentShiftRows.find(x=>x.service===service)||null;
       const exp=expectedForDate(now.date,service);
+      const serviceStart=shiftStartForService(service);
+      const serviceEnd=shiftEndForService(service);
+      const startM=shiftMinutes(serviceStart);
+      const endM=shiftMinutes(serviceEnd);
 
       if(exp && isNoManagerValue(exp.manager)) continue;
 
       if(nowM>=startM+10 && !row?.opened_at){
-        problems.push({kind:"bad",text:`${service}: смена не открыта после ${settings.shiftStart}.`});
+        problems.push({kind:"bad",text:`${service}: смена не открыта после ${serviceStart}.`});
         continue;
       }
 
@@ -5839,7 +5851,7 @@ body{padding-bottom:88px}
       }
 
       if(nowM>=endM+15 && row?.opened_at && !row?.closed_at){
-        problems.push({kind:"bad",text:`${service}: смена не закрыта после ${settings.shiftEnd}.`});
+        problems.push({kind:"bad",text:`${service}: смена не закрыта после ${serviceEnd}.`});
       }
 
       if(row?.closed_at && (row.early_close_minutes||0)>0){
@@ -7280,7 +7292,8 @@ body{padding-bottom:88px}
     if(exp && isNoManagerValue(exp.manager)){
       return {cls:"solo",label:"Работает только мастер",meta:"Менеджер по воскресеньям не требуется",exp};
     }
-    const currentMins=now.hour*60+now.minute, startMins=shiftMinutes(settings.shiftStart);
+    const serviceStart=shiftStartForService(service);
+    const currentMins=now.hour*60+now.minute, startMins=shiftMinutes(serviceStart);
     let cls="wait",label="Ожидаем открытия",meta="";
     if(row && row.opened_at && !row.closed_at){
       cls=(row.open_late_minutes||0)>0?"late":"open";
@@ -7293,7 +7306,7 @@ body{padding-bottom:88px}
     }else if(currentMins>=startMins){
       cls="missing"; label="Смена не открыта"; meta="Подтверждения пока нет";
     }else{
-      meta=`Начало в ${settings.shiftStart}`;
+      meta=`Начало в ${serviceStart}`;
     }
     return {cls,label,meta,exp};
   }
@@ -7327,7 +7340,7 @@ body{padding-bottom:88px}
       }else if(state.cls==="closed"){
         shiftText=`Смена ${state.label.toLowerCase()}`;
       }else if(state.cls==="wait"){
-        shiftText=`Смена начинается в ${settings.shiftStart}`;
+        shiftText=`Смена начинается в ${shiftStartForService(todayAssignment.service)}`;
       }else if(state.cls==="solo"){
         shiftText="Выходной день Новы: менеджер не требуется";
       }
@@ -7336,7 +7349,7 @@ body{padding-bottom:88px}
       work.className=`employee-main-status work ${employeeServiceKey?`service-${employeeServiceKey}`:""}`.trim();
       work.innerHTML=`
         <b>Сегодня работаю</b>
-        <span><strong>${escapeHtml(todayAssignment.service)}</strong> · ${settings.shiftStart}–${settings.shiftEnd}<br>${partner===name?"Работаю один · отвечаю за точку и смену":solo?"Работаю один, без менеджера":`Напарник: <strong>${escapeHtml(partner)}</strong>`}</span>
+        <span><strong>${escapeHtml(todayAssignment.service)}</strong> · ${shiftStartForService(todayAssignment.service)}–${shiftEndForService(todayAssignment.service)}<br>${partner===name?"Работаю один · отвечаю за точку и смену":solo?"Работаю один, без менеджера":`Напарник: <strong>${escapeHtml(partner)}</strong>`}</span>
         <span class="employee-own-shift-status">${escapeHtml(shiftText)}</span>
       `;
     }else{
@@ -7361,7 +7374,7 @@ body{padding-bottom:88px}
       const serviceKey=serviceKeyForName(x.service);
       return `<div class="employee-shift-item ${serviceKey?`service-${serviceKey}`:""}">
         <div class="employee-shift-date"><b>${x.date.getDate()}</b><span>${MONTHS[x.date.getMonth()].slice(0,3)} · ${WD[x.date.getDay()]}</span></div>
-        <div class="employee-shift-info"><b>${escapeHtml(x.service)} · ${settings.shiftStart}–${settings.shiftEnd}</b><span>${partner===name?"Работаю один · отвечаю за точку и смену":solo?"Работаю один, без менеджера":`Вместе с ${escapeHtml(partner)}`}</span></div>
+        <div class="employee-shift-info"><b>${escapeHtml(x.service)} · ${shiftStartForService(x.service)}–${shiftEndForService(x.service)}</b><span>${partner===name?"Работаю один · отвечаю за точку и смену":solo?"Работаю один, без менеджера":`Вместе с ${escapeHtml(partner)}`}</span></div>
       </div>`;
     }).join("") : '<div class="notice">Ближайшие смены не найдены.</div>';
   }
@@ -7402,7 +7415,7 @@ body{padding-bottom:88px}
 
     const partner=assignment.pair.manager===name ? assignment.pair.master : assignment.pair.manager;
     const solo=isNoManagerValue(partner);
-    root.innerHTML=`<b>${escapeHtml(title)} — работаю</b><span>${escapeHtml(assignment.service)} · ${settings.shiftStart}–${settings.shiftEnd}<br>${partner===name?"Работаю один · отвечаю за точку и смену":solo?"Работаю один, без менеджера":`Напарник: ${escapeHtml(partner)}`}</span>`;
+    root.innerHTML=`<b>${escapeHtml(title)} — работаю</b><span>${escapeHtml(assignment.service)} · ${shiftStartForService(assignment.service)}–${shiftEndForService(assignment.service)}<br>${partner===name?"Работаю один · отвечаю за точку и смену":solo?"Работаю один, без менеджера":`Напарник: ${escapeHtml(partner)}`}</span>`;
   }
 
   function renderEmployeeCalendar(){
