@@ -1,4 +1,4 @@
-const SW_VERSION = "ma-grafik-2026-09-08-icon-v3";
+const SW_VERSION = "ma-grafik-2026-09-08-icon-v5";
 
 // MA График intentionally does not cache index.html here.
 // The browser/network remains the source of truth for app updates.
@@ -20,8 +20,8 @@ self.addEventListener("push",event=>{
   const employeeReminder=data.employeeReminder===true;
   const options={
     body:data.body,
-    icon:"./ma-icon-green-v3-192.png",
-    badge:"./ma-icon-green-v3-192.png",
+    icon:"./ma-icon-final-v5-192.png",
+    badge:"./ma-icon-final-v5-192.png",
     tag:data.tag||"ma-shift",
     renotify:true,
     silent:false,
