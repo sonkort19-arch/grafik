@@ -1,0 +1,34 @@
+name: Owner report
+
+on:
+  push:
+    branches: [feature-owner-report-2026-09-07]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply owner report
+        run: python3 tools/apply_owner_report.py
+      - name: Syntax check
+        run: node --check app.js
+      - name: Regression tests
+        run: node tests/run-tests.js
+      - name: Verify diff
+        run: git diff --check
+      - name: Commit tested owner report
+        run: |
+          git config user.name "MA Owner Report"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html app.js styles.css tests/run-tests.js
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Add weekly owner report"
+          git push
