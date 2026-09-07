@@ -14,6 +14,7 @@ if not start_m or not end_m or end_m.start()<=start_m.start():
 
 start,end=start_m.start(),end_m.start()
 block=html[start:end]
+file_block=block.rstrip('\n')+'\n'
 required=[
     'scheduleStartDate','globalDayIndex','dateKeyFromDate','employeeCycleForDate',
     'employeeWorksOnDate','employeesForDate','employeeServiceForDate',
@@ -41,7 +42,6 @@ if 'schedule.js' in html:
 
 comment='  // Schedule calculation logic moved to schedule.js\n\n'
 without_block=html[:start]+comment+html[end:]
-# account for block removal shifting the script tag if block happened before it (it does not today, but keep robust)
 if script_pos>start:
     script_pos=script_pos-(end-start)+len(comment)
 new_html=without_block[:script_pos]+'<script src="schedule.js"></script>\n'+without_block[script_pos:]
@@ -51,20 +51,21 @@ roundtrip=new_html.replace('<script src="schedule.js"></script>\n','',1).replace
 if roundtrip!=html:
     raise SystemExit('Safety check failed: index.html changed outside the intended schedule extraction')
 
-schedule_path.write_text(block,encoding='utf-8')
+# Preserve all executable code exactly; normalize only trailing blank lines at file EOF.
+schedule_path.write_text(file_block,encoding='utf-8')
 index_path.write_text(new_html,encoding='utf-8')
 
-# Verify the exact extracted code is preserved byte-for-byte.
 written=schedule_path.read_text(encoding='utf-8')
-if written!=block:
-    raise SystemExit('schedule.js content differs from source block')
+if written!=file_block:
+    raise SystemExit('schedule.js content differs from normalized source block')
 for name in required:
     if re.search(rf'(?m)^  function {re.escape(name)}\(', new_html):
         raise SystemExit(f'{name} still remains in index.html')
 if not re.search(r'(?m)^  function buildMonthRows\(', new_html):
     raise SystemExit('Boundary function buildMonthRows was accidentally moved')
 
-print('Schedule block chars:',len(block))
-print('Schedule block sha256:',hashlib.sha256(block.encode('utf-8')).hexdigest())
+print('Schedule source block chars:',len(block))
+print('Schedule source sha256:',hashlib.sha256(block.encode('utf-8')).hexdigest())
+print('schedule.js chars:',len(file_block))
 print('Extracted functions:',', '.join(required))
 print('Outside-block HTML unchanged: yes')
