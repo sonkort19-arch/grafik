@@ -495,6 +495,35 @@ test("KPI: пропуск считается после первого подт�
   assert.strictEqual(arsen.score,80);
 });
 
+test("KPI: использует сохранённого ответственного смены для исторической справедливости",()=>{
+  const rows=[{
+    service:"Моба",shift_date:"2026-09-07",expected_manager:"Дина",expected_master:"Олег",
+    opened_at:"2026-09-07T05:00:00.000Z",opened_by:"Дина",open_late_minutes:0,
+    closed_at:"2026-09-07T19:00:00.000Z",closed_by:"Дина",early_close_minutes:0
+  }];
+  const result=kpiApi.calculate(rows,{from:"2026-09-07",to:"2026-09-07",now:{date:"2026-09-07",hour:22,minute:30}});
+  const dina=result.employees.find(x=>x.name==="Дина");
+  const arsen=result.employees.find(x=>x.name==="Арсен");
+  assert(dina);assert(arsen);
+  assert.strictEqual(dina.total,1);
+  assert.strictEqual(dina.worked,1);
+  assert.strictEqual(dina.score,100);
+  assert.strictEqual(arsen.total,0);
+});
+
+test("KPI: раннее закрытие другим человеком не штрафует ответственного",()=>{
+  const rows=[{
+    service:"Моба",shift_date:"2026-09-07",expected_manager:"Арсен",expected_master:"Олег",
+    opened_at:"2026-09-07T05:00:00.000Z",opened_by:"Арсен",open_late_minutes:0,
+    closed_at:"2026-09-07T18:40:00.000Z",closed_by:"Дина",early_close_minutes:20
+  }];
+  const result=kpiApi.calculate(rows,{from:"2026-09-07",to:"2026-09-07",now:{date:"2026-09-07",hour:22,minute:30}});
+  const arsen=result.employees.find(x=>x.name==="Арсен");
+  assert(arsen);
+  assert.strictEqual(arsen.early,0);
+  assert.strictEqual(arsen.score,100);
+});
+
 test("KPI: аннулированная смена исключается и не портит сотруднику оценку",()=>{
   const rows=[{service:"Моба",shift_date:"2026-09-07",voided_at:"2026-09-07T10:00:00.000Z",opened_at:"2026-09-07T05:00:00.000Z",opened_by:"Арсен"}];
   const result=kpiApi.calculate(rows,{from:"2026-09-07",to:"2026-09-07",now:{date:"2026-09-07",hour:22,minute:30}});
