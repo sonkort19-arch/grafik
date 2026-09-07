@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Apply KPI fairness refinement
+      - name: Harden KPI historical attribution
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -25,32 +25,31 @@ jobs:
               return text.replace(old,new,1)
 
           kpi=Path("kpi.js").read_text(encoding="utf-8")
-          if "const activationDates=new Map();" not in kpi:
-              old='''      const stats=new Map();\n      const ensure=(name,role="")=>{'''
-              new='''      const activationDates=new Map();\n      activeRows.forEach(row=>{\n        if(!row?.opened_at || !row?.opened_by || !row?.shift_date || !row?.service) return;\n        const resp=responsibleFor(String(row.shift_date),String(row.service));\n        if(!resp || String(row.opened_by)!==resp.name) return;\n        const date=String(row.shift_date);\n        const previous=activationDates.get(resp.name);\n        if(!previous || date<previous) activationDates.set(resp.name,date);\n      });\n\n      const stats=new Map();\n      const ensure=(name,role="")=>{'''
-              kpi=replace_once(kpi,old,new,"activation dates")
+          if "function responsibleForRow" not in kpi:
+              old='''    function responsibleFor(dateStr,service){\n      const expected=typeof expectedForDate==="function"?expectedForDate(dateStr,service):null;\n      const manager=String(expected?.manager||"").trim();\n      if(!manager || isNoManagerValue(manager)) return null;\n      const info=employeeInfo(manager,dateStr);\n      return {name:manager,role:info?.role||((expected?.manager===expected?.master)?"master":"manager"),expected};\n    }'''
+              new='''    function responsibleFor(dateStr,service){\n      const expected=typeof expectedForDate==="function"?expectedForDate(dateStr,service):null;\n      const manager=String(expected?.manager||"").trim();\n      if(!manager || isNoManagerValue(manager)) return null;\n      const info=employeeInfo(manager,dateStr);\n      return {name:manager,role:info?.role||((expected?.manager===expected?.master)?"master":"manager"),expected};\n    }\n\n    function responsibleForRow(row,fallback){\n      const dateStr=String(row?.shift_date||"");\n      const stored=String(row?.expected_manager||"").trim();\n      if(!stored || isNoManagerValue(stored)) return fallback||null;\n      const info=employeeInfo(stored,dateStr);\n      const storedMaster=String(row?.expected_master||"").trim();\n      return {name:stored,role:info?.role||((storedMaster&&stored===storedMaster)?"master":"manager"),expected:{manager:stored,master:storedMaster||null}};\n    }'''
+              kpi=replace_once(kpi,old,new,"row responsibility helper")
 
-              old='''          const stat=ensure(resp.name,resp.role||"");\n          stat.total++;'''
-              new='''          const activationDate=activationDates.get(resp.name);\n          if(!activationDate || date<activationDate) continue;\n\n          const stat=ensure(resp.name,resp.role||"");\n          stat.total++;'''
-              kpi=replace_once(kpi,old,new,"activation guard")
+              old='''        const resp=responsibleFor(String(row.shift_date),String(row.service));\n        if(!resp || String(row.opened_by)!==resp.name) return;'''
+              new='''        const fallback=responsibleFor(String(row.shift_date),String(row.service));\n        const resp=responsibleForRow(row,fallback);\n        if(!resp || String(row.opened_by)!==resp.name) return;'''
+              kpi=replace_once(kpi,old,new,"activation historical responsibility")
 
-              old='''        noticeEl.innerHTML=`KPI считает только <b>контролируемые смены</b>, где сотрудник назначен ответственным за открытие и закрытие точки. Присутствие мастера на Мобе пока отдельно не фиксируется и не снижает ему оценку.`;'''
-              new='''        noticeEl.innerHTML=`KPI считает только <b>контролируемые смены</b>, где сотрудник назначен ответственным за открытие и закрытие точки. Пропуск начинает учитываться только после первого подтверждённого открытия этим сотрудником — отсутствие настроенного PIN/доступа не превращается в штраф. Присутствие мастера на Мобе пока отдельно не фиксируется и не снижает ему оценку.`;'''
-              kpi=replace_once(kpi,old,new,"KPI notice")
+              old='''          const resp=responsibleFor(date,service);\n          if(!resp) continue;\n          const key=`${date}|${service}`;\n          const row=activeRows.get(key)||null;\n          if(!row && voidedPairs.has(key)) continue;'''
+              new='''          const key=`${date}|${service}`;\n          const row=activeRows.get(key)||null;\n          if(!row && voidedPairs.has(key)) continue;\n          const fallbackResp=responsibleFor(date,service);\n          const resp=row?responsibleForRow(row,fallbackResp):fallbackResp;\n          if(!resp) continue;'''
+              kpi=replace_once(kpi,old,new,"historical row responsibility")
+
+              old='''          if(row.closed_at){\n            const early=Math.max(0,Number(row.early_close_minutes)||0);\n            if(early>0){\n              stat.early++;\n              stat.earlyMinutes+=early;\n              stat.issues.push({date,service,type:"early",text:`Закрытие раньше на ${early} мин`});\n            }\n          }else if(shouldCountClosing(date,service,current)){'''
+              new='''          if(row.closed_at){\n            const early=Math.max(0,Number(row.early_close_minutes)||0);\n            if(early>0 && String(row.closed_by||"")===resp.name){\n              stat.early++;\n              stat.earlyMinutes+=early;\n              stat.issues.push({date,service,type:"early",text:`Закрытие раньше на ${early} мин`});\n            }\n          }else if(shouldCountClosing(date,service,current)){'''
+              kpi=replace_once(kpi,old,new,"early close attribution")
               Path("kpi.js").write_text(kpi,encoding="utf-8")
 
-          app=Path("app.js").read_text(encoding="utf-8")
-          if "const kpiHistoryFrom=" not in app:
-              old='''      const token=await getAdminToken();\n      const query=`/rest/v1/${SHIFT_TABLE}?select=*&shift_date=gte.${range.from}&shift_date=lte.${range.to}&order=shift_date.asc,service.asc&limit=250`;'''
-              new='''      const token=await getAdminToken();\n      const kpiHistoryFrom=range.from<"2026-09-01"?range.from:"2026-09-01";\n      const query=`/rest/v1/${SHIFT_TABLE}?select=*&shift_date=gte.${kpiHistoryFrom}&shift_date=lte.${range.to}&order=shift_date.asc,service.asc&limit=2000`;'''
-              app=replace_once(app,old,new,"KPI history query")
-              Path("app.js").write_text(app,encoding="utf-8")
-
           tests=Path("tests/run-tests.js").read_text(encoding="utf-8")
-          if "после первого подтверждённого открытия" not in tests:
-              old='''test("KPI: опоздание и пропуск уменьшают оценку по понятным правилам",()=>{\n  const rows=[{\n    service:"Моба",shift_date:"2026-09-07",opened_at:"2026-09-07T05:12:00.000Z",opened_by:"Арсен",\n    open_late_minutes:12,closed_at:"2026-09-07T19:00:00.000Z",closed_by:"Арсен",early_close_minutes:0\n  }];\n  const result=kpiApi.calculate(rows,{from:"2026-09-07",to:"2026-09-07",now:{date:"2026-09-07",hour:22,minute:30}});\n  const arsen=result.employees.find(x=>x.name==="Арсен");\n  const asik=result.employees.find(x=>x.name==="Асик");\n  assert(arsen);assert(asik);\n  assert.strictEqual(arsen.total,1);\n  assert.strictEqual(arsen.late,1);\n  assert.strictEqual(arsen.score,95);\n  assert.strictEqual(asik.missed,1);\n  assert.strictEqual(asik.score,80);\n});'''
-              new='''test("KPI: опоздание снижает оценку, а сотрудник без первого открытия не штрафуется",()=>{\n  const rows=[{\n    service:"Моба",shift_date:"2026-09-07",opened_at:"2026-09-07T05:12:00.000Z",opened_by:"Арсен",\n    open_late_minutes:12,closed_at:"2026-09-07T19:00:00.000Z",closed_by:"Арсен",early_close_minutes:0\n  }];\n  const result=kpiApi.calculate(rows,{from:"2026-09-07",to:"2026-09-07",now:{date:"2026-09-07",hour:22,minute:30}});\n  const arsen=result.employees.find(x=>x.name==="Арсен");\n  const asik=result.employees.find(x=>x.name==="Асик");\n  assert(arsen);assert(asik);\n  assert.strictEqual(arsen.total,1);\n  assert.strictEqual(arsen.late,1);\n  assert.strictEqual(arsen.score,95);\n  assert.strictEqual(asik.total,0);\n  assert.strictEqual(asik.score,null);\n});\n\ntest("KPI: пропуск считается после первого подтверждённого открытия",()=>{\n  const arsenDates=[];\n  for(let day=7;day<=20;day++){\n    const date=`2026-09-${String(day).padStart(2,"0")}`;\n    if(shifts.expectedForDate(date,"Моба")?.manager==="Арсен") arsenDates.push(date);\n  }\n  assert(arsenDates.length>=2);\n  const activationDate=arsenDates[0], missedDate=arsenDates[1];\n  const rows=[{\n    service:"Моба",shift_date:activationDate,opened_at:`${activationDate}T05:00:00.000Z`,opened_by:"Арсен",\n    open_late_minutes:0,closed_at:`${activationDate}T19:00:00.000Z`,closed_by:"Арсен",early_close_minutes:0\n  }];\n  const result=kpiApi.calculate(rows,{from:missedDate,to:missedDate,now:{date:missedDate,hour:22,minute:30}});\n  const arsen=result.employees.find(x=>x.name==="Арсен");\n  assert(arsen);\n  assert.strictEqual(arsen.total,1);\n  assert.strictEqual(arsen.worked,0);\n  assert.strictEqual(arsen.missed,1);\n  assert.strictEqual(arsen.score,80);\n});'''
-              tests=replace_once(tests,old,new,"KPI activation tests")
+          if "сохранённого ответственного смены" not in tests:
+              marker='''test("KPI: аннулированная смена исключается и не портит сотруднику оценку",()=>{'''
+              extra='''test("KPI: использует сохранённого ответственного смены для исторической справедливости",()=>{\n  const rows=[{\n    service:"Моба",shift_date:"2026-09-07",expected_manager:"Дина",expected_master:"Олег",\n    opened_at:"2026-09-07T05:00:00.000Z",opened_by:"Дина",open_late_minutes:0,\n    closed_at:"2026-09-07T19:00:00.000Z",closed_by:"Дина",early_close_minutes:0\n  }];\n  const result=kpiApi.calculate(rows,{from:"2026-09-07",to:"2026-09-07",now:{date:"2026-09-07",hour:22,minute:30}});\n  const dina=result.employees.find(x=>x.name==="Дина");\n  const arsen=result.employees.find(x=>x.name==="Арсен");\n  assert(dina);assert(arsen);\n  assert.strictEqual(dina.total,1);\n  assert.strictEqual(dina.worked,1);\n  assert.strictEqual(dina.score,100);\n  assert.strictEqual(arsen.total,0);\n});\n\ntest("KPI: раннее закрытие другим человеком не штрафует ответственного",()=>{\n  const rows=[{\n    service:"Моба",shift_date:"2026-09-07",expected_manager:"Арсен",expected_master:"Олег",\n    opened_at:"2026-09-07T05:00:00.000Z",opened_by:"Арсен",open_late_minutes:0,\n    closed_at:"2026-09-07T18:40:00.000Z",closed_by:"Дина",early_close_minutes:20\n  }];\n  const result=kpiApi.calculate(rows,{from:"2026-09-07",to:"2026-09-07",now:{date:"2026-09-07",hour:22,minute:30}});\n  const arsen=result.employees.find(x=>x.name==="Арсен");\n  assert(arsen);\n  assert.strictEqual(arsen.early,0);\n  assert.strictEqual(arsen.score,100);\n});\n\n'''
+              if marker not in tests:
+                  raise SystemExit("KPI test insertion marker not found")
+              tests=tests.replace(marker,extra+marker,1)
               Path("tests/run-tests.js").write_text(tests,encoding="utf-8")
           PY
 
@@ -63,22 +62,22 @@ jobs:
       - name: Run regression tests
         run: node tests/run-tests.js
 
-      - name: Verify KPI fairness rules
+      - name: Verify hardened KPI rules
         run: |
-          grep -q 'const activationDates=new Map();' kpi.js
-          grep -q 'const kpiHistoryFrom=' app.js
-          grep -q 'после первого подтверждённого открытия' tests/run-tests.js
+          grep -q 'function responsibleForRow' kpi.js
+          grep -q 'String(row.closed_by||"")===resp.name' kpi.js
+          grep -q 'сохранённого ответственного смены' tests/run-tests.js
           git diff --check
 
       - name: Commit tested product files
         run: |
-          if git diff --quiet -- kpi.js app.js tests/run-tests.js; then
-            echo "KPI refinement already applied"
+          if git diff --quiet -- kpi.js tests/run-tests.js; then
+            echo "KPI hardening already applied"
             exit 0
           fi
           git config user.name "MA KPI Builder"
           git config user.email "actions@users.noreply.github.com"
-          git add kpi.js app.js tests/run-tests.js
+          git add kpi.js tests/run-tests.js
           git diff --cached --check
-          git commit -m "Protect KPI from unfair pre-activation penalties"
+          git commit -m "Harden KPI historical attribution"
           git push
