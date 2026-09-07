@@ -2,7 +2,8 @@ name: Boot timeout fix
 
 on:
   push:
-    branches: [fix-boot-timeout-2026-09-07]
+    branches:
+      - fix-boot-timeout-2026-09-07
 
 permissions:
   contents: write
@@ -12,61 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Apply startup timeout fix
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('app.js')
-          text=p.read_text(encoding='utf-8')
-          old='''    if(hasDeviceToken && !cachedDevice){
-      try{
-        await refreshDeviceAccess();
-      }catch(e){
-        console.error("initial device check",e);
-      }
-    }
-'''
-          new='''    if(hasDeviceToken && !cachedDevice){
-      let initialDeviceResolved=false;
-      const initialDeviceCheck=Promise.resolve()
-        .then(()=>refreshDeviceAccess())
-        .catch(e=>{
-          console.error("initial device check",e);
-          return false;
-        });
-      await Promise.race([
-        initialDeviceCheck.then(()=>{ initialDeviceResolved=true; }),
-        new Promise(resolve=>setTimeout(resolve,3500))
-      ]);
-      if(!initialDeviceResolved){
-        initialDeviceCheck.then(()=>{
-          if(appInitialized && currentDeviceAccess.allowed){
-            updateAuthUI();
-            applyUserMode();
-            switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday");
-          }
-        });
-      }
-    }
-'''
-          if text.count(old)!=1:
-              raise SystemExit(f'expected one startup block, found {text.count(old)}')
-          p.write_text(text.replace(old,new,1),encoding='utf-8')
-          PY
-
+      - name: Apply patch
+        run: python3 tools/fix_boot_timeout.py
       - name: Syntax check
         run: node --check app.js
-
       - name: Regression tests
         run: node tests/run-tests.js
-
-      - name: Verify timeout guard
+      - name: Verify patch
         run: |
           grep -q 'setTimeout(resolve,3500)' app.js
           grep -q 'initialDeviceResolved' app.js
           git diff --check
-
       - name: Commit tested app fix
         run: |
           git config user.name "MA Boot Fix"
