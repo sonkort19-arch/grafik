@@ -10,7 +10,7 @@ async function visible(page, selector){
   return await el.first().isVisible().catch(()=>false);
 }
 
-async function auditPage(browser,{name,url,viewport,offlineCycle=false}){
+async function auditPage(browser,{name,url,viewport,offlineCycle=false,expectOnboarding=false}){
   const context=await browser.newContext({viewport, locale:'ru-RU', timezoneId:'Europe/Moscow'});
   const page=await context.newPage();
   const pageErrors=[];
@@ -41,6 +41,7 @@ async function auditPage(browser,{name,url,viewport,offlineCycle=false}){
   if(!(await visible(page,'#adminBtn'))) fail(`${name}: кнопка администратора не видна`);
   if(!(await page.locator('#monthTitle').count())) fail(`${name}: нет заголовка месяца`);
   if(!(await page.locator('#servicesRoot').count())) fail(`${name}: нет контейнера графика`);
+  if(expectOnboarding && !(await visible(page,'#employeePickerModal'))) fail(`${name}: на чистом мобильном устройстве не открылся выбор сотрудника`);
 
   const rootOverflow=await page.evaluate(()=>({w:document.documentElement.scrollWidth,v:window.innerWidth}));
   if(rootOverflow.w>rootOverflow.v+6) fail(`${name}: корневая горизонтальная прокрутка ${rootOverflow.w}px при viewport ${rootOverflow.v}px`);
@@ -83,9 +84,9 @@ async function auditPage(browser,{name,url,viewport,offlineCycle=false}){
 const browser=await chromium.launch({headless:true});
 try{
   await auditPage(browser,{name:'local desktop',url:LOCAL,viewport:{width:1440,height:900},offlineCycle:true});
-  await auditPage(browser,{name:'local iPhone',url:LOCAL,viewport:{width:390,height:844},offlineCycle:true});
+  await auditPage(browser,{name:'local iPhone',url:LOCAL,viewport:{width:390,height:844},expectOnboarding:true});
   await auditPage(browser,{name:'production desktop',url:PROD,viewport:{width:1440,height:900}});
-  await auditPage(browser,{name:'production iPhone',url:PROD,viewport:{width:390,height:844}});
+  await auditPage(browser,{name:'production iPhone',url:PROD,viewport:{width:390,height:844},expectOnboarding:true});
   console.log('FINAL_BROWSER_AUDIT_OK');
 } finally {
   await browser.close();
