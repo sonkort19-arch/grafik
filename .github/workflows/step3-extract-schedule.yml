@@ -1,0 +1,51 @@
+name: Step 3 extract schedule
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/step3-extract-schedule.yml
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Extract schedule logic safely
+        run: python3 tools/extract_schedule_step3.py
+      - name: Validate JavaScript syntax
+        run: |
+          node --check schedule.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          h=Path('index.html').read_text(encoding='utf-8')
+          matches=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',h,re.S)
+          main=next((x for x in matches if 'const SUPABASE_URL' in x),None)
+          if main is None:
+              raise SystemExit('Main inline script not found')
+          Path('/tmp/ma-main.js').write_text(main,encoding='utf-8')
+          PY
+          node --check /tmp/ma-main.js
+          test -s schedule.js
+          grep -q 'src="schedule.js"' index.html
+          ! grep -q 'function balancedRosterState' index.html
+          grep -q 'function balancedRosterState' schedule.js
+          git diff --check
+      - name: Publish step 3
+        run: |
+          rm -f .github/workflows/step3-extract-schedule.yml
+          rm -f .github/workflows/step3-inspect-schedule.yml
+          rm -f tools/extract_schedule_step3.py
+          rm -f tools/inspect_schedule_functions.py
+          git config user.name "MA Modularization"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html schedule.js .github/workflows/step3-extract-schedule.yml .github/workflows/step3-inspect-schedule.yml tools/extract_schedule_step3.py tools/inspect_schedule_functions.py
+          git diff --cached --check
+          git commit -m "Step 3: move schedule logic to schedule.js"
+          git push origin HEAD:main
