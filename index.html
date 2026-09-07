@@ -2854,7 +2854,7 @@ body{padding-bottom:88px}
     const active=activeEmployeesForDate(dateStr);
     const names=active.filter(x=>x.role==="manager").map(x=>x.name).filter(Boolean);
     if(dateStr>=MANAGER_ROSTER_FROM){
-      active.filter(x=>x.role==="master").forEach(x=>{ if(x.name) names.push(x.name); });
+      active.filter(x=>x.role==="master" && ["Георгий","Асик"].includes(x.name)).forEach(x=>{ if(x.name) names.push(x.name); });
     }
     return [...new Set(names)];
   }
@@ -5487,7 +5487,7 @@ body{padding-bottom:88px}
   }
 
   function startupManagerOptions(expectedManager){
-    const names=activeManagerNames();
+    const names=(expectedManager && moscowParts().date>=MANAGER_ROSTER_FROM) ? [expectedManager] : activeManagerNames();
     return names.map(n=>`<option value="${escapeHtml(n)}" ${n===expectedManager?"selected":""}>${escapeHtml(n)}</option>`).join("");
   }
 
@@ -5944,8 +5944,12 @@ body{padding-bottom:88px}
     }
     pendingShiftAction={service,action,expected};
     $("shiftActionTitle").textContent=action==="open"?`Открыть смену — ${service}`:`Закрыть смену — ${service}`;
-    $("shiftActionInfo").innerHTML=expected?`По графику сегодня: <b>${escapeHtml(expected.manager)} + ${escapeHtml(expected.master)}</b>`:"На эту дату автоматический график не найден. Смену можно подтвердить вручную.";
-    const names=activeManagerNames();
+    $("shiftActionInfo").innerHTML=expected
+      ? (service===settings.service2 && expected.manager===expected.master
+        ? `По графику сегодня отвечает: <b>${escapeHtml(expected.master)}</b>`
+        : `По графику сегодня: <b>${escapeHtml(expected.manager)} + ${escapeHtml(expected.master)}</b>`)
+      : "На эту дату автоматический график не найден. Смену можно подтвердить вручную.";
+    const names=(expected && expected.manager && moscowParts().date>=MANAGER_ROSTER_FROM) ? [expected.manager] : activeManagerNames();
     $("shiftEmployee").innerHTML=names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
     if(expected && names.includes(expected.manager)) $("shiftEmployee").value=expected.manager;
     $("shiftPin").value=""; $("shiftActionError").textContent="";
@@ -5995,7 +5999,7 @@ body{padding-bottom:88px}
 
   function renderPinFields(){
     const root=$("pinFields"); if(!root) return;
-    root.innerHTML=activeManagerNames().map((n,i)=>`<div class="pin-grid"><div class="field" style="margin:0"><label>${escapeHtml(n)}</label><input class="readonly" value="Менеджер" readonly></div><div class="field" style="margin:0"><label>Новый PIN</label><input id="managerPin${i}" type="password" inputmode="numeric" maxlength="4" placeholder="4 цифры"></div></div>`).join("");
+    root.innerHTML=activeManagerNames().map((n,i)=>`<div class="pin-grid"><div class="field" style="margin:0"><label>${escapeHtml(n)}</label><input class="readonly" value="${["Георгий","Асик"].includes(n)?"Мастер Новы / ответственный":"Менеджер"}" readonly></div><div class="field" style="margin:0"><label>Новый PIN</label><input id="managerPin${i}" type="password" inputmode="numeric" maxlength="4" placeholder="4 цифры"></div></div>`).join("");
   }
 
   async function saveManagerPins(){
