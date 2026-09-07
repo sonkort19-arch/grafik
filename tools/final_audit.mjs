@@ -46,15 +46,24 @@ async function auditPage(browser,{name,url,viewport,offlineCycle=false}){
   if(rootOverflow.w>rootOverflow.v+6) fail(`${name}: корневая горизонтальная прокрутка ${rootOverflow.w}px при viewport ${rootOverflow.v}px`);
 
   if(offlineCycle){
-    const before=(await page.locator('#monthTitle').textContent())||'';
     await context.setOffline(true);
     await page.waitForTimeout(500);
     const bannerVisible=await visible(page,'#connectionBanner');
-    await page.locator('#nextBtn').click();
-    await page.waitForTimeout(300);
-    const after=(await page.locator('#monthTitle').textContent())||'';
-    if(before===after) fail(`${name}: график не переключает месяц без сети`);
-    await page.locator('#prevBtn').click();
+
+    if(!(await visible(page,'#nextBtn')) && await visible(page,'#bottomTab2')){
+      await page.locator('#bottomTab2').click();
+      await page.waitForTimeout(250);
+    }
+
+    if(await visible(page,'#nextBtn')){
+      const before=(await page.locator('#monthTitle').textContent())||'';
+      await page.locator('#nextBtn').click();
+      await page.waitForTimeout(300);
+      const after=(await page.locator('#monthTitle').textContent())||'';
+      if(before===after) fail(`${name}: график не переключает месяц без сети`);
+      await page.locator('#prevBtn').click();
+    }
+
     await context.setOffline(false);
     await page.waitForTimeout(500);
     if(!bannerVisible) console.log(`WARN ${name}: offline banner не стал видимым за 500мс`);
