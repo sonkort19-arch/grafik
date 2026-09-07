@@ -162,6 +162,7 @@
           <div><h2>Состояние смен</h2><div class="today-date" id="todayDateLabel">—</div></div>
           <div class="today-head-actions">
             <button class="secondary" id="openKpiFromToday">KPI сотрудников</button>
+            <button class="secondary" id="openOwnerReport">Отчёт владельца</button>
             <button class="secondary quick-replace-btn hidden" id="quickReplaceBtn">Замена сегодня</button>
           </div>
         </div>
@@ -870,6 +871,30 @@
     </div>
     <div class="modal-note">Пустое время закрытия означает, что смена пока не закрыта. Изменять историю может только администратор.</div>
     <div class="login-actions"><button class="secondary" id="cancelEditShift">Отмена</button><button class="primary" id="saveEditShift">Сохранить</button></div>
+  </div>
+</div>
+
+
+<div class="modal hidden" id="ownerReportModal">
+  <div class="sheet owner-report-sheet">
+    <div class="sheet-head owner-report-head">
+      <div>
+        <h2>Отчёт владельца</h2>
+        <div class="owner-report-period" id="ownerReportPeriod">Последние 7 дней</div>
+      </div>
+      <button class="close" id="closeOwnerReport" aria-label="Закрыть">×</button>
+    </div>
+    <div class="owner-report-loading hidden" id="ownerReportLoading">Собираем отчёт…</div>
+    <div class="owner-report-summary" id="ownerReportSummary"></div>
+    <div class="owner-report-best" id="ownerReportBest"></div>
+    <h3 class="owner-report-title">Сотрудники</h3>
+    <div class="owner-report-people" id="ownerReportPeople"></div>
+    <h3 class="owner-report-title">Требует внимания</h3>
+    <div class="owner-report-attention" id="ownerReportAttention"></div>
+    <div class="owner-report-actions">
+      <button class="secondary" id="ownerReportOpenKpi">Открыть KPI</button>
+      <button class="primary" id="ownerReportRefresh">Обновить</button>
+    </div>
   </div>
 </div>
 
