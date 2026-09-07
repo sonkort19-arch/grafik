@@ -1,0 +1,88 @@
+name: Step 8 finalize app
+on:
+  push:
+    paths:
+      - 'tools/refactor_step8_app.py'
+      - '.github/workflows/step8-finalize-app.yml'
+permissions:
+  contents: write
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract main app script
+        run: python3 tools/refactor_step8_app.py
+
+      - name: Syntax checks
+        run: |
+          node --check schedule.js
+          node --check shifts.js
+          node --check employees.js
+          node --check supabase.js
+          node --check wallets.js
+          node --check admin.js
+          node --check app.js
+
+      - name: Verify HTML structure
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          text=Path('index.html').read_text(encoding='utf-8')
+          refs=['schedule.js','shifts.js','employees.js','supabase.js','wallets.js','admin.js','app.js']
+          positions=[]
+          for ref in refs:
+              token=f'<script src="{ref}"></script>'
+              pos=text.find(token)
+              if pos<0: raise SystemExit(f'missing {ref}')
+              positions.append(pos)
+          if positions != sorted(positions): raise SystemExit('wrong script order')
+          if '<script>\n(function(){' in text: raise SystemExit('inline main app remains')
+          app=Path('app.js').read_text(encoding='utf-8')
+          if not app.startswith('(function(){') or not app.rstrip().endswith('})();'):
+              raise SystemExit('app.js wrapper invalid')
+          print('HTML/module structure OK')
+          PY
+
+      - name: Local browser smoke test
+        run: |
+          python3 -m http.server 8765 >/tmp/ma-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          sleep 1
+          curl -fsS http://127.0.0.1:8765/ >/tmp/index-served.html
+          curl -fsS http://127.0.0.1:8765/app.js >/tmp/app-served.js
+          test -s /tmp/index-served.html
+          test -s /tmp/app-served.js
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "$CHROME" ]; then
+            "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=5000 --dump-dom http://127.0.0.1:8765/ >/tmp/rendered.html 2>/tmp/chrome.log || {
+              cat /tmp/chrome.log
+              exit 1
+            }
+            grep -q 'MA График' /tmp/rendered.html
+            if grep -q '>Ошибка запуска<' /tmp/rendered.html; then
+              echo 'App rendered startup error'
+              exit 1
+            fi
+            if grep -q 'class="[^"]*app-booting' /tmp/rendered.html; then
+              echo 'App remained in booting state'
+              exit 1
+            fi
+            echo 'Headless browser smoke test OK'
+          else
+            echo 'Chrome not available; HTTP asset smoke test passed'
+          fi
+
+      - name: Publish final refactor
+        run: |
+          git config user.name "MA Modularization"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html app.js
+          if git diff --cached --quiet; then
+            echo "No changes to publish"
+            exit 0
+          fi
+          git commit -m "Step 8: move main application to app.js"
+          git push
