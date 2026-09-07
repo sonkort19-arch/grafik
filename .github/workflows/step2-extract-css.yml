@@ -1,0 +1,36 @@
+name: Step 2 extract CSS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/step2-extract-css.yml
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Extract CSS safely
+        run: python3 tools/extract_css_step2.py
+      - name: Validate files
+        run: |
+          test -s styles.css
+          grep -q 'href="styles.css"' index.html
+          ! grep -q '<style>' index.html
+          git diff --check
+      - name: Publish step 2
+        run: |
+          rm -f .github/workflows/step2-extract-css.yml
+          rm -f tools/extract_css_step2.py
+          git config user.name "MA Modularization"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html styles.css .github/workflows/step2-extract-css.yml tools/extract_css_step2.py
+          git diff --cached --check
+          git commit -m "Step 2: move styles to styles.css"
+          git push origin HEAD:main
