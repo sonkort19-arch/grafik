@@ -13,6 +13,16 @@ jobs:
       - uses: actions/checkout@v4
       - name: Apply error journal patch
         run: python3 tools/apply_stage3_errors.py
+      - name: Normalize whitespace
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for name in ['app.js','index.html','styles.css','tests/run-tests.js','.github/workflows/ma-tests.yml']:
+            p=Path(name)
+            text=p.read_text(encoding='utf-8')
+            text='\n'.join(line.rstrip() for line in text.splitlines()).rstrip()+"\n"
+            p.write_text(text,encoding='utf-8')
+          PY
       - name: Check JavaScript syntax
         run: |
           node --check schedule.js
