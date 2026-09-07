@@ -6,6 +6,7 @@
   const DEVICE_VIEW_CACHE_KEY = "ma_device_view_cache_v1";
   const TODAY_SHIFT_CACHE_KEY = "ma_today_shift_cache_v1";
   const ERROR_LOG_KEY = "ma_error_log_v1";
+  const SAFETY_BACKUP_KEY = "ma_data_safety_backups_v1";
   const WALLET_STORAGE_KEY = "ma_personal_wallets_v1";
   const WALLET_DATA_VERSION = 3;
   const WALLET_PLAN_TABLE = "ma_wallet_plans";
@@ -141,6 +142,13 @@
     WALLET_STORAGE_KEY
   });
   let walletState = loadWalletState();
+  const dataSafety=window.MADataSafety.create({
+    backupKey:SAFETY_BACKUP_KEY,
+    scheduleKey:STORAGE_KEY,
+    walletKey:WALLET_STORAGE_KEY,
+    maxBackups:8,
+    maxWalletBytes:750000
+  });
   let walletBusy = false;
   let walletCloudSyncPromise = null;
   let lastWalletCloudFetchAt = 0;
@@ -179,6 +187,73 @@
   const monthSelect = $("monthSelect");
   const yearSelect = $("yearSelect");
   const employeeFilter = $("employeeFilter");
+
+
+  function backupTimeLabel(value){
+    const ms=Date.parse(value||"");
+    if(!ms)return "—";
+    try{return new Intl.DateTimeFormat("ru-RU",{timeZone:SHIFT_TIMEZONE,day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}).format(new Date(ms));}
+    catch(_){return String(value||"—");}
+  }
+
+  function renderBackupStatus(){
+    const root=$("backupStatus");if(!root)return;
+    const rows=dataSafety.list();
+    if(!rows.length){root.textContent="Автокопий пока нет. Они создаются перед опасными изменениями.";return;}
+    const latest=rows[0];
+    const walletText=latest.walletRaw?" · с кошельками":(latest.walletSkipped?" · кошельки слишком большие для локальной копии":"");
+    root.textContent=`Автокопий: ${rows.length} · последняя ${backupTimeLabel(latest.at)} · ${latest.reason||"Автокопия"}${walletText}`;
+  }
+
+  function createDataBackup(reason,includeWallet=false,showToast=false){
+    const snapshot=dataSafety.capture(reason,{includeWallet});
+    renderBackupStatus();
+    if(showToast){
+      if(!snapshot)toast("Нет данных для резервной копии");
+      else if(snapshot.walletSkipped)toast("График сохранён. Кошельки слишком большие для локальной автокопии — скачайте полную копию файлом");
+      else toast("Резервная копия создана");
+    }
+    return snapshot;
+  }
+
+  function downloadFullBackup(prefix="MA_Grafik_full_backup"){
+    const bundle=dataSafety.exportBundle({settings,walletState});
+    const blob=new Blob([JSON.stringify(bundle,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob),a=document.createElement("a");
+    const date=moscowParts().date;
+    a.href=url;a.download=`${prefix}_${date}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1200);
+  }
+
+  async function restoreLatestBackup(){
+    const snapshot=dataSafety.latest();
+    if(!snapshot?.scheduleRaw){toast("Нет автокопии графика для восстановления");return;}
+    if(cloudConfigured()&&!isAdmin()){openLoginModal();toast("Для восстановления войдите как администратор");return;}
+    let restored;
+    try{restored=normalizeScheduleSettings(dataSafety.scheduleFromSnapshot(snapshot));}
+    catch(e){toast("Автокопия повреждена");return;}
+    const validationError=coreSettingsValidationError(restored);
+    if(validationError){toast(`Автокопия не восстановлена: ${validationError}`);return;}
+    if(!confirm(`Восстановить график из автокопии ${backupTimeLabel(snapshot.at)}?\n\nТекущий график сначала будет сохранён ещё одной копией.`))return;
+
+    const previous=clone(settings);
+    createDataBackup("Перед восстановлением автокопии",false,false);
+    const busy=beginButtonBusy("restoreLatestBackupBtn","Восстанавливаем…");
+    if(!busy)return;
+    try{
+      if(cloudConfigured())await saveToCloud(restored,{force:true});
+      settings=restored;
+      saveSettings();
+      settingsDirty=false;
+      currentIndex=getCurrentMonthIndex();userSelectedMonth=false;
+      lastSettingsSignature=stableJson(settings);
+      populateSettings();renderMonth();renderTodayShifts();
+      toast(cloudConfigured()?"График восстановлен на всех устройствах":"График восстановлен");
+    }catch(e){
+      logAppError("backup restore",e);
+      settings=previous;saveSettings();lastSettingsSignature=stableJson(settings);populateSettings();renderMonth();
+      toast(e.message||"Не удалось восстановить автокопию");
+    }finally{endButtonBusy(busy);}
+  }
 
   const deviceSecurity=window.MADevices.create({
     deviceViewCacheKey:DEVICE_VIEW_CACHE_KEY,
@@ -1629,6 +1704,8 @@
     if(typed===null) return;
     if(String(typed).trim().toUpperCase()!=="УДАЛИТЬ"){toast("Очистка отменена: слово введено неверно");return;}
 
+    createDataBackup("Перед очисткой истории кошельков",true,false);
+    downloadFullBackup("MA_Grafik_before_wallet_clear");
     const previous=clone(walletState);
     walletBusy=true;
     const busy=beginButtonBusy("clearWalletHistoryBtn","Удаляем…");
@@ -2109,6 +2186,7 @@
 
           if(settingsChanged){
             const y=window.scrollY;
+            createDataBackup("Перед обновлением графика из облака",false,false);
             settings=remoteSettings;
             localStorage.setItem(STORAGE_KEY,JSON.stringify(settings));
             lastSettingsSignature=remoteSignature;
@@ -2148,13 +2226,32 @@
       cloudSyncPromise=null;
     }
   }
-
-  async function saveToCloud(newSettings){
+  async function saveToCloud(newSettings,{force=false}={}){
     if(!cloudConfigured()) throw new Error("Supabase ещё не подключён");
     const token=await getAdminToken(); if(!token) throw new Error("Нужно войти как администратор");
     setCloudStatus("Сохранение…","syncing");
     const now=new Date().toISOString();
     try{
+      if(!force){
+        const check=await authFetch(`/rest/v1/${CLOUD_TABLE}?id=eq.${encodeURIComponent(CLOUD_ROW_ID)}&select=settings,updated_at`,{
+          method:"GET",headers:{Authorization:"Bearer "+token}
+        });
+        if(!check.ok) throw await httpErrorFromResponse(check,"Не удалось проверить актуальность общего графика");
+        const rows=await check.json().catch(()=>[]);
+        const remote=Array.isArray(rows)?rows[0]:null;
+        if(remote?.updated_at && dataSafety.cloudConflict({
+          knownUpdatedAt:lastCloudUpdatedAt,
+          remoteUpdatedAt:remote.updated_at,
+          remoteSettings:mergeRemoteSettings(remote.settings||{}),
+          nextSettings:newSettings,
+          stableStringify:stableJson
+        })){
+          const conflict=new Error("Общий график уже изменён на другом устройстве. Нажмите «Обновить из облака», проверьте изменения и сохраните снова.");
+          conflict.code="cloud_conflict";
+          throw conflict;
+        }
+      }
+
       const res=await authFetch(`/rest/v1/${CLOUD_TABLE}?on_conflict=id`,{
         method:"POST",
         headers:{"Authorization":"Bearer "+token,"Prefer":"resolution=merge-duplicates,return=representation"},
@@ -5075,6 +5172,7 @@
     updatePushState();
     renderDevicePanel();
     renderErrorLog();
+    renderBackupStatus();
     updateSettingsSystemStatus();
   }
 
@@ -5515,87 +5613,76 @@
 
     window.scrollTo({top:0,behavior:"smooth"});
   }
-
   function exportSettings(){
-    const blob=new Blob([JSON.stringify(settings,null,2)],{type:"application/json"});
-    const url=URL.createObjectURL(blob),a=document.createElement("a");
-    a.href=url;a.download="MA_Grafik_backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    downloadFullBackup("MA_Grafik_full_backup");
+    toast("Полная резервная копия скачана");
   }
-
   function importSettings(file){
     if(importSettingsBusy) return;
     const busy=beginButtonBusy("importBtn","Восстанавливаем…");
     if(!busy) return;
     importSettingsBusy=true;
 
-    const finish=()=>{
-      importSettingsBusy=false;
-      endButtonBusy(busy);
-    };
-
+    const finish=()=>{importSettingsBusy=false;endButtonBusy(busy);};
     const r=new FileReader();
-    r.onerror=()=>{
-      toast("Не удалось прочитать резервную копию");
-      finish();
-    };
+    r.onerror=()=>{toast("Не удалось прочитать резервную копию");finish();};
     r.onload=async()=>{
+      const previousSettings=clone(settings);
+      const previousWallets=clone(walletState);
+      let scheduleSavedToCloud=false;
       try{
-        const s=normalizeScheduleSettings(JSON.parse(r.result));
+        const parsed=dataSafety.parseBackupText(r.result);
+        const s=normalizeScheduleSettings(parsed.schedule);
         const validationError=coreSettingsValidationError(s);
-        if(validationError){
-          toast(`Резервная копия не загружена: ${validationError}`);
-          return;
-        }
+        if(validationError){toast(`Резервная копия не загружена: ${validationError}`);return;}
         if(cloudConfigured() && !isAdmin()){
-          openLoginModal();
-          toast("Для импорта войди как администратор");
-          return;
+          openLoginModal();toast("Для импорта войди как администратор");return;
         }
-        if(!confirm("Заменить текущие настройки данными из резервной копии?")) return;
+        const walletNote=parsed.wallets?"\n\nКошельки из копии будут восстановлены безопасным объединением: более новые облачные операции удаляться не будут.":"";
+        if(!confirm(`Заменить текущий график данными из резервной копии?${walletNote}`)) return;
 
         const renamed=[];
         if(s.service1!==settings.service1) renamed.push(settings.service1);
         if(s.service2!==settings.service2) renamed.push(settings.service2);
         if(renamed.length && isAdmin()){
           const devicesLoaded=await loadRegisteredDevices();
-          if(!devicesLoaded){
-            toast("Не удалось проверить рабочие устройства. Импорт отменён.");
-            return;
-          }
+          if(!devicesLoaded){toast("Не удалось проверить рабочие устройства. Импорт отменён.");return;}
           const active=deviceListCache.filter(d=>d.active && renamed.includes(d.service));
           if(active.length){
             const names=[...new Set(active.map(d=>d.service))].join(", ");
-            toast(`Сначала отключи рабочее устройство точки: ${names}`);
-            return;
+            toast(`Сначала отключи рабочее устройство точки: ${names}`);return;
           }
-
-          const todayRows=(currentShiftRows||[]).filter(r=>
-            renamed.includes(r.service) &&
-            !r.voided_at
-          );
-          if(todayRows.length){
-            toast("Импорт меняет название точки, но сегодня уже есть запись смены со старым названием. Импорт отменён.");
-            return;
-          }
+          const todayRows=(currentShiftRows||[]).filter(row=>renamed.includes(row.service)&&!row.voided_at);
+          if(todayRows.length){toast("Импорт меняет название точки, но сегодня уже есть запись смены со старым названием. Импорт отменён.");return;}
         }
 
-        if(cloudConfigured()) await saveToCloud(s);
-        settings=s;
-        saveSettings();
-        currentIndex=getCurrentMonthIndex();
-        userSelectedMonth=false;
-        lastSettingsSignature=stableJson(settings);
-        settingsDirty=false;
-        populateSettings();
-        renderMonth();
-        renderTodayShifts();
-        toast(cloudConfigured()?"Резервная копия загружена для всех":"Резервная копия загружена");
+        createDataBackup("Перед восстановлением из файла",true,false);
+        if(cloudConfigured()){await saveToCloud(s,{force:true});scheduleSavedToCloud=true;}
+        settings=s;saveSettings();
+        currentIndex=getCurrentMonthIndex();userSelectedMonth=false;
+        lastSettingsSignature=stableJson(settings);settingsDirty=false;
+
+        let walletsMerged=false;
+        if(parsed.wallets){
+          walletState=normalizeWalletState(parsed.wallets);
+          walletState.configUpdatedAt=new Date().toISOString();
+          saveWalletState();
+          if(cloudConfigured()&&isAdmin()) walletsMerged=await syncWalletsCloud(false,true);
+          else walletsMerged=true;
+        }
+
+        populateSettings();renderMonth();renderTodayShifts();
+        if(parsed.wallets){
+          toast(walletsMerged?"График и кошельки восстановлены":"График восстановлен. Кошельки сохранены локально и синхронизируются позже");
+        }else{
+          toast(cloudConfigured()?"Резервная копия графика загружена для всех":"Резервная копия графика загружена");
+        }
       }catch(e){
-        console.error(e);
+        logAppError("backup import",e);
+        if(!scheduleSavedToCloud){settings=previousSettings;saveSettings();}
+        walletState=previousWallets;try{saveWalletState();}catch(_){ }
         toast(e.message||"Не удалось открыть файл");
-      }finally{
-        finish();
-      }
+      }finally{finish();}
     };
     r.readAsText(file);
   }
@@ -5843,6 +5930,8 @@
   $("closeEditShift").onclick=closeEditShift; $("cancelEditShift").onclick=closeEditShift; $("saveEditShift").onclick=saveEditShift;
   $("editShiftModal").addEventListener("click",e=>{ if(e.target===$("editShiftModal")) closeEditShift(); });
   $("exportBtn").onclick=exportSettings;
+  $("manualBackupBtn").onclick=()=>createDataBackup("Ручная автокопия",true,true);
+  $("restoreLatestBackupBtn").onclick=restoreLatestBackup;
   $("importBtn").onclick=()=>$("importFile").click();
   $("importFile").onchange=e=>{ if(e.target.files[0]) importSettings(e.target.files[0]); e.target.value=""; };
   $("resetBtn").onclick=async()=>{
@@ -5857,6 +5946,7 @@
     const next=normalizeScheduleSettings(clone(DEFAULTS));
 
     try{
+      createDataBackup("Перед полным сбросом графика",false,false);
       settings=next;
       saveSettings();
       if(cloudConfigured()) await saveToCloud(settings);

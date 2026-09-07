@@ -441,11 +441,15 @@
 
             <details class="advanced-block nested-settings-details">
               <summary>Облако и резервная копия</summary>
+              <div class="notice" id="backupStatus" style="margin-top:10px">Проверяем резервные копии…</div>
               <div class="settings-actions" style="margin-top:10px">
                 <button class="secondary" id="forceSyncBtn">Обновить из облака</button>
-                <button class="secondary" id="exportBtn">Скачать резервную копию</button>
-                <button class="secondary" id="importBtn">Восстановить из копии</button>
+                <button class="secondary" id="manualBackupBtn">Создать автокопию</button>
+                <button class="secondary" id="restoreLatestBackupBtn">Восстановить последнюю</button>
+                <button class="secondary" id="exportBtn">Скачать полную копию</button>
+                <button class="secondary" id="importBtn">Восстановить из файла</button>
               </div>
+              <div class="small" style="margin-top:8px">Автокопии хранятся только на этом устройстве. Полная скачанная копия содержит график и кошельки, но не содержит пароль администратора, PIN или ключ рабочего устройства.</div>
               <input type="file" id="importFile" accept="application/json" class="hidden">
             </details>
 
@@ -852,6 +856,7 @@
 <script src="settings.js"></script>
 <script src="devices.js"></script>
 <script src="history.js"></script>
+<script src="safety.js"></script>
 <script src="app.js"></script>
 
 </body>

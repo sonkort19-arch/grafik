@@ -31,6 +31,7 @@ loadModule("errors.js");
 loadModule("settings.js");
 loadModule("devices.js");
 loadModule("history.js");
+loadModule("safety.js");
 
 const settings={
   anchorDate:"2026-09-01",
@@ -388,10 +389,64 @@ test("Модуль настроек валидирует точки и врем�
   assert.strictEqual(api.coreSettingsValidationError({...settings,shiftStart:"22:00",shiftEnd:"08:00"}),"Конец смены должен быть позже начала");
 });
 
+// ---- Stage 5 data safety ----
+test("Автокопия сохраняет график и не дублирует одинаковое состояние",()=>{
+  store.clear();
+  localStorage.setItem("safe_schedule",JSON.stringify({service1:"Моба"}));
+  const api=window.MADataSafety.create({backupKey:"safe_backups",scheduleKey:"safe_schedule",walletKey:"safe_wallet",now:()=>new Date("2026-09-07T17:00:00Z")});
+  api.capture("Первая");
+  api.capture("Повтор");
+  assert.strictEqual(api.list().length,1);
+  assert.strictEqual(api.latest().reason,"Повтор");
+  assert.deepStrictEqual(api.scheduleFromSnapshot(api.latest()),{service1:"Моба"});
+});
+
+test("Автокопия умеет сохранить кошельки без секретных ключей",()=>{
+  store.clear();
+  localStorage.setItem("safe_schedule",JSON.stringify({service1:"Моба"}));
+  localStorage.setItem("safe_wallet",JSON.stringify({transactions:[{id:"t1"}]}));
+  localStorage.setItem("ma_schedule_admin_session_v1","SECRET");
+  const api=window.MADataSafety.create({backupKey:"safe_backups",scheduleKey:"safe_schedule",walletKey:"safe_wallet"});
+  const snap=api.capture("Полная",{includeWallet:true});
+  assert(snap.walletRaw.includes("t1"));
+  const exported=JSON.stringify(api.exportBundle({settings:{service1:"Моба"},walletState:{transactions:[]}}));
+  assert(!exported.includes("SECRET"));
+});
+
+test("Полная резервная копия и старый формат читаются одинаково безопасно",()=>{
+  const api=window.MADataSafety.create({backupKey:"safe_parse",scheduleKey:"x",walletKey:"y"});
+  const full=api.parseBackupText(JSON.stringify({format:"ma-grafik-backup",version:2,schedule:{service1:"Моба"},wallets:{transactions:[]}}));
+  assert.strictEqual(full.format,"bundle");
+  assert.strictEqual(full.schedule.service1,"Моба");
+  assert(full.wallets);
+  const legacy=api.parseBackupText(JSON.stringify({service1:"Моба",service2:"Нова"}));
+  assert.strictEqual(legacy.format,"legacy");
+  assert.strictEqual(legacy.wallets,null);
+});
+
+test("Конфликт облака определяется только при реальном расхождении",()=>{
+  const api=window.MADataSafety.create({backupKey:"safe_conflict",scheduleKey:"x",walletKey:"y"});
+  const stable=v=>JSON.stringify(v);
+  assert.strictEqual(api.cloudConflict({knownUpdatedAt:"a",remoteUpdatedAt:"a",remoteSettings:{x:1},nextSettings:{x:2},stableStringify:stable}),false);
+  assert.strictEqual(api.cloudConflict({knownUpdatedAt:"a",remoteUpdatedAt:"b",remoteSettings:{x:2},nextSettings:{x:2},stableStringify:stable}),false);
+  assert.strictEqual(api.cloudConflict({knownUpdatedAt:"a",remoteUpdatedAt:"b",remoteSettings:{x:1},nextSettings:{x:2},stableStringify:stable}),true);
+});
+
+test("Слишком большие кошельки не ломают локальную автокопию графика",()=>{
+  store.clear();
+  localStorage.setItem("safe_schedule",JSON.stringify({ok:true}));
+  localStorage.setItem("safe_wallet","x".repeat(120000));
+  const api=window.MADataSafety.create({backupKey:"safe_big",scheduleKey:"safe_schedule",walletKey:"safe_wallet",maxWalletBytes:100000});
+  const snap=api.capture("Большая",{includeWallet:true});
+  assert.strictEqual(snap.walletRaw,"");
+  assert.strictEqual(snap.walletSkipped,true);
+  assert.deepStrictEqual(api.scheduleFromSnapshot(snap),{ok:true});
+});
+
 // ---- Project structure ----
 test("index.html подключает модули в безопасном порядке",()=>{
   const html=fs.readFileSync("index.html","utf8");
-  const refs=["schedule.js","shifts.js","employees.js","supabase.js","wallets.js","admin.js","errors.js","settings.js","devices.js","history.js","app.js"];
+  const refs=["schedule.js","shifts.js","employees.js","supabase.js","wallets.js","admin.js","errors.js","settings.js","devices.js","history.js","safety.js","app.js"];
   const positions=refs.map(file=>html.indexOf(`<script src="${file}"></script>`));
   assert(positions.every(x=>x>=0));
   assert.deepStrictEqual(positions,[...positions].sort((a,b)=>a-b));
