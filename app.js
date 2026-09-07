@@ -2140,14 +2140,15 @@
     const blockDays=Math.max(1,Number(s.serviceBlockDays)||14);
     const block=Math.floor(days/blockDays);
     const baseOffset=group===1?2:0;
+    const positiveModulo=(value,size)=>((value%size)+size)%size;
 
     if(role==="master"){
-      const partnerCycle=mod(Math.floor(block/2),2);
+      const partnerCycle=positiveModulo(Math.floor(block/2),2);
       const masterFlip=partnerCycle?2:0;
-      return mod(days+baseOffset+masterFlip,4);
+      return positiveModulo(days+baseOffset+masterFlip,4);
     }
 
-    return mod(days+baseOffset,4);
+    return positiveModulo(days+baseOffset,4);
   }
 
   async function syncFromCloud(showToast=false){
