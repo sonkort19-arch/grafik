@@ -1,0 +1,60 @@
+name: Stage 5 data safety
+on:
+  push:
+    paths:
+      - 'tools/apply_stage5_safety.py'
+      - '.github/workflows/stage5-data-safety.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply data safety patch
+        run: python3 tools/apply_stage5_safety.py
+      - name: Check JavaScript syntax
+        run: |
+          node --check schedule.js
+          node --check shifts.js
+          node --check employees.js
+          node --check supabase.js
+          node --check wallets.js
+          node --check admin.js
+          node --check errors.js
+          node --check settings.js
+          node --check devices.js
+          node --check history.js
+          node --check safety.js
+          node --check app.js
+          node --check tests/run-tests.js
+      - name: Run regression suite
+        run: node tests/run-tests.js
+      - name: Verify stage 5 markers
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          app=Path('app.js').read_text(encoding='utf-8')
+          html=Path('index.html').read_text(encoding='utf-8')
+          checks=[
+            ('safety module','<script src="safety.js"></script>',html),
+            ('backup status','id="backupStatus"',html),
+            ('manual backup','id="manualBackupBtn"',html),
+            ('restore backup','id="restoreLatestBackupBtn"',html),
+            ('cloud conflict','cloud_conflict',app),
+            ('cloud overwrite snapshot','Перед обновлением графика из облака',app),
+            ('wallet clear backup','MA_Grafik_before_wallet_clear',app),
+            ('full export','MA_Grafik_full_backup',app)
+          ]
+          for name,needle,text in checks:
+            if needle not in text: raise SystemExit('missing '+name)
+          print('Stage 5 markers OK')
+          PY
+      - name: Publish stage 5
+        run: |
+          git config user.name "MA Data Safety"
+          git config user.email "actions@users.noreply.github.com"
+          git add app.js index.html safety.js tests/run-tests.js
+          git diff --cached --check
+          git commit -m "Add data backups and cloud conflict protection"
+          git push
