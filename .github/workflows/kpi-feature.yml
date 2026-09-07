@@ -46,12 +46,11 @@ jobs:
           grep -q 'loadKpi' app.js
           git diff --check
 
-      - name: Commit tested feature
+      - name: Commit tested product files
         run: |
           git config user.name "MA KPI Builder"
           git config user.email "actions@users.noreply.github.com"
-          git rm tools/apply_kpi_feature.py .github/workflows/kpi-feature.yml
-          git add index.html styles.css app.js tests/run-tests.js .github/workflows/ma-tests.yml kpi.js
+          git add index.html styles.css app.js tests/run-tests.js kpi.js
           git diff --cached --check
           git commit -m "Add employee KPI dashboard"
           git push
