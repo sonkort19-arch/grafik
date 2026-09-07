@@ -17,10 +17,21 @@ jobs:
       - name: Build final icon files
         shell: bash
         run: |
-          cat tools/icon_parts/ma512.part*.b64 | base64 -d > ma-icon-green-v3-512.png
           base64 -d tools/icon_parts/ma192.b64 > ma-icon-green-v3-192.png
           base64 -d tools/icon_parts/ma180.b64 > ma-apple-touch-green-v3.png
           base64 -d tools/icon_parts/ma64.b64 > ma-favicon-green-v3.png
+          if command -v magick >/dev/null 2>&1; then
+            magick ma-icon-green-v3-192.png -filter Lanczos -resize 512x512 ma-icon-green-v3-512.png
+          elif command -v convert >/dev/null 2>&1; then
+            convert ma-icon-green-v3-192.png -filter Lanczos -resize 512x512 ma-icon-green-v3-512.png
+          else
+            python3 -m pip install --quiet pillow
+            python3 - <<'PY'
+          from PIL import Image
+          im=Image.open('ma-icon-green-v3-192.png').convert('RGB')
+          im.resize((512,512),Image.Resampling.LANCZOS).save('ma-icon-green-v3-512.png',optimize=True)
+          PY
+          fi
           python3 - <<'PY'
           import struct
           expected={
