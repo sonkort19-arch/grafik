@@ -1,3 +1,16 @@
+(function(global){
+  "use strict";
+  global.MASchedule={
+    create(deps){
+      if(!deps || typeof deps.getSettings!=="function") throw new Error("MA Schedule: getSettings dependency is required");
+      const {anchorParts,monthInfo,serviceKeyForName,dateObjectFromKey,MASTER_ROSTER_FROM,MANAGER_ROSTER_FROM,REMOVED_MANAGER_NAME}=deps;
+      const settings=new Proxy({}, {
+        get(_target,prop){ return (deps.getSettings()||{})[prop]; },
+        set(_target,prop,value){ const s=deps.getSettings(); if(!s) return false; s[prop]=value; return true; },
+        ownKeys(){ return Reflect.ownKeys(deps.getSettings()||{}); },
+        getOwnPropertyDescriptor(){ return {enumerable:true,configurable:true}; }
+      });
+
   function scheduleStartDate(){
     const a=anchorParts();
     return new Date(a.year,a.month,a.day);
@@ -490,3 +503,31 @@
 
     return result;
   }
+
+      return {
+        scheduleStartDate,
+        globalDayIndex,
+        mod,
+        dateKeyFromDate,
+        dateDiffDays,
+        employeeCycleForDate,
+        employeeWorksOnDate,
+        employeesForDate,
+        employeeServiceForDate,
+        legacyTeamsForDate,
+        legacyBaseScheduleForDate,
+        standardBaseScheduleForDate,
+        sameRoster,
+        legacyMasterPlanBeforeRemoval,
+        fixedMasterPlanForDate,
+        balancedRosterState,
+        isBalancedRosterRole,
+        isNovaWeekendRule,
+        isNoManagerValue,
+        isNoMasterValue,
+        baseScheduleForDate,
+        daySchedule
+      };
+    }
+  };
+})(window);

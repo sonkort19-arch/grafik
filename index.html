@@ -5117,7 +5117,23 @@
     renderMonth();
   }
 
-  // Schedule calculation logic moved to schedule.js
+  const {
+    scheduleStartDate,globalDayIndex,mod,dateKeyFromDate,dateDiffDays,
+    employeeCycleForDate,employeeWorksOnDate,employeesForDate,employeeServiceForDate,
+    legacyTeamsForDate,legacyBaseScheduleForDate,standardBaseScheduleForDate,sameRoster,
+    legacyMasterPlanBeforeRemoval,fixedMasterPlanForDate,balancedRosterState,
+    isBalancedRosterRole,isNovaWeekendRule,isNoManagerValue,isNoMasterValue,
+    baseScheduleForDate,daySchedule
+  }=window.MASchedule.create({
+    getSettings:()=>settings,
+    anchorParts,
+    monthInfo,
+    serviceKeyForName,
+    dateObjectFromKey,
+    MASTER_ROSTER_FROM,
+    MANAGER_ROSTER_FROM,
+    REMOVED_MANAGER_NAME
+  });
 
   function buildMonthRows(monthIndex){
     const info=monthInfo(monthIndex), rows=[];
