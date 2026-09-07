@@ -127,6 +127,7 @@
   let importSettingsBusy = false;
   let historyLoadSeq = 0;
   let kpiLoadSeq = 0;
+  let ownerReportLoadSeq = 0;
   let historyRowsTruncated = false;
   let deviceListLoadState = "unknown";
   const {
@@ -3451,6 +3452,101 @@
     }
   }
 
+
+  async function loadOwnerReport(){
+    const seq=++ownerReportLoadSeq;
+    const modal=$("ownerReportModal");
+    const periodEl=$("ownerReportPeriod"),summaryEl=$("ownerReportSummary"),bestEl=$("ownerReportBest");
+    const peopleEl=$("ownerReportPeople"),attentionEl=$("ownerReportAttention"),loadingEl=$("ownerReportLoading");
+    if(!modal||!summaryEl||!peopleEl||!attentionEl) return;
+
+    if(!isAdmin()){
+      modal.classList.add("hidden");
+      openLoginModal();
+      toast("Отчёт владельца доступен после входа администратора");
+      return;
+    }
+
+    const now=moscowParts();
+    const to=now.date;
+    const from=addDaysISO(to,-6);
+    const dateLabel=value=>{
+      const parts=String(value||"").split("-");
+      return parts.length===3?`${parts[2]}.${parts[1]}.${parts[0]}`:String(value||"");
+    };
+    if(periodEl) periodEl.textContent=`Последние 7 дней · ${dateLabel(from)}–${dateLabel(to)}`;
+    if(loadingEl) loadingEl.classList.remove("hidden");
+    summaryEl.innerHTML="";
+    if(bestEl) bestEl.innerHTML="";
+    peopleEl.innerHTML="";
+    attentionEl.innerHTML="";
+
+    try{
+      const token=await getAdminToken();
+      if(!token) throw new Error("Сессия администратора закончилась");
+      const historyFrom=from<"2026-09-01"?from:"2026-09-01";
+      const query=`/rest/v1/${SHIFT_TABLE}?select=*&shift_date=gte.${historyFrom}&shift_date=lte.${to}&order=shift_date.asc,service.asc&limit=2000`;
+      const res=await authFetch(query,{method:"GET",headers:{Authorization:"Bearer "+token}});
+      if(!res.ok) throw new Error(await res.text());
+      const rows=await res.json();
+      if(seq!==ownerReportLoadSeq) return;
+
+      const result=kpiCore.calculate(rows,{from,to,now});
+      const employees=(result.employees||[]).filter(x=>x.score!==null);
+      const late=employees.reduce((s,x)=>s+x.late,0);
+      const missed=employees.reduce((s,x)=>s+x.missed,0);
+      const early=employees.reduce((s,x)=>s+x.early,0);
+      const unclosed=employees.reduce((s,x)=>s+x.unclosed,0);
+      const average=result.summary?.average;
+
+      summaryEl.innerHTML=`
+        <div class="owner-report-stat"><span>Средний KPI</span><b>${average===null||average===undefined?"—":average}</b></div>
+        <div class="owner-report-stat ${late?"warn":""}"><span>Опоздания</span><b>${late}</b></div>
+        <div class="owner-report-stat ${missed?"bad":""}"><span>Пропуски</span><b>${missed}</b></div>
+        <div class="owner-report-stat ${unclosed?"bad":""}"><span>Не закрыты</span><b>${unclosed}</b></div>`;
+
+      const ranked=employees.slice().sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,"ru"));
+      const best=ranked[0]||null;
+      if(bestEl){
+        bestEl.innerHTML=best
+          ? `<span>Лучший результат за период</span><b>${escapeHtml(best.name)} · KPI ${best.score}</b>`
+          : `<span>За последние 7 дней пока нет контролируемых смен.</span>`;
+      }
+
+      peopleEl.innerHTML=employees.length?employees.map(stat=>{
+        const issueTotal=stat.late+stat.missed+stat.early+stat.unclosed;
+        const status=stat.status?.text||"—";
+        return `<div class="owner-report-person ${stat.score<80?"problem":stat.score<90?"attention":"good"}">
+          <div><b>${escapeHtml(stat.name)}</b><span>${escapeHtml(status)} · ${stat.worked}/${stat.total} смен</span></div>
+          <div class="owner-report-person-score"><b>${stat.score}</b><span>${issueTotal?`${issueTotal} наруш.`:"без нарушений"}</span></div>
+        </div>`;
+      }).join(""):'<div class="owner-report-empty">Данных для оценки сотрудников пока нет.</div>';
+
+      const needs=employees.filter(x=>x.score<80||x.missed>0||x.unclosed>0).sort((a,b)=>a.score-b.score||a.name.localeCompare(b.name,"ru"));
+      attentionEl.innerHTML=needs.length?needs.map(stat=>{
+        const reasons=[];
+        if(stat.missed) reasons.push(`пропусков: ${stat.missed}`);
+        if(stat.unclosed) reasons.push(`не закрыто: ${stat.unclosed}`);
+        if(stat.late) reasons.push(`опозданий: ${stat.late}`);
+        if(stat.early) reasons.push(`ранних закрытий: ${stat.early}`);
+        return `<div class="owner-report-alert"><b>${escapeHtml(stat.name)} · KPI ${stat.score}</b><span>${escapeHtml(reasons.join(" · ")||"KPI ниже нормы")}</span></div>`;
+      }).join(""):'<div class="owner-report-ok">За последние 7 дней критичных нарушений нет.</div>';
+
+      if(early && !needs.some(x=>x.early)){
+        attentionEl.insertAdjacentHTML("beforeend",`<div class="owner-report-note">Ранних закрытий за период: ${early}</div>`);
+      }
+    }catch(e){
+      if(seq!==ownerReportLoadSeq) return;
+      logAppError("owner report load",e,{period:`${from}:${to}`});
+      summaryEl.innerHTML="";
+      if(bestEl) bestEl.innerHTML="";
+      peopleEl.innerHTML='<div class="owner-report-empty">Не удалось загрузить отчёт.</div>';
+      attentionEl.innerHTML='<div class="owner-report-alert"><b>Ошибка загрузки</b><span>Нажми «Обновить».</span></div>';
+    }finally{
+      if(seq===ownerReportLoadSeq && loadingEl) loadingEl.classList.add("hidden");
+    }
+  }
+
   async function loadHistory(){
     const loadSeq=++historyLoadSeq;
     const root=$("historyList");
@@ -6141,6 +6237,11 @@
   $("saveWalletCorrection").onclick=saveWalletCorrection;
 
   if($("openKpiFromToday")) $("openKpiFromToday").onclick=()=>switchTab("kpi");
+  if($("openOwnerReport")) $("openOwnerReport").onclick=()=>{ $("ownerReportModal").classList.remove("hidden"); loadOwnerReport(); };
+  if($("closeOwnerReport")) $("closeOwnerReport").onclick=()=>$("ownerReportModal").classList.add("hidden");
+  if($("ownerReportModal")) $("ownerReportModal").addEventListener("click",e=>{ if(e.target===$("ownerReportModal")) $("ownerReportModal").classList.add("hidden"); });
+  if($("ownerReportRefresh")) $("ownerReportRefresh").onclick=loadOwnerReport;
+  if($("ownerReportOpenKpi")) $("ownerReportOpenKpi").onclick=()=>{ $("ownerReportModal").classList.add("hidden"); switchTab("kpi"); };
   if($("openKpiFromHistory")) $("openKpiFromHistory").onclick=()=>switchTab("kpi");
   if($("kpiBackBtn")) $("kpiBackBtn").onclick=()=>switchTab("adminToday");
   if($("kpiRefreshBtn")) $("kpiRefreshBtn").onclick=loadKpi;

@@ -546,6 +546,22 @@ test("KPI: мастер без ответственной смены получ�
   assert.strictEqual(oleg.status.key,"nodata");
 });
 
+
+test("Отчёт владельца: кнопка и окно присутствуют в интерфейсе",()=>{
+  const html=fs.readFileSync("index.html","utf8");
+  assert(html.includes('id="openOwnerReport"'));
+  assert(html.includes('id="ownerReportModal"'));
+  assert(html.includes('id="ownerReportAttention"'));
+});
+
+test("Отчёт владельца: использует KPI и последние 7 дней",()=>{
+  const app=fs.readFileSync("app.js","utf8");
+  assert(app.includes("async function loadOwnerReport()"));
+  assert(app.includes("const from=addDaysISO(to,-6)"));
+  assert(app.includes("kpiCore.calculate(rows,{from,to,now})"));
+  assert(app.includes('logAppError("owner report load"'));
+});
+
 // ---- Project structure ----
 test("index.html подключает модули в безопасном порядке",()=>{
   const html=fs.readFileSync("index.html","utf8");
