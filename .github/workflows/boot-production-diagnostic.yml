@@ -25,7 +25,7 @@ jobs:
         run: |
           node <<'JS'
           const { chromium, webkit } = require('playwright');
-          const URL='https://grafik-umber.vercel.app/?diag=20260907-2358';
+          const APP_URL='https://grafik-umber.vercel.app/?diag=20260908-0005';
           async function run(engine,name,withOldToken){
             const browser=await engine.launch({headless:true});
             const context=await browser.newContext({
@@ -46,7 +46,7 @@ jobs:
             page.on('pageerror',e=>errors.push(String(e)));
             page.on('requestfailed',r=>failed.push(`${r.url()} :: ${r.failure()?.errorText||'failed'}`));
             let response=null;
-            try{ response=await page.goto(URL,{waitUntil:'domcontentloaded',timeout:30000}); }
+            try{ response=await page.goto(APP_URL,{waitUntil:'domcontentloaded',timeout:30000}); }
             catch(e){ errors.push('goto: '+e.message); }
             await page.waitForTimeout(9000);
             let bodyClass=null, bootVisible=null, text='';
@@ -57,7 +57,7 @@ jobs:
             console.log('---RESULT---');
             console.log(JSON.stringify({name,withOldToken,status:response&&response.status(),url:page.url(),bodyClass,bootVisible,appInitialized,text,errors,consoleRows,failed},null,2));
             await browser.close();
-            if(!appInitialized) throw new Error(`${name} oldToken=${withOldToken}: app still booting`);
+            if(!appInitialized || errors.length) throw new Error(`${name} oldToken=${withOldToken}: production boot failed`);
           }
           (async()=>{
             for(const [engine,name] of [[chromium,'chromium'],[webkit,'webkit']]){
