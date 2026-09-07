@@ -34,3 +34,5 @@ jobs:
           git diff --cached --check
           git commit -m "Step 2: move styles to styles.css"
           git push origin HEAD:main
+
+# retry after newline normalization
