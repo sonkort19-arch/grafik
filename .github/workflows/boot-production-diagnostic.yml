@@ -25,7 +25,7 @@ jobs:
         run: |
           node <<'JS'
           const { chromium, webkit } = require('playwright');
-          const URL='https://grafik-umber.vercel.app/?diag=20260907-2352';
+          const URL='https://grafik-umber.vercel.app/?diag=20260907-2358';
           async function run(engine,name,withOldToken){
             const browser=await engine.launch({headless:true});
             const context=await browser.newContext({
@@ -41,23 +41,23 @@ jobs:
               });
             }
             const page=await context.newPage();
-            const consoleRows=[]; const errors=[];
+            const consoleRows=[]; const errors=[]; const failed=[];
             page.on('console',m=>consoleRows.push(`${m.type()}: ${m.text()}`));
             page.on('pageerror',e=>errors.push(String(e)));
+            page.on('requestfailed',r=>failed.push(`${r.url()} :: ${r.failure()?.errorText||'failed'}`));
             let response=null;
             try{ response=await page.goto(URL,{waitUntil:'domcontentloaded',timeout:30000}); }
             catch(e){ errors.push('goto: '+e.message); }
             await page.waitForTimeout(9000);
-            const state=await page.evaluate(()=>({
-              bodyClass:document.body.className,
-              bootVisible:!!document.querySelector('#appBootScreen') && getComputedStyle(document.querySelector('#appBootScreen')).display!=='none' && document.body.classList.contains('app-booting'),
-              appInitialized:!document.body.classList.contains('app-booting'),
-              scripts:[...document.scripts].map(s=>s.src).filter(Boolean),
-              text:document.body.innerText.slice(0,800)
-            }));
-            console.log(JSON.stringify({name,withOldToken,status:response&&response.status(),url:page.url(),state,errors,consoleRows},null,2));
+            let bodyClass=null, bootVisible=null, text='';
+            try{ bodyClass=await page.locator('body').getAttribute('class'); }catch(e){ errors.push('body: '+e.message); }
+            try{ bootVisible=await page.locator('#appBootScreen').isVisible(); }catch(e){ errors.push('boot: '+e.message); }
+            try{ text=(await page.locator('body').innerText()).slice(0,800); }catch(e){ errors.push('text: '+e.message); }
+            const appInitialized=!(bodyClass||'').split(/\s+/).includes('app-booting');
+            console.log('---RESULT---');
+            console.log(JSON.stringify({name,withOldToken,status:response&&response.status(),url:page.url(),bodyClass,bootVisible,appInitialized,text,errors,consoleRows,failed},null,2));
             await browser.close();
-            if(!state.appInitialized) throw new Error(`${name} oldToken=${withOldToken}: app still booting`);
+            if(!appInitialized) throw new Error(`${name} oldToken=${withOldToken}: app still booting`);
           }
           (async()=>{
             for(const [engine,name] of [[chromium,'chromium'],[webkit,'webkit']]){
