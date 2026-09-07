@@ -1,0 +1,27 @@
+name: MA Grafik tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  regression-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check schedule.js
+          node --check shifts.js
+          node --check employees.js
+          node --check supabase.js
+          node --check wallets.js
+          node --check admin.js
+          node --check app.js
+          node --check tests/run-tests.js
+
+      - name: Run MA Grafik regression suite
+        run: node tests/run-tests.js
