@@ -3,14 +3,13 @@ import re
 text=Path('app.js').read_text(encoding='utf-8')
 lines=text.splitlines()
 
-names=['syncFromCloud','loadTodayShifts','refreshAppAfterResume','render','renderTodayShifts','renderAdminAttention','renderEmployeeToday','renderEmployeeCalendar','applyUserMode','switchTab','syncWalletsCloud']
+names=['syncFromCloud','loadTodayShifts','refreshAppAfterResume','renderTodayShifts','renderAdminAttention','renderEmployeeToday','renderEmployeeCalendar','renderEmployeePages','registerServiceWorker','applyUserMode','switchTab','syncWalletsCloud']
 for name in names:
     m=re.search(r'(?m)^\s*(?:async\s+)?function\s+'+re.escape(name)+r'\s*\(',text)
     if not m:
         print(f'NOT FOUND {name}')
         continue
     start=text.count('\n',0,m.start())+1
-    # simple function body parser
     i=text.find('{',m.end())
     depth=0; state='code'; quote=''; esc=False; end=i
     while i<len(text):
@@ -35,9 +34,9 @@ for name in names:
         i+=1
     endline=text.count('\n',0,end)+1
     print(f'FUNCTION {name} {start}-{endline}')
-    body='\n'.join(lines[start-1:min(endline,start+120)])
+    body='\n'.join(lines[start-1:min(endline,start+140)])
     print(body)
     print('---END---')
 
-for token in ['setInterval(','setTimeout(','syncFromCloud(','loadTodayShifts(','syncWalletsCloud(','renderTodayShifts(','renderAdminAttention(','applyUserMode(','switchTab(']:
+for token in ['setInterval(','setTimeout(','syncFromCloud(','loadTodayShifts(','syncWalletsCloud(','renderTodayShifts(','renderAdminAttention(','renderEmployeePages(','registerServiceWorker(','applyUserMode(','switchTab(']:
     print(f'COUNT {token} {text.count(token)}')
