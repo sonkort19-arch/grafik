@@ -828,6 +828,7 @@
 </div>
 
 <script src="schedule.js"></script>
+<script src="shifts.js"></script>
 <script>
 (function(){
   "use strict";
@@ -3788,24 +3789,17 @@
     }
   }
 
-  function expectedForDate(dateStr,serviceName){
-    try{
-      const [y,m,d]=dateStr.split("-").map(Number);
-      if(y<2020 || y>2100) return null;
-      const idx=monthIndexForYearMonth(y,m-1);
-      const row=daySchedule(idx,d);
-      const pair=serviceName===settings.service1 ? row.s1 : serviceName===settings.service2 ? row.s2 : null;
-      return pair ? {manager:pair.manager,master:pair.master} : null;
-    }catch(e){ return null; }
-  }
-
-  function shiftMinutes(time){ const [h,m]=String(time||"00:00").split(":").map(Number); return h*60+m; }
-  function shiftStartForService(service){
-    return service===settings.service2 ? (settings.novaShiftStart||"09:00") : settings.shiftStart;
-  }
-  function shiftEndForService(service){
-    return service===settings.service2 ? (settings.novaShiftEnd||"19:00") : settings.shiftEnd;
-  }
+  const {
+    expectedForDate,
+    shiftMinutes,
+    shiftStartForService,
+    shiftEndForService,
+    isValidShiftPin
+  }=window.MAShifts.create({
+    getSettings:()=>settings,
+    monthIndexForYearMonth,
+    getDaySchedule:()=>daySchedule
+  });
 
   function isStartupShiftMode(){
     return STARTUP_SHIFT_MODE;
@@ -4032,7 +4026,7 @@
     const error=$("startupShiftError");
     const btn=$("startupShiftConfirm");
 
-    if(!/^\d{4}$/.test(pin)){
+    if(!isValidShiftPin(pin)){
       if(error) error.textContent="PIN должен быть из 4 цифр";
       return;
     }
@@ -4306,7 +4300,7 @@
     if(!pendingShiftAction) return;
     const employee=$("shiftEmployee").value, pin=$("shiftPin").value.trim();
     const adminMode=isAdmin();
-    if(!adminMode && !/^\d{4}$/.test(pin)){ $("shiftActionError").textContent="PIN должен быть из 4 цифр"; return; }
+    if(!adminMode && !isValidShiftPin(pin)){ $("shiftActionError").textContent="PIN должен быть из 4 цифр"; return; }
 
     const btn=$("confirmShiftAction"); btn.disabled=true; btn.textContent="Отправка…"; $("shiftActionError").textContent="";
     try{
@@ -4351,7 +4345,7 @@
     const updates=names.map((name,i)=>({name,pin:$(`managerPin${i}`).value.trim(),index:i})).filter(x=>x.pin);
     if(!updates.length){ toast("Новые PIN не введены"); return; }
 
-    const invalid=updates.find(x=>!/^[0-9]{4}$/.test(x.pin));
+    const invalid=updates.find(x=>!isValidShiftPin(x.pin));
     if(invalid){
       toast(`PIN для ${invalid.name} должен быть из 4 цифр`);
       return;
