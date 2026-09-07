@@ -4,7 +4,7 @@ on:
   push:
     branches: [icon-refresh-v3]
     paths:
-      - 'ma-icon-green-v4-192.png'
+      - 'ma-icon-final-v5.svg'
       - '.github/workflows/icon-v4-build.yml'
   workflow_dispatch:
 
@@ -24,18 +24,19 @@ jobs:
           fi
       - name: Generate required icon sizes
         run: |
-          convert ma-icon-green-v4-192.png -filter Lanczos -resize 512x512 ma-icon-green-v4-512.png
-          convert ma-icon-green-v4-192.png -filter Lanczos -resize 180x180 ma-apple-touch-green-v4.png
-          convert ma-icon-green-v4-192.png -filter Lanczos -resize 64x64 ma-favicon-green-v4.png
-          identify ma-icon-green-v4-192.png ma-icon-green-v4-512.png ma-apple-touch-green-v4.png ma-favicon-green-v4.png
+          convert -background none ma-icon-final-v5.svg -resize 192x192 ma-icon-final-v5-192.png
+          convert -background none ma-icon-final-v5.svg -resize 512x512 ma-icon-final-v5-512.png
+          convert -background none ma-icon-final-v5.svg -resize 180x180 ma-apple-touch-final-v5.png
+          convert -background none ma-icon-final-v5.svg -resize 64x64 ma-favicon-final-v5.png
+          identify ma-icon-final-v5-192.png ma-icon-final-v5-512.png ma-apple-touch-final-v5.png ma-favicon-final-v5.png
       - name: Commit generated assets
         run: |
           git config user.name "MA Icon Builder"
           git config user.email "actions@users.noreply.github.com"
-          git add ma-icon-green-v4-512.png ma-apple-touch-green-v4.png ma-favicon-green-v4.png
+          git add ma-icon-final-v5-192.png ma-icon-final-v5-512.png ma-apple-touch-final-v5.png ma-favicon-final-v5.png
           if git diff --cached --quiet; then
             echo "Icon assets already current"
             exit 0
           fi
-          git commit -m "Generate final MA icon sizes"
+          git commit -m "Generate clean MA icon assets"
           git push
