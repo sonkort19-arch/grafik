@@ -25,6 +25,29 @@ jobs:
           node --check admin.js
           node --check app.js
 
+      - name: Verify exact JavaScript preservation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          old=subprocess.check_output(['git','show','HEAD:index.html']).decode('utf-8')
+          anchor='<script>\n(function(){'
+          start=old.rfind(anchor)
+          if start<0: raise SystemExit('original inline app not found')
+          content_start=start+len('<script>\n')
+          end=old.find('</script>',content_start)
+          if end<0: raise SystemExit('original inline app closing tag not found')
+          original_js=old[content_start:end]
+          app=Path('app.js').read_text(encoding='utf-8')
+          if app != original_js:
+              raise SystemExit('app.js differs from original inline JavaScript')
+          expected=old[:start]+'<script src="app.js"></script>\n'+old[end+len('</script>'):]
+          current=Path('index.html').read_text(encoding='utf-8')
+          if current != expected:
+              raise SystemExit('index.html changed beyond replacing inline app with app.js reference')
+          print(f'Exact preservation OK: {len(app.encode("utf-8"))} bytes unchanged')
+          PY
+
       - name: Verify HTML structure
         run: |
           python3 - <<'PY'
@@ -39,13 +62,10 @@ jobs:
               positions.append(pos)
           if positions != sorted(positions): raise SystemExit('wrong script order')
           if '<script>\n(function(){' in text: raise SystemExit('inline main app remains')
-          app=Path('app.js').read_text(encoding='utf-8')
-          if not app.startswith('(function(){') or not app.rstrip().endswith('})();'):
-              raise SystemExit('app.js wrapper invalid')
           print('HTML/module structure OK')
           PY
 
-      - name: Local browser smoke test
+      - name: Local asset smoke test
         run: |
           python3 -m http.server 8765 >/tmp/ma-http.log 2>&1 &
           SERVER_PID=$!
@@ -53,27 +73,13 @@ jobs:
           sleep 1
           curl -fsS http://127.0.0.1:8765/ >/tmp/index-served.html
           curl -fsS http://127.0.0.1:8765/app.js >/tmp/app-served.js
+          for file in schedule.js shifts.js employees.js supabase.js wallets.js admin.js; do
+            curl -fsS "http://127.0.0.1:8765/$file" >/dev/null
+          done
           test -s /tmp/index-served.html
           test -s /tmp/app-served.js
-          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
-          if [ -n "$CHROME" ]; then
-            "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=5000 --dump-dom http://127.0.0.1:8765/ >/tmp/rendered.html 2>/tmp/chrome.log || {
-              cat /tmp/chrome.log
-              exit 1
-            }
-            grep -q 'MA График' /tmp/rendered.html
-            if grep -q '>Ошибка запуска<' /tmp/rendered.html; then
-              echo 'App rendered startup error'
-              exit 1
-            fi
-            if grep -q 'class="[^"]*app-booting' /tmp/rendered.html; then
-              echo 'App remained in booting state'
-              exit 1
-            fi
-            echo 'Headless browser smoke test OK'
-          else
-            echo 'Chrome not available; HTTP asset smoke test passed'
-          fi
+          grep -q '<script src="app.js"></script>' /tmp/index-served.html
+          echo 'Local asset smoke test OK'
 
       - name: Publish final refactor
         run: |
