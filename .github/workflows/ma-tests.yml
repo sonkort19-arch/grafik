@@ -24,6 +24,7 @@ jobs:
           node --check settings.js
           node --check devices.js
           node --check history.js
+          node --check kpi.js
           node --check safety.js
           node --check app.js
           node --check tests/run-tests.js

@@ -160,7 +160,10 @@
       <div class="today-board">
         <div class="today-head">
           <div><h2>Состояние смен</h2><div class="today-date" id="todayDateLabel">—</div></div>
-          <button class="secondary quick-replace-btn hidden" id="quickReplaceBtn">Замена сегодня</button>
+          <div class="today-head-actions">
+            <button class="secondary" id="openKpiFromToday">KPI сотрудников</button>
+            <button class="secondary quick-replace-btn hidden" id="quickReplaceBtn">Замена сегодня</button>
+          </div>
         </div>
         <div class="shift-cards" id="todayShiftCards"></div>
       </div>
@@ -200,6 +203,7 @@
             <h2>История смен</h2>
             <div class="history-page-sub">Контроль дисциплины и фактических открытий/закрытий</div>
           </div>
+          <button class="secondary" id="openKpiFromHistory">KPI сотрудников</button>
         </div>
 
         <div class="history-quick" id="historyQuick">
@@ -240,6 +244,28 @@
     </section>
 
 
+
+    <section id="kpiPage" class="hidden">
+      <div class="section kpi-shell">
+        <div class="kpi-head">
+          <div>
+            <h2>KPI сотрудников</h2>
+            <div class="history-page-sub">Автоматическая оценка дисциплины по ответственным сменам</div>
+          </div>
+          <button class="secondary" id="kpiBackBtn">Назад</button>
+        </div>
+
+        <div class="kpi-toolbar">
+          <label>Месяц<input type="month" id="kpiMonth" aria-label="Месяц KPI"></label>
+          <button class="secondary" id="kpiRefreshBtn" type="button">Обновить</button>
+        </div>
+
+        <div class="kpi-notice" id="kpiNotice"></div>
+        <div class="kpi-summary" id="kpiSummary"></div>
+        <div class="kpi-loading hidden" id="kpiLoading">Считаем KPI…</div>
+        <div class="kpi-list" id="kpiList"></div>
+      </div>
+    </section>
 
     <section id="walletsPage" class="hidden">
       <div class="wallets-shell">
@@ -492,6 +518,7 @@
       <button class="close" id="closeMobileMore" aria-label="Закрыть">×</button>
     </div>
     <div class="mobile-more-actions">
+      <button class="secondary mobile-more-action" data-mobile-more-tab="kpi"><span class="mobile-more-icon">◎</span><span><b>KPI сотрудников</b><small>Дисциплина и нарушения</small></span></button>
       <button class="secondary mobile-more-action" data-mobile-more-tab="history"><span class="mobile-more-icon">◷</span><span><b>История</b><small>Смены и нарушения</small></span></button>
       <button class="secondary mobile-more-action" data-mobile-more-tab="settings"><span class="mobile-more-icon">⚙</span><span><b>Настройки</b><small>Система, PIN и устройства</small></span></button>
     </div>
@@ -856,6 +883,7 @@
 <script src="settings.js"></script>
 <script src="devices.js"></script>
 <script src="history.js"></script>
+<script src="kpi.js"></script>
 <script src="safety.js"></script>
 <script src="app.js"></script>
 
