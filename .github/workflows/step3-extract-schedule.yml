@@ -1,4 +1,5 @@
 name: Step 3 extract schedule
+# retry after trailing-newline normalization
 
 on:
   push:
