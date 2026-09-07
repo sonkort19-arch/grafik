@@ -5,6 +5,7 @@
   const STORAGE_KEY = "ma_schedule_22_v2";
   const DEVICE_VIEW_CACHE_KEY = "ma_device_view_cache_v1";
   const TODAY_SHIFT_CACHE_KEY = "ma_today_shift_cache_v1";
+  const ERROR_LOG_KEY = "ma_error_log_v1";
   const WALLET_STORAGE_KEY = "ma_personal_wallets_v1";
   const WALLET_DATA_VERSION = 3;
   const WALLET_PLAN_TABLE = "ma_wallet_plans";
@@ -155,6 +156,120 @@
   const monthSelect = $("monthSelect");
   const yearSelect = $("yearSelect");
   const employeeFilter = $("employeeFilter");
+
+
+  const errorJournal=(window.MAErrors && typeof window.MAErrors.create==="function")
+    ? window.MAErrors.create({
+        storageKey:ERROR_LOG_KEY,
+        maxEntries:50,
+        getContext:()=>({
+          path:String(location.pathname||"/"),
+          online:navigator.onLine!==false,
+          mode:isAdmin()?"admin":(isServiceDeviceMode()?"service":"employee"),
+          service:serviceDeviceName()||"",
+          viewport:`${window.innerWidth||0}x${window.innerHeight||0}`
+        })
+      })
+    : null;
+
+  function appErrorEntries(){
+    try{ return errorJournal?.list?.() || []; }catch(_){ return []; }
+  }
+
+  function logAppError(scope,error,meta={}){
+    try{ console.error(`[MA График · ${scope}]`,error,meta); }catch(_){ }
+    let entry=null;
+    try{ entry=errorJournal?.log?.(scope,error,meta) || null; }catch(_){ }
+    try{
+      const page=$("settingsPage");
+      if(page && !page.classList.contains("hidden")){
+        renderErrorLog();
+        updateSettingsSystemStatus();
+      }
+    }catch(_){ }
+    return entry;
+  }
+
+  function errorTimeLabel(value){
+    const ms=Date.parse(value||"");
+    if(!ms) return "—";
+    try{
+      return new Intl.DateTimeFormat("ru-RU",{
+        timeZone:SHIFT_TIMEZONE,day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"
+      }).format(new Date(ms));
+    }catch(_){ return String(value||"—"); }
+  }
+
+  function renderErrorLog(){
+    const root=$("errorLogList");
+    if(!root) return;
+    const entries=appErrorEntries();
+    const badge=$("errorLogCountBadge");
+    if(badge) badge.textContent=entries.length ? `(${entries.length})` : "";
+    if(!entries.length){
+      root.innerHTML='<div class="error-log-empty">Ошибок не зафиксировано.</div>';
+      return;
+    }
+    root.innerHTML=entries.slice(0,20).map(entry=>{
+      const repeat=Number(entry.count||1)>1 ? ` · ×${Number(entry.count)}` : "";
+      const scope=escapeHtml(entry.scope||"error");
+      const message=escapeHtml(entry.message||"Неизвестная ошибка");
+      return `<div class="error-log-item">
+        <div class="error-log-head"><b>${scope}</b><span>${escapeHtml(errorTimeLabel(entry.lastAt||entry.at))}${repeat}</span></div>
+        <div class="error-log-message">${message}</div>
+      </div>`;
+    }).join("");
+  }
+
+  async function copyErrorLog(){
+    const text=errorJournal?.formatText?.() || "MA График — журнал ошибок недоступен.";
+    try{
+      if(navigator.clipboard?.writeText){
+        await navigator.clipboard.writeText(text);
+      }else{
+        const area=document.createElement("textarea");
+        area.value=text; area.setAttribute("readonly","");
+        area.style.position="fixed"; area.style.opacity="0";
+        document.body.appendChild(area); area.select(); document.execCommand("copy"); area.remove();
+      }
+      toast("Журнал ошибок скопирован");
+    }catch(e){
+      logAppError("error log copy",e);
+      toast("Не удалось скопировать журнал");
+    }
+  }
+
+  function clearErrorLog(){
+    try{ errorJournal?.clear?.(); }catch(_){ }
+    renderErrorLog();
+    updateSettingsSystemStatus();
+    toast("Журнал ошибок очищен");
+  }
+
+  const copyErrorLogBtn=$("copyErrorLogBtn");
+  if(copyErrorLogBtn) copyErrorLogBtn.onclick=copyErrorLog;
+  const clearErrorLogBtn=$("clearErrorLogBtn");
+  if(clearErrorLogBtn) clearErrorLogBtn.onclick=clearErrorLog;
+
+  window.addEventListener("error",event=>{
+    try{
+      if(event.target && event.target!==window){
+        const target=event.target;
+        const resource=String(target.src||target.href||"").split("?")[0];
+        logAppError("resource load",new Error("Не удалось загрузить ресурс"),{
+          tag:String(target.tagName||"resource"),resource
+        });
+        return;
+      }
+      logAppError("window error",event.error||new Error(event.message||"Необработанная ошибка"),{
+        file:String(event.filename||"").split("?")[0],line:event.lineno||0,column:event.colno||0
+      });
+    }catch(_){ }
+  },true);
+
+  window.addEventListener("unhandledrejection",event=>{
+    try{ logAppError("unhandled promise",event.reason||new Error("Необработанная ошибка Promise")); }catch(_){ }
+  });
 
   function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
 
@@ -504,6 +619,18 @@
         "systemS2Icon","systemS2Text",
         s2Device?"ok":"bad",
         s2Device ? (s2Device.label||"Устройство подключено") : "Нет активного устройства"
+      );
+    }
+
+
+    const errorEntries=appErrorEntries();
+    if(!errorEntries.length){
+      setSystemHealth("systemErrorsIcon","systemErrorsText","ok","Ошибок не зафиксировано");
+    }else{
+      const latest=errorEntries[0];
+      setSystemHealth(
+        "systemErrorsIcon","systemErrorsText","warn",
+        `${errorEntries.length} записей · последняя ${errorTimeLabel(latest.lastAt||latest.at)}`
       );
     }
   }
@@ -2989,7 +3116,7 @@
         if(showToast) toast("Статус смен обновлён");
         return true;
       }catch(e){
-        console.error(e);
+        logAppError("today shifts load",e);
         if(showToast) toast("Не удалось обновить смены");
         return false;
       }
@@ -5489,6 +5616,7 @@
     updateCurrentScheduleSummary();
     updatePushState();
     renderDevicePanel();
+    renderErrorLog();
     updateSettingsSystemStatus();
   }
 
@@ -6563,7 +6691,7 @@
   }
 
   initApp().catch(e=>{
-    console.error("init",e);
+    logAppError("init",e);
     document.body.classList.remove("app-booting");
     setCloudStatus("Ошибка запуска","offline");
   });

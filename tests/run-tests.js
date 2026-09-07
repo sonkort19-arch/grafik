@@ -27,6 +27,7 @@ loadModule("employees.js");
 loadModule("wallets.js");
 loadModule("admin.js");
 loadModule("supabase.js");
+loadModule("errors.js");
 
 const settings={
   anchorDate:"2026-09-01",
@@ -311,10 +312,46 @@ test("Supabase REST добавляет apikey и правильный URL",async
   }
 });
 
+// ---- Error journal ----
+let errorNow=Date.parse("2026-09-07T12:00:00.000Z");
+const errorApi=window.MAErrors.create({
+  storageKey:"test_errors",
+  maxEntries:20,
+  now:()=>new Date(errorNow),
+  getContext:()=>({screen:"test",token:"context-secret"})
+});
+
+test("Журнал ошибок сохраняет ошибку и скрывает секретные данные",()=>{
+  errorApi.clear();
+  errorApi.log("sync",new Error("boom"),{token:"supersecret",pin:"1234",safe:"ok"});
+  const rows=errorApi.list();
+  assert.strictEqual(rows.length,1);
+  assert.strictEqual(rows[0].scope,"sync");
+  assert.strictEqual(rows[0].message,"boom");
+  assert.strictEqual(rows[0].meta.token,"[REDACTED]");
+  assert.strictEqual(rows[0].meta.pin,"[REDACTED]");
+  assert.strictEqual(rows[0].meta.safe,"ok");
+  assert.strictEqual(rows[0].context.token,"[REDACTED]");
+  const text=errorApi.formatText();
+  assert(!text.includes("supersecret"));
+  assert(!text.includes("1234"));
+});
+
+test("Одинаковые ошибки подряд объединяются, а не засоряют журнал",()=>{
+  errorApi.clear();
+  errorNow=Date.parse("2026-09-07T12:00:00.000Z");
+  errorApi.log("network",new Error("offline"));
+  errorNow+=1000;
+  errorApi.log("network",new Error("offline"));
+  const rows=errorApi.list();
+  assert.strictEqual(rows.length,1);
+  assert.strictEqual(rows[0].count,2);
+});
+
 // ---- Project structure ----
 test("index.html подключает модули в безопасном порядке",()=>{
   const html=fs.readFileSync("index.html","utf8");
-  const refs=["schedule.js","shifts.js","employees.js","supabase.js","wallets.js","admin.js","app.js"];
+  const refs=["schedule.js","shifts.js","employees.js","supabase.js","wallets.js","admin.js","errors.js","app.js"];
   const positions=refs.map(file=>html.indexOf(`<script src="${file}"></script>`));
   assert(positions.every(x=>x>=0));
   assert.deepStrictEqual(positions,[...positions].sort((a,b)=>a-b));

@@ -323,6 +323,10 @@
             <span class="system-health-icon" id="systemS2Icon">•</span>
             <div><b id="systemS2Name">Нова</b><small id="systemS2Text">Проверяем устройство…</small></div>
           </div>
+          <div class="system-health-row">
+            <span class="system-health-icon" id="systemErrorsIcon">•</span>
+            <div><b>Ошибки</b><small id="systemErrorsText">Проверяем журнал…</small></div>
+          </div>
         </div>
 
         <div class="settings-account-row">
@@ -335,6 +339,17 @@
           <div class="push-box" style="margin-top:10px">
             <div class="push-state" id="pushState">Проверяем поддержку уведомлений…</div>
             <button class="primary" id="enablePushBtn">Включить уведомления</button>
+          </div>
+        </details>
+
+        <details class="settings-inline-details" id="errorLogDetails">
+          <summary>Журнал ошибок <span id="errorLogCountBadge"></span></summary>
+          <div class="error-log-box">
+            <div class="error-log-list" id="errorLogList"><div class="error-log-empty">Проверяем журнал…</div></div>
+            <div class="error-log-actions">
+              <button class="secondary" id="copyErrorLogBtn" type="button">Скопировать журнал</button>
+              <button class="secondary" id="clearErrorLogBtn" type="button">Очистить</button>
+            </div>
           </div>
         </details>
       </div>
@@ -833,6 +848,7 @@
 <script src="supabase.js"></script>
 <script src="wallets.js"></script>
 <script src="admin.js"></script>
+<script src="errors.js"></script>
 <script src="app.js"></script>
 
 </body>
