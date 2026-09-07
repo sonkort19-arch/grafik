@@ -1,0 +1,85 @@
+name: Fix schedule module scope
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/fix-schedule-module-scope.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fix module scope
+        run: python3 tools/fix_schedule_module_scope.py
+      - name: Syntax checks
+        run: |
+          node --check schedule.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          h=Path('index.html').read_text(encoding='utf-8')
+          matches=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',h,re.S)
+          main=next((x for x in matches if 'const SUPABASE_URL' in x),None)
+          if main is None: raise SystemExit('Main inline script not found')
+          Path('/tmp/ma-main.js').write_text(main,encoding='utf-8')
+          PY
+          node --check /tmp/ma-main.js
+          git diff --check
+      - name: Schedule runtime smoke test
+        run: |
+          cat > /tmp/schedule-smoke.js <<'JS'
+          global.window=global;
+          require(process.cwd()+'/schedule.js');
+          const settings={
+            anchorDate:'2026-09-01',
+            individualScheduleFrom:'2026-08-01',
+            serviceBlockDays:14,
+            service1:'Моба', service2:'Нова',
+            balancedRosterEnabled:true,
+            balancedRosterFrom:'2026-08-01',
+            staffChanges:[], dayOverrides:[],
+            employeeSchedules:[
+              {name:'Арсен',role:'manager'},
+              {name:'Дина',role:'manager'},
+              {name:'Олег',role:'master'},
+              {name:'Георгий',role:'master'},
+              {name:'Асик',role:'master'}
+            ]
+          };
+          const api=window.MASchedule.create({
+            getSettings:()=>settings,
+            anchorParts:()=>({year:2026,month:8,day:1}),
+            monthInfo:(idx)=>({year:2026,month:8,days:30}),
+            serviceKeyForName:(name)=>name==='Моба'?'s1':'s2',
+            dateObjectFromKey:(key)=>new Date(key+'T12:00:00+03:00'),
+            MASTER_ROSTER_FROM:'2026-08-24',
+            MANAGER_ROSTER_FROM:'2026-09-07',
+            REMOVED_MANAGER_NAME:'Сергей'
+          });
+          if(api.dateKeyFromDate(new Date(2026,8,7))!=='2026-09-07') throw new Error('dateKeyFromDate failed');
+          const fixed=api.fixedMasterPlanForDate(new Date(2026,8,7));
+          if(!fixed || fixed.s1!=='Олег' || fixed.s2!=='Асик') throw new Error('fixed master plan failed: '+JSON.stringify(fixed));
+          const state=api.balancedRosterState(new Date(2026,8,7));
+          if(!state || state.manager.s1!=='Арсен' || state.manager.s2!=='Асик' || state.master.s1!=='Олег' || state.master.s2!=='Асик') throw new Error('balanced roster failed: '+JSON.stringify(state));
+          settings.balancedRosterEnabled=false;
+          if(api.balancedRosterState(new Date(2026,8,7))!==null) throw new Error('dynamic settings proxy failed');
+          console.log('schedule runtime smoke test: OK');
+          JS
+          node /tmp/schedule-smoke.js
+      - name: Publish scope fix
+        run: |
+          rm -f .github/workflows/fix-schedule-module-scope.yml
+          rm -f tools/fix_schedule_module_scope.py
+          git config user.name "MA Modularization"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html schedule.js .github/workflows/fix-schedule-module-scope.yml tools/fix_schedule_module_scope.py
+          git diff --cached --check
+          git commit -m "Fix schedule module scope integration"
+          git push origin HEAD:main
