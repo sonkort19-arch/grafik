@@ -20,6 +20,7 @@ jobs:
           node --check supabase.js
           node --check wallets.js
           node --check admin.js
+          node --check errors.js
           node --check app.js
           node --check tests/run-tests.js
 
