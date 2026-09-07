@@ -1,0 +1,57 @@
+name: KPI feature integration
+
+on:
+  push:
+    branches: [feature-kpi-2026-09-07]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply KPI integration
+        run: python3 tools/apply_kpi_feature.py
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check schedule.js
+          node --check shifts.js
+          node --check employees.js
+          node --check supabase.js
+          node --check wallets.js
+          node --check admin.js
+          node --check errors.js
+          node --check settings.js
+          node --check devices.js
+          node --check history.js
+          node --check kpi.js
+          node --check safety.js
+          node --check app.js
+          node --check tests/run-tests.js
+
+      - name: Run regression tests
+        run: node tests/run-tests.js
+
+      - name: Verify KPI UI wiring
+        run: |
+          grep -q 'id="kpiPage"' index.html
+          grep -q 'id="openKpiFromToday"' index.html
+          grep -q 'data-mobile-more-tab="kpi"' index.html
+          grep -q '<script src="kpi.js"></script>' index.html
+          grep -q 'const kpi=tab==="kpi"' app.js
+          grep -q 'loadKpi' app.js
+          git diff --check
+
+      - name: Commit tested feature
+        run: |
+          git config user.name "MA KPI Builder"
+          git config user.email "actions@users.noreply.github.com"
+          git rm tools/apply_kpi_feature.py .github/workflows/kpi-feature.yml
+          git add index.html styles.css app.js tests/run-tests.js .github/workflows/ma-tests.yml kpi.js
+          git diff --cached --check
+          git commit -m "Add employee KPI dashboard"
+          git push
