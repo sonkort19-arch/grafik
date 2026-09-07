@@ -141,6 +141,7 @@
   let startupDeviceRetryCount=0;
   let lastShiftSignature = "";
   let lastSettingsSignature = "";
+  let lastAttentionSignature = "";
   let currentDeviceAccess = {allowed:false,device:null};
   let deviceListCache = [];
   let employeeMobileView = "employeeToday";
@@ -2931,6 +2932,10 @@
       }
     }
 
+    const attentionSignature=`${isServiceDeviceMode()?serviceDeviceName():"all"}|${stableJson(problems)}`;
+    if(attentionSignature===lastAttentionSignature) return;
+    lastAttentionSignature=attentionSignature;
+
     const box=$("attentionBox");
     if(problems.length){
       root.innerHTML=problems.map(x=>`<div class="attention-item ${x.kind}">${escapeHtml(x.text)}</div>`).join("");
@@ -2970,9 +2975,10 @@
           currentShiftRows=newRows;
           const y=window.scrollY;
 
-          if(!$("adminTodayPage").classList.contains("hidden")) renderTodayShifts();
+          const todayVisible=!$("adminTodayPage").classList.contains("hidden");
+          if(todayVisible) renderTodayShifts();
           if(isEmployeePhoneMode() && employeeMobileView==="employeeToday") renderEmployeePages();
-          renderAdminAttention();
+          if(!todayVisible) renderAdminAttention();
 
           restoreScrollAfterRender(y);
         }else{
@@ -3876,9 +3882,23 @@
     REMOVED_MANAGER_NAME
   });
 
+  let monthRowsCacheSignature="";
+  const monthRowsCache=new Map();
   function buildMonthRows(monthIndex){
+    const settingsSignature=stableJson(settings);
+    if(settingsSignature!==monthRowsCacheSignature){
+      monthRowsCache.clear();
+      monthRowsCacheSignature=settingsSignature;
+    }
+    if(monthRowsCache.has(monthIndex)) return monthRowsCache.get(monthIndex);
+
     const info=monthInfo(monthIndex), rows=[];
     for(let d=1;d<=info.days;d++) rows.push(daySchedule(monthIndex,d));
+    monthRowsCache.set(monthIndex,rows);
+    if(monthRowsCache.size>24){
+      const oldestKey=monthRowsCache.keys().next().value;
+      monthRowsCache.delete(oldestKey);
+    }
     return rows;
   }
 
@@ -5904,7 +5924,6 @@
 
     if(adminToday){
       renderTodayShifts();
-      renderAdminAttention();
       loadTodayShifts(false);
     }
     if(sett){
@@ -6443,13 +6462,15 @@
 
     resumeRefreshPromise=(async()=>{
       refreshResponsiveLayout();
-      await registerServiceWorker({checkUpdate:true});
+      if(Date.now()-lastServiceWorkerUpdateAt>60000){
+        await registerServiceWorker({checkUpdate:true});
+      }
       if(isAdmin()){
         try{ await getAdminToken(); }catch(e){ logAppError("resume auth refresh",e,{reason}); }
       }
       if(!cloudConfigured()) return true;
       const tasks=[syncFromCloud(false),loadTodayShifts(false)];
-      if(isAdmin()) tasks.push(syncWalletsCloud(false));
+      if(isAdmin() && !$("walletsPage").classList.contains("hidden")) tasks.push(syncWalletsCloud(false));
       await Promise.allSettled(tasks);
       return true;
     })();
@@ -6525,7 +6546,7 @@
       syncTimer=setInterval(()=>{
         if(!document.hidden){
           syncFromCloud(false);
-          if(isAdmin()) syncWalletsCloud(false);
+          if(isAdmin() && !$("walletsPage").classList.contains("hidden")) syncWalletsCloud(false);
         }
       },SYNC_INTERVAL_MS);
 
