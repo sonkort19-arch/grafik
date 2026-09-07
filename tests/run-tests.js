@@ -1,0 +1,339 @@
+"use strict";
+
+process.env.TZ="Europe/Moscow";
+
+const assert=require("assert");
+const fs=require("fs");
+const vm=require("vm");
+
+const results=[];
+function test(name,fn){ results.push({name,fn}); }
+function loadModule(file){
+  vm.runInThisContext(fs.readFileSync(file,"utf8"),{filename:file});
+}
+
+const store=new Map();
+global.window={};
+global.localStorage={
+  getItem:key=>store.has(key)?store.get(key):null,
+  setItem:(key,value)=>store.set(key,String(value)),
+  removeItem:key=>store.delete(key),
+  clear:()=>store.clear()
+};
+
+loadModule("schedule.js");
+loadModule("shifts.js");
+loadModule("employees.js");
+loadModule("wallets.js");
+loadModule("admin.js");
+loadModule("supabase.js");
+
+const settings={
+  anchorDate:"2026-09-01",
+  individualScheduleFrom:"2026-09-01",
+  serviceBlockDays:15,
+  balancedRosterEnabled:true,
+  balancedRosterFrom:"2026-08-01",
+  service1:"Моба",
+  service2:"Нова",
+  shiftStart:"08:00",
+  shiftEnd:"22:00",
+  novaShiftStart:"09:00",
+  novaShiftEnd:"19:00",
+  staffChanges:[{date:"2026-09-07",oldName:"Сергей",type:"left"}],
+  dayOverrides:[],
+  employeeSchedules:[
+    {name:"Сергей",role:"manager",group:0,slot:0,cycleStart:"2026-08-01",workDays:5,offDays:2},
+    {name:"Арсен",role:"manager",group:0,slot:1,cycleStart:"2026-08-01",workDays:2,offDays:2},
+    {name:"Дина",role:"manager",group:1,slot:0,cycleStart:"2026-08-03",workDays:2,offDays:2},
+    {name:"Олег",role:"master",group:0,slot:0,cycleStart:"2026-08-01",workDays:5,offDays:2},
+    {name:"Георгий",role:"master",group:0,slot:1,cycleStart:"2026-08-01",workDays:2,offDays:2},
+    {name:"Асик",role:"master",group:1,slot:0,cycleStart:"2026-08-03",workDays:2,offDays:2}
+  ]
+};
+
+function dateObjectFromKey(key){
+  const [y,m,d]=String(key).split("-").map(Number);
+  return new Date(y,m-1,d);
+}
+function anchorParts(){
+  const [year,month,day]=settings.anchorDate.split("-").map(Number);
+  return {year,month:month-1,day};
+}
+function monthInfo(index){
+  const first=new Date(2026,8+index,1);
+  return {
+    year:first.getFullYear(),
+    month:first.getMonth(),
+    days:new Date(first.getFullYear(),first.getMonth()+1,0).getDate()
+  };
+}
+function monthIndexForYearMonth(year,month){
+  return (year-2026)*12+(month-8);
+}
+function serviceKeyForName(name){
+  return name===settings.service1?"s1":name===settings.service2?"s2":"";
+}
+
+const schedule=window.MASchedule.create({
+  getSettings:()=>settings,
+  anchorParts,
+  monthInfo,
+  serviceKeyForName,
+  dateObjectFromKey,
+  MASTER_ROSTER_FROM:"2026-08-24",
+  MANAGER_ROSTER_FROM:"2026-09-07",
+  REMOVED_MANAGER_NAME:"Сергей"
+});
+
+const shifts=window.MAShifts.create({
+  getSettings:()=>settings,
+  monthIndexForYearMonth,
+  getDaySchedule:()=>schedule.daySchedule
+});
+
+function buildMonthRows(index){
+  const info=monthInfo(index);
+  const rows=[];
+  for(let day=1;day<=info.days;day++) rows.push(schedule.daySchedule(index,day));
+  return rows;
+}
+
+const fixedMoscowParts=()=>({date:"2026-09-07",year:2026,month:9,day:7,hour:10,minute:0,second:0});
+const employees=window.MAEmployees.create({
+  getSettings:()=>settings,
+  moscowParts:fixedMoscowParts,
+  dateObjectFromKey,
+  employeesForDate:schedule.employeesForDate,
+  MANAGER_ROSTER_FROM:"2026-09-07",
+  EMPLOYEE_STORAGE_KEY:"test_employee_name",
+  EMPLOYEE_PUSH_NAME_KEY:"test_employee_push",
+  expectedForDate:shifts.expectedForDate,
+  getCurrentMonthIndex:()=>0,
+  monthInfo,
+  buildMonthRows,
+  isNoManagerValue:schedule.isNoManagerValue,
+  isNoMasterValue:schedule.isNoMasterValue,
+  shiftStartForService:shifts.shiftStartForService,
+  shiftMinutes:shifts.shiftMinutes,
+  formatMoscowTime:value=>String(value||""),
+  escapeHtml:value=>String(value||""),
+  getCurrentShiftRows:()=>[]
+});
+
+// ---- Schedule regression tests ----
+test("07.09: Моба = Арсен + Олег; Нова = Асик один",()=>{
+  const row=schedule.daySchedule(0,7);
+  assert.deepStrictEqual(row.s1,{manager:"Арсен",master:"Олег"});
+  assert.deepStrictEqual(row.s2,{manager:"Асик",master:"Асик"});
+});
+
+test("09.09: Моба = Дина + Олег; Нова = Георгий один",()=>{
+  const row=schedule.daySchedule(0,9);
+  assert.deepStrictEqual(row.s1,{manager:"Дина",master:"Олег"});
+  assert.deepStrictEqual(row.s2,{manager:"Георгий",master:"Георгий"});
+});
+
+test("12.09 выходной цикл: Моба = Дина + Георгий; Нова = Асик",()=>{
+  const row=schedule.daySchedule(0,12);
+  assert.deepStrictEqual(row.s1,{manager:"Дина",master:"Георгий"});
+  assert.deepStrictEqual(row.s2,{manager:"Асик",master:"Асик"});
+});
+
+test("14.09 вторая неделя мастеров: Нова = Георгий",()=>{
+  const row=schedule.daySchedule(0,14);
+  assert.strictEqual(row.s1.manager,"Арсен");
+  assert.strictEqual(row.s1.master,"Олег");
+  assert.deepStrictEqual(row.s2,{manager:"Георгий",master:"Георгий"});
+});
+
+test("06.09 история сохранена: в Нове нет отдельного менеджера по старому правилу",()=>{
+  const row=schedule.daySchedule(0,6);
+  assert.strictEqual(row.s2.manager,"Без менеджера");
+  assert.strictEqual(row.s2.master,"Георгий");
+});
+
+test("Сергей исключён с 07.09, но существует в истории до этой даты",()=>{
+  const before=schedule.employeesForDate(new Date(2026,8,6)).find(x=>x.name==="Сергей");
+  const after=schedule.employeesForDate(new Date(2026,8,7)).find(x=>x.name==="Сергей");
+  assert(before && !before.inactive);
+  assert(after && after.inactive);
+});
+
+test("Однодневная ручная замена перекрывает базовый график",()=>{
+  settings.dayOverrides.push({date:"2026-09-07",service:"Моба",manager:"Дина",master:"Георгий"});
+  try{
+    const row=schedule.daySchedule(0,7);
+    assert.deepStrictEqual(row.s1,{manager:"Дина",master:"Георгий"});
+    assert.deepStrictEqual(row.s2,{manager:"Асик",master:"Асик"});
+  }finally{
+    settings.dayOverrides.pop();
+  }
+});
+
+// ---- Shift rules ----
+test("Время смен по точкам не перепутано",()=>{
+  assert.strictEqual(shifts.shiftStartForService("Моба"),"08:00");
+  assert.strictEqual(shifts.shiftEndForService("Моба"),"22:00");
+  assert.strictEqual(shifts.shiftStartForService("Нова"),"09:00");
+  assert.strictEqual(shifts.shiftEndForService("Нова"),"19:00");
+  assert.strictEqual(shifts.shiftMinutes("09:30"),570);
+});
+
+test("PIN смены строго 4 цифры",()=>{
+  assert(shifts.isValidShiftPin("1234"));
+  assert(!shifts.isValidShiftPin("123"));
+  assert(!shifts.isValidShiftPin("12a4"));
+  assert(!shifts.isValidShiftPin("12345"));
+});
+
+test("Ожидаемый ответственный Новы совпадает с мастером",()=>{
+  assert.deepStrictEqual(shifts.expectedForDate("2026-09-07","Нова"),{manager:"Асик",master:"Асик"});
+  assert.deepStrictEqual(shifts.expectedForDate("2026-09-09","Нова"),{manager:"Георгий",master:"Георгий"});
+});
+
+// ---- Employee rules ----
+test("Активные сотрудники после 07.09 не содержат Сергея",()=>{
+  const names=employees.activeEmployeeNames("2026-09-07");
+  assert(!names.includes("Сергей"));
+  ["Арсен","Дина","Олег","Георгий","Асик"].forEach(name=>assert(names.includes(name),name));
+});
+
+test("Ответственные Новы доступны как открывающие смену",()=>{
+  const names=employees.activeManagerNames("2026-09-07");
+  ["Арсен","Дина","Георгий","Асик"].forEach(name=>assert(names.includes(name),name));
+  assert(!names.includes("Сергей"));
+});
+
+test("Личная смена Асика 07.09 определяется как Нова",()=>{
+  const a=employees.employeeAssignmentForDate("Асик","2026-09-07");
+  assert(a);
+  assert.strictEqual(a.service,"Нова");
+  assert.deepStrictEqual(a.pair,{manager:"Асик",master:"Асик"});
+});
+
+test("Выбор сотрудника сохраняется и проверяется по активному составу",()=>{
+  employees.saveEmployeeName("Арсен");
+  assert.strictEqual(employees.selectedEmployee(),"Арсен");
+  employees.saveEmployeeName("Сергей");
+  assert.strictEqual(employees.selectedEmployee(),"");
+  employees.saveEmployeeName("");
+});
+
+// ---- Wallet core ----
+const walletApi=window.MAWallets.create({
+  moscowParts:fixedMoscowParts,
+  SHIFT_TIMEZONE:"Europe/Moscow",
+  MONTHS:["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"],
+  WALLET_DATA_VERSION:3,
+  WALLET_STORAGE_KEY:"test_wallets"
+});
+
+test("Денежный ввод не теряет копейки",()=>{
+  assert.strictEqual(walletApi.parseMoneyInput("1 234,56"),123456);
+  assert.strictEqual(walletApi.parseMoneyInput("100"),10000);
+  assert.strictEqual(walletApi.parseMoneyInput("12,999"),null);
+});
+
+test("Миграция кошельков всегда сохраняет системную Страховку",()=>{
+  const state=walletApi.normalizeWalletState({version:3,wallets:[],transactions:[]});
+  const insurance=state.wallets.find(w=>w.id==="insurance");
+  assert(insurance);
+  assert.strictEqual(insurance.systemRole,"insurance");
+  assert.strictEqual(insurance.archived,false);
+});
+
+test("Операция кошелька создаётся с точной суммой",()=>{
+  const op=walletApi.buildWalletOperation("topup",[{walletId:"products",amountCents:5000}],"test",{
+    operationId:"op-test",createdAt:"2026-09-07T12:00:00.000Z"
+  });
+  assert.strictEqual(op.operationId,"op-test");
+  assert.strictEqual(op.items.length,1);
+  assert.strictEqual(op.items[0].amountCents,5000);
+  assert.strictEqual(op.items[0].walletId,"products");
+});
+
+// ---- Admin session ----
+let adminSession=null;
+let sessionChanges=0;
+const adminApi=window.MAAdmin.create({
+  storageKey:"test_admin",
+  getSession:()=>adminSession,
+  setSession:value=>{adminSession=value;},
+  onSessionChange:()=>{sessionChanges++;}
+});
+
+test("Админ-сессия сохраняется, читается и очищается",()=>{
+  adminApi.saveAdminSession({access_token:"abc"});
+  assert(adminApi.isAdmin());
+  adminSession=null;
+  adminSession=adminApi.loadAdminSession();
+  assert.strictEqual(adminSession.access_token,"abc");
+  adminApi.saveAdminSession(null);
+  assert(!adminApi.isAdmin());
+  assert(sessionChanges>=2);
+});
+
+// ---- Supabase wrapper without real network ----
+test("Supabase распознаёт конфигурацию и классы ошибок",()=>{
+  const api=window.MASupabase.create({
+    url:"https://example.supabase.co",
+    publishableKey:"sb_publishable_test",
+    getAdminSession:()=>null,
+    saveAdminSession:()=>{}
+  });
+  assert(api.cloudConfigured());
+  assert.strictEqual(api.classifySyncError({status:403}).kind,"forbidden");
+  assert.strictEqual(api.classifySyncError({status:503}).kind,"temporary");
+});
+
+test("Supabase REST добавляет apikey и правильный URL",async()=>{
+  const oldFetch=global.fetch;
+  let captured=null;
+  global.fetch=async(url,options)=>{
+    captured={url,options};
+    return {status:200,ok:true,statusText:"OK",text:async()=>"",json:async()=>({})};
+  };
+  try{
+    const api=window.MASupabase.create({
+      url:"https://example.supabase.co",
+      publishableKey:"sb_publishable_test",
+      getAdminSession:()=>null,
+      saveAdminSession:()=>{}
+    });
+    const res=await api.authFetch("/rest/v1/test",{method:"GET",retryAttempts:1,timeoutMs:3000});
+    assert.strictEqual(res.status,200);
+    assert.strictEqual(captured.url,"https://example.supabase.co/rest/v1/test");
+    assert.strictEqual(captured.options.headers.apikey,"sb_publishable_test");
+    assert.strictEqual(captured.options.cache,"no-store");
+  }finally{
+    global.fetch=oldFetch;
+  }
+});
+
+// ---- Project structure ----
+test("index.html подключает модули в безопасном порядке",()=>{
+  const html=fs.readFileSync("index.html","utf8");
+  const refs=["schedule.js","shifts.js","employees.js","supabase.js","wallets.js","admin.js","app.js"];
+  const positions=refs.map(file=>html.indexOf(`<script src="${file}"></script>`));
+  assert(positions.every(x=>x>=0));
+  assert.deepStrictEqual(positions,[...positions].sort((a,b)=>a-b));
+  assert(!html.includes("<script>\n(function(){"));
+});
+
+(async()=>{
+  let passed=0;
+  for(const {name,fn} of results){
+    try{
+      await fn();
+      passed++;
+      console.log(`✓ ${name}`);
+    }catch(error){
+      console.error(`✗ ${name}`);
+      console.error(error && error.stack ? error.stack : error);
+      process.exitCode=1;
+    }
+  }
+  console.log(`\nMA График: ${passed}/${results.length} тестов пройдено.`);
+  if(passed!==results.length) process.exitCode=1;
+})();
