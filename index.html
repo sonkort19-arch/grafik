@@ -7235,7 +7235,7 @@ body{padding-bottom:88px}
 
     // По субботам и воскресеньям в Нове менеджера нет.
     // Мастер в Нове выбран новым двухнедельным циклом: Георгий или Асик.
-    if(key<MANAGER_ROSTER_FROM && isNovaWeekendRule(date,settings.service2)){
+    if(dateKeyFromDate(date)<MANAGER_ROSTER_FROM && isNovaWeekendRule(date,settings.service2)){
       base.s2.manager="Без менеджера";
       base.s2.managerCount=0;
       base.s2.managerNames=[];
