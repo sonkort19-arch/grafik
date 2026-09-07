@@ -1,0 +1,64 @@
+name: Stage 6 final audit
+
+on:
+  push:
+    branches: [audit-stage6-2026-09-07]
+
+permissions:
+  contents: read
+
+jobs:
+  final-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax and permanent regression tests
+        run: |
+          for f in schedule.js shifts.js employees.js supabase.js wallets.js admin.js errors.js settings.js devices.js history.js safety.js app.js tests/run-tests.js; do node --check "$f"; done
+          node tests/run-tests.js
+
+      - name: Verify PWA files and module wiring
+        run: |
+          test -f manifest.webmanifest
+          test -f sw.js
+          test -f icon-192.png
+          test -f icon-512.png
+          grep -q '<meta name="viewport"' index.html
+          grep -q '<link rel="manifest" href="manifest.webmanifest">' index.html
+          grep -q '<script src="safety.js"></script>' index.html
+          grep -q '<script src="app.js"></script>' index.html
+          grep -q 'manualBackupBtn' index.html
+          grep -q 'restoreLatestBackupBtn' index.html
+          grep -q 'MADataSafety' safety.js
+
+      - name: Verify production contains stage 5
+        run: |
+          curl --retry 3 --retry-delay 2 -fsSL https://grafik-umber.vercel.app/ -o /tmp/prod-index.html
+          grep -q 'manualBackupBtn' /tmp/prod-index.html
+          grep -q '<script src="safety.js"></script>' /tmp/prod-index.html
+          for f in styles.css schedule.js shifts.js employees.js supabase.js wallets.js admin.js errors.js settings.js devices.js history.js safety.js app.js manifest.webmanifest sw.js icon-192.png icon-512.png; do
+            curl --retry 3 --retry-delay 1 -fsSL "https://grafik-umber.vercel.app/$f" -o "/tmp/prod-${f//\//_}"
+          done
+          grep -q 'MADataSafety' /tmp/prod-safety.js
+
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start local app
+        run: |
+          python3 -m http.server 4173 >/tmp/ma-http.log 2>&1 &
+          echo $! > /tmp/ma-http.pid
+          for i in {1..30}; do curl -fsS http://127.0.0.1:4173/ >/dev/null && exit 0; sleep 1; done
+          cat /tmp/ma-http.log
+          exit 1
+
+      - name: Browser audit desktop and mobile
+        run: node tools/final_audit.mjs
