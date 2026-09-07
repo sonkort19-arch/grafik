@@ -1,0 +1,18 @@
+name: Step 3 inspect schedule
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/step3-inspect-schedule.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect schedule functions
+        run: python3 tools/inspect_schedule_functions.py
