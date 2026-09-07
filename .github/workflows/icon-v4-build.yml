@@ -1,10 +1,9 @@
-name: Build final MA icon assets
+name: Apply final MA icon
 
 on:
   push:
     branches: [icon-refresh-v3]
     paths:
-      - 'ma-icon-final-v5.svg'
       - '.github/workflows/icon-v4-build.yml'
   workflow_dispatch:
 
@@ -12,31 +11,64 @@ permissions:
   contents: write
 
 jobs:
-  build-icon-assets:
+  apply-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Ensure ImageMagick
+      - name: Verify icon assets exist
         run: |
-          if ! command -v convert >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install -y imagemagick
+          test -f ma-icon-final-v5-192.png
+          test -f ma-icon-final-v5-512.png
+          test -f ma-apple-touch-final-v5.png
+          test -f ma-favicon-final-v5.png
+      - name: Apply new icon references and cache version
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          index = Path('index.html')
+          text = index.read_text()
+          text = text.replace('ma-favicon-green-v3.png', 'ma-favicon-final-v5.png')
+          text = text.replace('ma-apple-touch-green-v3.png', 'ma-apple-touch-final-v5.png')
+          index.write_text(text)
+
+          manifest = Path('manifest.webmanifest')
+          text = manifest.read_text()
+          text = text.replace('ma-icon-green-v3-192.png', 'ma-icon-final-v5-192.png')
+          text = text.replace('ma-icon-green-v3-512.png', 'ma-icon-final-v5-512.png')
+          manifest.write_text(text)
+
+          sw = Path('sw.js')
+          text = sw.read_text()
+          text = text.replace('ma-grafik-2026-09-08-icon-v3', 'ma-grafik-2026-09-08-icon-v5')
+          text = text.replace('ma-icon-green-v3-192.png', 'ma-icon-final-v5-192.png')
+          sw.write_text(text)
+          PY
+      - name: Verify icon wiring
+        run: |
+          grep -q 'ma-favicon-final-v5.png' index.html
+          grep -q 'ma-apple-touch-final-v5.png' index.html
+          grep -q 'ma-icon-final-v5-192.png' manifest.webmanifest
+          grep -q 'ma-icon-final-v5-512.png' manifest.webmanifest
+          grep -q 'ma-grafik-2026-09-08-icon-v5' sw.js
+          grep -q 'ma-icon-final-v5-192.png' sw.js
+          if grep -q 'ma-icon-green-v3' index.html manifest.webmanifest sw.js; then
+            echo 'Old v3 icon reference remains'
+            exit 1
           fi
-      - name: Generate required icon sizes
-        run: |
-          convert -background none ma-icon-final-v5.svg -resize 192x192 ma-icon-final-v5-192.png
-          convert -background none ma-icon-final-v5.svg -resize 512x512 ma-icon-final-v5-512.png
-          convert -background none ma-icon-final-v5.svg -resize 180x180 ma-apple-touch-final-v5.png
-          convert -background none ma-icon-final-v5.svg -resize 64x64 ma-favicon-final-v5.png
-          identify ma-icon-final-v5-192.png ma-icon-final-v5-512.png ma-apple-touch-final-v5.png ma-favicon-final-v5.png
-      - name: Commit generated assets
+      - name: JavaScript syntax check
+        run: node --check app.js
+      - name: Regression tests
+        run: node tests/run-tests.js
+      - name: Commit tested icon update
         run: |
           git config user.name "MA Icon Builder"
           git config user.email "actions@users.noreply.github.com"
-          git add ma-icon-final-v5-192.png ma-icon-final-v5-512.png ma-apple-touch-final-v5.png ma-favicon-final-v5.png
+          git add index.html manifest.webmanifest sw.js
           if git diff --cached --quiet; then
-            echo "Icon assets already current"
+            echo "Icon wiring already current"
             exit 0
           fi
-          git commit -m "Generate clean MA icon assets"
+          git diff --cached --check
+          git commit -m "Apply clean MA app icon"
           git push
