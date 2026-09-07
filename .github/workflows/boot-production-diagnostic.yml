@@ -1,0 +1,68 @@
+name: Production boot diagnostic
+
+on:
+  push:
+    branches: [fix-boot-timeout-2026-09-07]
+
+permissions:
+  contents: read
+
+jobs:
+  browser-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0 --no-save
+          npx playwright install --with-deps chromium webkit
+      - name: Test production boot
+        run: |
+          node <<'JS'
+          const { chromium, webkit } = require('playwright');
+          const URL='https://grafik-umber.vercel.app/?diag=20260907-2352';
+          async function run(engine,name,withOldToken){
+            const browser=await engine.launch({headless:true});
+            const context=await browser.newContext({
+              viewport:{width:390,height:844},
+              userAgent:name==='webkit'
+                ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'
+                : undefined
+            });
+            if(withOldToken){
+              await context.addInitScript(()=>{
+                localStorage.setItem('ma_shift_device_token_v1','old-invalid-device-token');
+                localStorage.removeItem('ma_device_view_cache_v1');
+              });
+            }
+            const page=await context.newPage();
+            const consoleRows=[]; const errors=[];
+            page.on('console',m=>consoleRows.push(`${m.type()}: ${m.text()}`));
+            page.on('pageerror',e=>errors.push(String(e)));
+            let response=null;
+            try{ response=await page.goto(URL,{waitUntil:'domcontentloaded',timeout:30000}); }
+            catch(e){ errors.push('goto: '+e.message); }
+            await page.waitForTimeout(9000);
+            const state=await page.evaluate(()=>({
+              bodyClass:document.body.className,
+              bootVisible:!!document.querySelector('#appBootScreen') && getComputedStyle(document.querySelector('#appBootScreen')).display!=='none' && document.body.classList.contains('app-booting'),
+              appInitialized:!document.body.classList.contains('app-booting'),
+              scripts:[...document.scripts].map(s=>s.src).filter(Boolean),
+              text:document.body.innerText.slice(0,800)
+            }));
+            console.log(JSON.stringify({name,withOldToken,status:response&&response.status(),url:page.url(),state,errors,consoleRows},null,2));
+            await browser.close();
+            if(!state.appInitialized) throw new Error(`${name} oldToken=${withOldToken}: app still booting`);
+          }
+          (async()=>{
+            for(const [engine,name] of [[chromium,'chromium'],[webkit,'webkit']]){
+              await run(engine,name,false);
+              await run(engine,name,true);
+            }
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
