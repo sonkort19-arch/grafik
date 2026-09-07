@@ -2525,7 +2525,7 @@
     expectedForDate,
     serviceNames:()=>[settings.service1,settings.service2].filter(Boolean),
     getEmployeesForDate:dateStr=>employeesForDate(dateObjectFromKey(dateStr)),
-    isNoManagerValue,
+    isNoManagerValue:(...args)=>isNoManagerValue(...args),
     shiftStartForService,
     shiftEndForService,
     shiftMinutes,
