@@ -31,10 +31,52 @@ def remove_function(src,name):
     m=pat.search(src)
     if not m:
         raise RuntimeError(f'function not found: {name}')
-    brace=src.find('{',m.end())
-    if brace<0:
-        raise RuntimeError(f'opening brace not found: {name}')
-    i=brace
+
+    # The regex already consumed the opening parenthesis. Find the matching closing
+    # parenthesis first, so object defaults like extra={} are not mistaken for the body.
+    i=m.end()-1
+    paren_depth=0
+    state='code'
+    quote=''
+    esc=False
+    signature_end=None
+    while i<len(src):
+        c=src[i]
+        n=src[i+1] if i+1<len(src) else ''
+        if state=='code':
+            if c in "'\"`":
+                state='str'; quote=c; esc=False
+            elif c=='/' and n=='/':
+                state='line'; i+=1
+            elif c=='/' and n=='*':
+                state='block'; i+=1
+            elif c=='(':
+                paren_depth+=1
+            elif c==')':
+                paren_depth-=1
+                if paren_depth==0:
+                    signature_end=i+1
+                    break
+        elif state=='str':
+            if esc:
+                esc=False
+            elif c=='\\':
+                esc=True
+            elif c==quote:
+                state='code'
+        elif state=='line':
+            if c=='\n': state='code'
+        elif state=='block':
+            if c=='*' and n=='/': state='code'; i+=1
+        i+=1
+    if signature_end is None:
+        raise RuntimeError(f'function signature end not found: {name}')
+
+    i=signature_end
+    while i<len(src) and src[i].isspace(): i+=1
+    if i>=len(src) or src[i]!='{':
+        raise RuntimeError(f'function body brace not found: {name}')
+
     depth=0
     state='code'
     quote=''
@@ -71,7 +113,6 @@ def remove_function(src,name):
         i+=1
     if end is None:
         raise RuntimeError(f'closing brace not found: {name}')
-    # consume trailing spaces and up to two newlines
     while end<len(src) and src[end] in ' \t': end+=1
     if end<len(src) and src[end]=='\r': end+=1
     if end<len(src) and src[end]=='\n': end+=1
