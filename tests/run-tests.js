@@ -458,7 +458,7 @@ const kpiApi=window.MAKpi.create({
   escapeHtml:value=>String(value??"")
 });
 
-test("KPI: опоздание и пропуск уменьшают оценку по понятным правилам",()=>{
+test("KPI: опоздание снижает оценку, а сотрудник без первого открытия не штрафуется",()=>{
   const rows=[{
     service:"Моба",shift_date:"2026-09-07",opened_at:"2026-09-07T05:12:00.000Z",opened_by:"Арсен",
     open_late_minutes:12,closed_at:"2026-09-07T19:00:00.000Z",closed_by:"Арсен",early_close_minutes:0
@@ -470,8 +470,29 @@ test("KPI: опоздание и пропуск уменьшают оценку 
   assert.strictEqual(arsen.total,1);
   assert.strictEqual(arsen.late,1);
   assert.strictEqual(arsen.score,95);
-  assert.strictEqual(asik.missed,1);
-  assert.strictEqual(asik.score,80);
+  assert.strictEqual(asik.total,0);
+  assert.strictEqual(asik.score,null);
+});
+
+test("KPI: пропуск считается после первого подтверждённого открытия",()=>{
+  const arsenDates=[];
+  for(let day=7;day<=20;day++){
+    const date=`2026-09-${String(day).padStart(2,"0")}`;
+    if(shifts.expectedForDate(date,"Моба")?.manager==="Арсен") arsenDates.push(date);
+  }
+  assert(arsenDates.length>=2);
+  const activationDate=arsenDates[0], missedDate=arsenDates[1];
+  const rows=[{
+    service:"Моба",shift_date:activationDate,opened_at:`${activationDate}T05:00:00.000Z`,opened_by:"Арсен",
+    open_late_minutes:0,closed_at:`${activationDate}T19:00:00.000Z`,closed_by:"Арсен",early_close_minutes:0
+  }];
+  const result=kpiApi.calculate(rows,{from:missedDate,to:missedDate,now:{date:missedDate,hour:22,minute:30}});
+  const arsen=result.employees.find(x=>x.name==="Арсен");
+  assert(arsen);
+  assert.strictEqual(arsen.total,1);
+  assert.strictEqual(arsen.worked,0);
+  assert.strictEqual(arsen.missed,1);
+  assert.strictEqual(arsen.score,80);
 });
 
 test("KPI: аннулированная смена исключается и не портит сотруднику оценку",()=>{

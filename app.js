@@ -3432,7 +3432,8 @@
     list.innerHTML="";
     try{
       const token=await getAdminToken();
-      const query=`/rest/v1/${SHIFT_TABLE}?select=*&shift_date=gte.${range.from}&shift_date=lte.${range.to}&order=shift_date.asc,service.asc&limit=250`;
+      const kpiHistoryFrom=range.from<"2026-09-01"?range.from:"2026-09-01";
+      const query=`/rest/v1/${SHIFT_TABLE}?select=*&shift_date=gte.${kpiHistoryFrom}&shift_date=lte.${range.to}&order=shift_date.asc,service.asc&limit=2000`;
       const res=await authFetch(query,{method:"GET",headers:{Authorization:"Bearer "+token}});
       if(!res.ok) throw new Error(await res.text());
       const rows=await res.json();

@@ -100,6 +100,16 @@
         if(!existing || String(row.updated_at||row.opened_at||"")>String(existing.updated_at||existing.opened_at||"")) activeRows.set(key,row);
       });
 
+      const activationDates=new Map();
+      activeRows.forEach(row=>{
+        if(!row?.opened_at || !row?.opened_by || !row?.shift_date || !row?.service) return;
+        const resp=responsibleFor(String(row.shift_date),String(row.service));
+        if(!resp || String(row.opened_by)!==resp.name) return;
+        const date=String(row.shift_date);
+        const previous=activationDates.get(resp.name);
+        if(!previous || date<previous) activationDates.set(resp.name,date);
+      });
+
       const stats=new Map();
       const ensure=(name,role="")=>{
         if(!stats.has(name)) stats.set(name,emptyStat(name,role));
@@ -120,6 +130,9 @@
           const key=`${date}|${service}`;
           const row=activeRows.get(key)||null;
           if(!row && voidedPairs.has(key)) continue;
+
+          const activationDate=activationDates.get(resp.name);
+          if(!activationDate || date<activationDate) continue;
 
           const stat=ensure(resp.name,resp.role||"");
           stat.total++;
@@ -198,7 +211,7 @@
       }
 
       if(noticeEl){
-        noticeEl.innerHTML=`KPI считает только <b>контролируемые смены</b>, где сотрудник назначен ответственным за открытие и закрытие точки. Присутствие мастера на Мобе пока отдельно не фиксируется и не снижает ему оценку.`;
+        noticeEl.innerHTML=`KPI считает только <b>контролируемые смены</b>, где сотрудник назначен ответственным за открытие и закрытие точки. Пропуск начинает учитываться только после первого подтверждённого открытия этим сотрудником — отсутствие настроенного PIN/доступа не превращается в штраф. Присутствие мастера на Мобе пока отдельно не фиксируется и не снижает ему оценку.`;
       }
 
       if(!listEl) return;
