@@ -6242,10 +6242,25 @@
     // один раз ждём проверку, чтобы Моба/Нова не мигали.
     const hasDeviceToken=!!loadShiftDeviceToken();
     if(hasDeviceToken && !cachedDevice){
-      try{
-        await refreshDeviceAccess();
-      }catch(e){
-        console.error("initial device check",e);
+      let initialDeviceResolved=false;
+      const initialDeviceCheck=Promise.resolve()
+        .then(()=>refreshDeviceAccess())
+        .catch(e=>{
+          console.error("initial device check",e);
+          return false;
+        });
+      await Promise.race([
+        initialDeviceCheck.then(()=>{ initialDeviceResolved=true; }),
+        new Promise(resolve=>setTimeout(resolve,3500))
+      ]);
+      if(!initialDeviceResolved){
+        initialDeviceCheck.then(()=>{
+          if(appInitialized && currentDeviceAccess.allowed){
+            updateAuthUI();
+            applyUserMode();
+            switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday");
+          }
+        });
       }
     }
 
