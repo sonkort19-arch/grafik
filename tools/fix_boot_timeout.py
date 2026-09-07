@@ -2,7 +2,8 @@ from pathlib import Path
 
 p = Path("app.js")
 text = p.read_text(encoding="utf-8")
-old = '''    if(hasDeviceToken && !cachedDevice){
+
+old_timeout = '''    if(hasDeviceToken && !cachedDevice){
       try{
         await refreshDeviceAccess();
       }catch(e){
@@ -10,7 +11,7 @@ old = '''    if(hasDeviceToken && !cachedDevice){
       }
     }
 '''
-new = '''    if(hasDeviceToken && !cachedDevice){
+new_timeout = '''    if(hasDeviceToken && !cachedDevice){
       let initialDeviceResolved=false;
       const initialDeviceCheck=Promise.resolve()
         .then(()=>refreshDeviceAccess())
@@ -33,8 +34,23 @@ new = '''    if(hasDeviceToken && !cachedDevice){
       }
     }
 '''
-count = text.count(old)
-if count != 1:
-    raise SystemExit(f"expected one startup block, found {count}")
-p.write_text(text.replace(old, new, 1), encoding="utf-8")
-print("startup timeout patch applied")
+if old_timeout in text:
+    text = text.replace(old_timeout, new_timeout, 1)
+elif "initialDeviceResolved" not in text:
+    raise SystemExit("startup timeout block not found")
+
+old_kpi = '''    getEmployeesForDate:dateStr=>employeesForDate(dateObjectFromKey(dateStr)),
+    isNoManagerValue,
+    shiftStartForService,
+'''
+new_kpi = '''    getEmployeesForDate:dateStr=>employeesForDate(dateObjectFromKey(dateStr)),
+    isNoManagerValue:(...args)=>isNoManagerValue(...args),
+    shiftStartForService,
+'''
+if old_kpi in text:
+    text = text.replace(old_kpi, new_kpi, 1)
+elif "isNoManagerValue:(...args)=>isNoManagerValue(...args)" not in text:
+    raise SystemExit("KPI initialization block not found")
+
+p.write_text(text, encoding="utf-8")
+print("startup safety patches applied")
