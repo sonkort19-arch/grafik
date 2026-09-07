@@ -59,6 +59,15 @@
       return {name:manager,role:info?.role||((expected?.manager===expected?.master)?"master":"manager"),expected};
     }
 
+    function responsibleForRow(row,fallback){
+      const dateStr=String(row?.shift_date||"");
+      const stored=String(row?.expected_manager||"").trim();
+      if(!stored || isNoManagerValue(stored)) return fallback||null;
+      const info=employeeInfo(stored,dateStr);
+      const storedMaster=String(row?.expected_master||"").trim();
+      return {name:stored,role:info?.role||((storedMaster&&stored===storedMaster)?"master":"manager"),expected:{manager:stored,master:storedMaster||null}};
+    }
+
     function shouldCountOpening(dateStr,service,now){
       if(dateStr<now.date) return true;
       if(dateStr>now.date) return false;
@@ -103,7 +112,8 @@
       const activationDates=new Map();
       activeRows.forEach(row=>{
         if(!row?.opened_at || !row?.opened_by || !row?.shift_date || !row?.service) return;
-        const resp=responsibleFor(String(row.shift_date),String(row.service));
+        const fallback=responsibleFor(String(row.shift_date),String(row.service));
+        const resp=responsibleForRow(row,fallback);
         if(!resp || String(row.opened_by)!==resp.name) return;
         const date=String(row.shift_date);
         const previous=activationDates.get(resp.name);
@@ -125,11 +135,12 @@
       while(date<=finish){
         for(const service of serviceNames()||[]){
           if(!shouldCountOpening(date,service,current)) continue;
-          const resp=responsibleFor(date,service);
-          if(!resp) continue;
           const key=`${date}|${service}`;
           const row=activeRows.get(key)||null;
           if(!row && voidedPairs.has(key)) continue;
+          const fallbackResp=responsibleFor(date,service);
+          const resp=row?responsibleForRow(row,fallbackResp):fallbackResp;
+          if(!resp) continue;
 
           const activationDate=activationDates.get(resp.name);
           if(!activationDate || date<activationDate) continue;
@@ -160,7 +171,7 @@
 
           if(row.closed_at){
             const early=Math.max(0,Number(row.early_close_minutes)||0);
-            if(early>0){
+            if(early>0 && String(row.closed_by||"")===resp.name){
               stat.early++;
               stat.earlyMinutes+=early;
               stat.issues.push({date,service,type:"early",text:`Закрытие раньше на ${early} мин`});
