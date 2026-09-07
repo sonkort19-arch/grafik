@@ -39,9 +39,8 @@ if new_html.count('href="styles.css"') != 1:
 if '<style>' in new_html or '</style>' in new_html:
     raise SystemExit('Inline style block still present')
 
-# Preserve CSS content exactly, only ensure file ends with newline.
-if not css.endswith('\n'):
-    css += '\n'
+# CSS rules stay identical; normalize only trailing newlines to exactly one.
+css = css.rstrip('\n') + '\n'
 
 css_path.write_text(css, encoding='utf-8')
 index_path.write_text(new_html, encoding='utf-8')
