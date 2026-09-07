@@ -1,0 +1,31 @@
+name: Stage 6 fresh-device boot fix
+
+on:
+  push:
+    branches: [audit-stage6-2026-09-07]
+    paths:
+      - 'tools/apply_stage6_boot_fix.py'
+      - '.github/workflows/stage6-boot-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply fresh-device boot fix
+        run: python3 tools/apply_stage6_boot_fix.py
+      - name: Validate JavaScript and regression suite
+        run: |
+          node --check app.js
+          node tests/run-tests.js
+      - name: Commit tested fix to audit branch
+        run: |
+          git config user.name "MA Stage 6 Audit"
+          git config user.email "actions@users.noreply.github.com"
+          git add app.js
+          git diff --cached --check
+          git commit -m "Fix fresh-device startup initialization"
+          git push
