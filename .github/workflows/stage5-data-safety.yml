@@ -4,6 +4,7 @@ on:
     paths:
       - 'tools/apply_stage5_safety.py'
       - 'tools/apply_stage5_safety_v2.py'
+      - 'tools/apply_stage5_safety_v3.py'
       - '.github/workflows/stage5-data-safety.yml'
 permissions:
   contents: write
@@ -13,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Apply data safety patch
-        run: python3 tools/apply_stage5_safety_v2.py
+        run: python3 tools/apply_stage5_safety_v3.py
       - name: Check JavaScript syntax
         run: |
           node --check schedule.js
