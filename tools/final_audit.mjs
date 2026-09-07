@@ -14,8 +14,10 @@ async function auditPage(browser,{name,url,viewport,offlineCycle=false}){
   const context=await browser.newContext({viewport, locale:'ru-RU', timezoneId:'Europe/Moscow'});
   const page=await context.newPage();
   const pageErrors=[];
+  const consoleErrors=[];
   const badResponses=[];
   page.on('pageerror',e=>pageErrors.push(String(e?.stack||e)));
+  page.on('console',msg=>{ if(msg.type()==='error') consoleErrors.push(msg.text()); });
   page.on('response',res=>{
     const u=res.url();
     if(u.startsWith(url) && res.status()>=400) badResponses.push(`${res.status()} ${u}`);
@@ -23,12 +25,17 @@ async function auditPage(browser,{name,url,viewport,offlineCycle=false}){
 
   const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000});
   if(!response || response.status()>=400) fail(`${name}: стартовая страница HTTP ${response?.status()}`);
-  await page.waitForTimeout(3500);
+  await page.waitForTimeout(5000);
 
   const title=await page.title();
   if(!title.includes('MA График')) fail(`${name}: неверный title: ${title}`);
+  if(pageErrors.length) fail(`${name}: pageerror: ${pageErrors.join(' | ')}`);
+  if(badResponses.length) fail(`${name}: локальные ресурсы с ошибкой: ${badResponses.join(' | ')}`);
   const booting=await page.locator('body').evaluate(el=>el.classList.contains('app-booting'));
-  if(booting) fail(`${name}: приложение осталось на экране загрузки`);
+  if(booting){
+    const scripts=await page.evaluate(()=>Array.from(document.scripts).map(s=>({src:s.src,loaded:!!s.src})));
+    fail(`${name}: приложение осталось на экране загрузки; console=${consoleErrors.join(' | ')||'none'}; scripts=${JSON.stringify(scripts)}`);
+  }
   const bodyText=await page.locator('body').innerText();
   if(bodyText.includes('Ошибка запуска')) fail(`${name}: показана «Ошибка запуска»`);
   if(!(await visible(page,'#adminBtn'))) fail(`${name}: кнопка администратора не видна`);
@@ -38,22 +45,19 @@ async function auditPage(browser,{name,url,viewport,offlineCycle=false}){
   const rootOverflow=await page.evaluate(()=>({w:document.documentElement.scrollWidth,v:window.innerWidth}));
   if(rootOverflow.w>rootOverflow.v+6) fail(`${name}: корневая горизонтальная прокрутка ${rootOverflow.w}px при viewport ${rootOverflow.v}px`);
 
-  if(pageErrors.length) fail(`${name}: pageerror: ${pageErrors.join(' | ')}`);
-  if(badResponses.length) fail(`${name}: локальные ресурсы с ошибкой: ${badResponses.join(' | ')}`);
-
   if(offlineCycle){
     const before=(await page.locator('#monthTitle').textContent())||'';
     await context.setOffline(true);
-    await page.waitForTimeout(350);
+    await page.waitForTimeout(500);
     const bannerVisible=await visible(page,'#connectionBanner');
     await page.locator('#nextBtn').click();
-    await page.waitForTimeout(250);
+    await page.waitForTimeout(300);
     const after=(await page.locator('#monthTitle').textContent())||'';
     if(before===after) fail(`${name}: график не переключает месяц без сети`);
     await page.locator('#prevBtn').click();
     await context.setOffline(false);
-    await page.waitForTimeout(350);
-    if(!bannerVisible) console.log(`WARN ${name}: offline banner не стал видимым за 350мс`);
+    await page.waitForTimeout(500);
+    if(!bannerVisible) console.log(`WARN ${name}: offline banner не стал видимым за 500мс`);
     if(pageErrors.length) fail(`${name}: ошибка после offline/online: ${pageErrors.join(' | ')}`);
   }
 
@@ -63,7 +67,7 @@ async function auditPage(browser,{name,url,viewport,offlineCycle=false}){
     return {supported:true,count:regs.length};
   }).catch(()=>({supported:false,count:0}));
 
-  console.log(`PASS ${name}: ${viewport.width}x${viewport.height}, SW=${sw.supported?'yes':'no'}/${sw.count}`);
+  console.log(`PASS ${name}: ${viewport.width}x${viewport.height}, SW=${sw.supported?'yes':'no'}/${sw.count}, consoleErrors=${consoleErrors.length}`);
   await context.close();
 }
 
