@@ -28,3 +28,4 @@ jobs:
           git diff --cached --check
           git commit -m "Set Nova master shift to 09-19"
           git push origin HEAD:main
+# retry 2
