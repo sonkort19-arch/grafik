@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101418"/>
+      <stop offset="0.55" stop-color="#050708"/>
+      <stop offset="1" stop-color="#000000"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="50%" cy="51%" r="46%">
+      <stop offset="0" stop-color="#75ff00" stop-opacity="0.16"/>
+      <stop offset="0.5" stop-color="#75ff00" stop-opacity="0.055"/>
+      <stop offset="1" stop-color="#75ff00" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d7ff27"/>
+      <stop offset="0.5" stop-color="#aaff00"/>
+      <stop offset="1" stop-color="#79f000"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
+      <feFlood flood-color="#70ff00" flood-opacity="0.42"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#halo)"/>
+  <g filter="url(#glow)">
+    <path d="M238 700 L238 342 L482 601 L694 342 L842 700"
+          fill="none" stroke="url(#green)" stroke-width="94"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M522 713 C605 603 687 575 796 681 C716 635 637 640 554 714 Z"
+          fill="url(#green)"/>
+  </g>
+</svg>
