@@ -126,6 +126,7 @@
   let quickReplaceSaving = false;
   let importSettingsBusy = false;
   let historyLoadSeq = 0;
+  let kpiLoadSeq = 0;
   let historyRowsTruncated = false;
   let deviceListLoadState = "unknown";
   const {
@@ -2029,6 +2030,7 @@
          !$("schedulePage").classList.contains("hidden") ||
          !$("desktopCalendarPage").classList.contains("hidden") ||
          !$("historyPage").classList.contains("hidden") ||
+         !$("kpiPage").classList.contains("hidden") ||
          !$("settingsPage").classList.contains("hidden") ||
          !$("walletsPage").classList.contains("hidden")){
         switchTab(employeeMobileView || "employeeToday");
@@ -2056,6 +2058,7 @@
       $("employeePickerModal").classList.add("hidden");
 
       if(!$("historyPage").classList.contains("hidden") ||
+         !$("kpiPage").classList.contains("hidden") ||
          !$("settingsPage").classList.contains("hidden") ||
          !$("walletsPage").classList.contains("hidden") ||
          !$("employeeTodayPage").classList.contains("hidden") ||
@@ -2090,7 +2093,8 @@
       t5.textContent="Настройки"; t5.dataset.tab="settings"; t5.classList.remove("hidden");
       if(tMore) tMore.classList.add("hidden");
     }
-    if(tMore) tMore.classList.toggle("active",mobileAdmin && (!$("historyPage").classList.contains("hidden") || !$("settingsPage").classList.contains("hidden")));
+    if(tMore) tMore.classList.toggle("active",mobileAdmin && (!$("historyPage").classList.contains("hidden") || !$("kpiPage").classList.contains("hidden") ||
+         !$("settingsPage").classList.contains("hidden")));
 
     $("employeePickerModal").classList.add("hidden");
 
@@ -2099,7 +2103,8 @@
       !$("schedulePage").classList.contains("hidden") ||
       !$("desktopCalendarPage").classList.contains("hidden") ||
       !$("historyPage").classList.contains("hidden") ||
-      !$("settingsPage").classList.contains("hidden") ||
+      !$("kpiPage").classList.contains("hidden") ||
+         !$("settingsPage").classList.contains("hidden") ||
       !$("walletsPage").classList.contains("hidden");
 
     if(!anyVisible){
@@ -2514,6 +2519,18 @@
     getSettings:()=>settings,
     monthIndexForYearMonth,
     getDaySchedule:()=>daySchedule
+  });
+
+  const kpiCore=window.MAKpi.create({
+    expectedForDate,
+    serviceNames:()=>[settings.service1,settings.service2].filter(Boolean),
+    getEmployeesForDate:dateStr=>employeesForDate(dateObjectFromKey(dateStr)),
+    isNoManagerValue,
+    shiftStartForService,
+    shiftEndForService,
+    shiftMinutes,
+    moscowParts,
+    escapeHtml
   });
 
   function isStartupShiftMode(){
@@ -3386,6 +3403,51 @@
     const extra=await probe.json();
     historyRowsTruncated=Array.isArray(extra) && extra.length>0;
     return all;
+  }
+
+  async function loadKpi(){
+    const seq=++kpiLoadSeq;
+    const list=$("kpiList"),summary=$("kpiSummary"),notice=$("kpiNotice"),loading=$("kpiLoading");
+    if(!list||!summary) return;
+
+    if(!isAdmin()){
+      summary.innerHTML="";
+      list.innerHTML='<div class="kpi-empty">Войди как администратор, чтобы смотреть KPI сотрудников.</div>';
+      if(notice) notice.textContent="KPI доступен только владельцу/администратору.";
+      return;
+    }
+    if(!cloudConfigured()){
+      summary.innerHTML="";
+      list.innerHTML='<div class="kpi-empty">KPI требует подключённое облако смен.</div>';
+      if(notice) notice.textContent="Без фактических открытий и закрытий KPI считать нельзя.";
+      return;
+    }
+
+    const month=$("kpiMonth")?.value || moscowParts().date.slice(0,7);
+    const range=kpiCore.monthRange(month);
+    if(!range){ list.innerHTML='<div class="kpi-empty">Выбери месяц.</div>'; return; }
+    if($("kpiMonth") && !$("kpiMonth").value) $("kpiMonth").value=month;
+
+    if(loading) loading.classList.remove("hidden");
+    list.innerHTML="";
+    try{
+      const token=await getAdminToken();
+      const query=`/rest/v1/${SHIFT_TABLE}?select=*&shift_date=gte.${range.from}&shift_date=lte.${range.to}&order=shift_date.asc,service.asc&limit=250`;
+      const res=await authFetch(query,{method:"GET",headers:{Authorization:"Bearer "+token}});
+      if(!res.ok) throw new Error(await res.text());
+      const rows=await res.json();
+      if(seq!==kpiLoadSeq) return;
+      const result=kpiCore.calculate(rows,{from:range.from,to:range.to,now:moscowParts()});
+      kpiCore.render(result,{summaryEl:summary,listEl:list,noticeEl:notice});
+    }catch(e){
+      if(seq!==kpiLoadSeq) return;
+      logAppError("kpi load",e,{month});
+      summary.innerHTML="";
+      list.innerHTML='<div class="kpi-empty">Не удалось загрузить KPI. Нажми «Обновить».</div>';
+      if(notice) notice.textContent=e?.message||"Ошибка загрузки KPI";
+    }finally{
+      if(seq===kpiLoadSeq && loading) loading.classList.add("hidden");
+    }
   }
 
   async function loadHistory(){
@@ -5560,6 +5622,7 @@
     const sched=tab==="schedule";
     const desktopCal=tab==="desktopCalendar";
     const hist=tab==="history";
+    const kpi=tab==="kpi";
     const sett=tab==="settings";
     const wallets=tab==="wallets";
 
@@ -5570,6 +5633,7 @@
     $("adminTodayPage").classList.toggle("hidden",!adminToday);
     $("schedulePage").classList.toggle("hidden",!sched);
     $("historyPage").classList.toggle("hidden",!hist);
+    $("kpiPage").classList.toggle("hidden",!kpi);
     $("settingsPage").classList.toggle("hidden",!sett);
     $("walletsPage").classList.toggle("hidden",!wallets);
     $("scheduleControls").classList.toggle("hidden",!sched);
@@ -5604,6 +5668,10 @@
       fillHistoryFilters();
       if(!$("historyFrom").value) defaultHistoryDates();
       loadHistory();
+    }
+    if(kpi){
+      if($("kpiMonth") && !$("kpiMonth").value) $("kpiMonth").value=moscowParts().date.slice(0,7);
+      loadKpi();
     }
     if(sched){
       renderMonth();
@@ -5819,6 +5887,7 @@
     $("schedulePage").classList.toggle("hidden",!sched);
     $("desktopCalendarPage").classList.add("hidden");
     $("historyPage").classList.add("hidden");
+    $("kpiPage").classList.add("hidden");
     $("settingsPage").classList.toggle("hidden",sched);
     $("walletsPage").classList.add("hidden");
     $("scheduleControls").classList.toggle("hidden",!sched);
@@ -6070,6 +6139,12 @@
   $("walletCorrectionModal").addEventListener("click",e=>{ if(e.target===$("walletCorrectionModal")) closeWalletCorrection(); });
   $("saveWalletCorrection").onclick=saveWalletCorrection;
 
+  if($("openKpiFromToday")) $("openKpiFromToday").onclick=()=>switchTab("kpi");
+  if($("openKpiFromHistory")) $("openKpiFromHistory").onclick=()=>switchTab("kpi");
+  if($("kpiBackBtn")) $("kpiBackBtn").onclick=()=>switchTab("adminToday");
+  if($("kpiRefreshBtn")) $("kpiRefreshBtn").onclick=loadKpi;
+  if($("kpiMonth")) $("kpiMonth").onchange=loadKpi;
+
   $("closeMobileMore").onclick=closeMobileMoreMenu;
   $("mobileMoreModal").addEventListener("click",e=>{ if(e.target===$("mobileMoreModal")) closeMobileMoreMenu(); });
   document.querySelectorAll("[data-mobile-more-tab]").forEach(b=>b.onclick=()=>openMobileMoreTab(b.dataset.mobileMoreTab));
@@ -6098,7 +6173,8 @@
       return;
     }
     const more=$("bottomTabMore");
-    if(more) more.classList.toggle("active",isMobileAdminNav() && (!$("historyPage").classList.contains("hidden") || !$("settingsPage").classList.contains("hidden")));
+    if(more) more.classList.toggle("active",isMobileAdminNav() && (!$("historyPage").classList.contains("hidden") || !$("kpiPage").classList.contains("hidden") ||
+         !$("settingsPage").classList.contains("hidden")));
   }
 
   function scheduleResponsiveRefresh(){

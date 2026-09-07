@@ -31,6 +31,7 @@ loadModule("errors.js");
 loadModule("settings.js");
 loadModule("devices.js");
 loadModule("history.js");
+loadModule("kpi.js");
 loadModule("safety.js");
 
 const settings={
@@ -443,10 +444,62 @@ test("Слишком большие кошельки не ломают лока�
   assert.deepStrictEqual(api.scheduleFromSnapshot(snap),{ok:true});
 });
 
+
+// ---- Employee KPI ----
+const kpiApi=window.MAKpi.create({
+  expectedForDate:shifts.expectedForDate,
+  serviceNames:()=>[settings.service1,settings.service2],
+  getEmployeesForDate:key=>schedule.employeesForDate(dateObjectFromKey(key)),
+  isNoManagerValue:schedule.isNoManagerValue,
+  shiftStartForService:shifts.shiftStartForService,
+  shiftEndForService:shifts.shiftEndForService,
+  shiftMinutes:shifts.shiftMinutes,
+  moscowParts:()=>({date:"2026-09-07",hour:22,minute:30}),
+  escapeHtml:value=>String(value??"")
+});
+
+test("KPI: опоздание и пропуск уменьшают оценку по понятным правилам",()=>{
+  const rows=[{
+    service:"Моба",shift_date:"2026-09-07",opened_at:"2026-09-07T05:12:00.000Z",opened_by:"Арсен",
+    open_late_minutes:12,closed_at:"2026-09-07T19:00:00.000Z",closed_by:"Арсен",early_close_minutes:0
+  }];
+  const result=kpiApi.calculate(rows,{from:"2026-09-07",to:"2026-09-07",now:{date:"2026-09-07",hour:22,minute:30}});
+  const arsen=result.employees.find(x=>x.name==="Арсен");
+  const asik=result.employees.find(x=>x.name==="Асик");
+  assert(arsen);assert(asik);
+  assert.strictEqual(arsen.total,1);
+  assert.strictEqual(arsen.late,1);
+  assert.strictEqual(arsen.score,95);
+  assert.strictEqual(asik.missed,1);
+  assert.strictEqual(asik.score,80);
+});
+
+test("KPI: аннулированная смена исключается и не портит сотруднику оценку",()=>{
+  const rows=[{service:"Моба",shift_date:"2026-09-07",voided_at:"2026-09-07T10:00:00.000Z",opened_at:"2026-09-07T05:00:00.000Z",opened_by:"Арсен"}];
+  const result=kpiApi.calculate(rows,{from:"2026-09-07",to:"2026-09-07",now:{date:"2026-09-07",hour:22,minute:30}});
+  const arsen=result.employees.find(x=>x.name==="Арсен");
+  assert(arsen);
+  assert.strictEqual(arsen.total,0);
+  assert.strictEqual(arsen.score,null);
+});
+
+test("KPI: мастер без ответственной смены получает «нет данных», а не штраф",()=>{
+  const rows=[
+    {service:"Моба",shift_date:"2026-09-07",opened_at:"2026-09-07T05:00:00.000Z",opened_by:"Арсен",open_late_minutes:0,closed_at:"2026-09-07T19:00:00.000Z",early_close_minutes:0},
+    {service:"Нова",shift_date:"2026-09-07",opened_at:"2026-09-07T06:00:00.000Z",opened_by:"Асик",open_late_minutes:0,closed_at:"2026-09-07T16:00:00.000Z",early_close_minutes:0}
+  ];
+  const result=kpiApi.calculate(rows,{from:"2026-09-07",to:"2026-09-07",now:{date:"2026-09-07",hour:22,minute:30}});
+  const oleg=result.employees.find(x=>x.name==="Олег");
+  assert(oleg);
+  assert.strictEqual(oleg.total,0);
+  assert.strictEqual(oleg.score,null);
+  assert.strictEqual(oleg.status.key,"nodata");
+});
+
 // ---- Project structure ----
 test("index.html подключает модули в безопасном порядке",()=>{
   const html=fs.readFileSync("index.html","utf8");
-  const refs=["schedule.js","shifts.js","employees.js","supabase.js","wallets.js","admin.js","errors.js","settings.js","devices.js","history.js","safety.js","app.js"];
+  const refs=["schedule.js","shifts.js","employees.js","supabase.js","wallets.js","admin.js","errors.js","settings.js","devices.js","history.js","kpi.js","safety.js","app.js"];
   const positions=refs.map(file=>html.indexOf(`<script src="${file}"></script>`));
   assert(positions.every(x=>x>=0));
   assert.deepStrictEqual(positions,[...positions].sort((a,b)=>a-b));

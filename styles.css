@@ -1679,3 +1679,41 @@ body{padding-bottom:88px}
 .error-log-message{margin-top:6px;font-size:13px;line-height:1.35;overflow-wrap:anywhere}
 .error-log-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 #errorLogCountBadge{color:var(--muted);font-weight:700}
+
+
+/* KPI_EMPLOYEES_V1 */
+.today-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.kpi-shell{max-width:1100px;margin:0 auto}
+.kpi-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+.kpi-head h2{margin:0 0 4px}
+.kpi-toolbar{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.kpi-toolbar label{display:grid;gap:5px;font-size:12px;font-weight:700;color:var(--muted)}
+.kpi-toolbar input{min-height:42px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font:inherit}
+.kpi-notice{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--soft);font-size:13px;line-height:1.45;margin-bottom:14px}
+.kpi-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.kpi-summary-card{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px 14px;display:grid;gap:4px}
+.kpi-summary-card span{font-size:12px;color:var(--muted)}
+.kpi-summary-card b{font-size:25px;line-height:1}
+.kpi-summary-card.good b{color:#178447}.kpi-summary-card.bad b{color:#c73434}
+.kpi-loading,.kpi-empty{padding:20px;text-align:center;color:var(--muted)}
+.kpi-list{display:grid;gap:10px}
+.kpi-person{border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+.kpi-person summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 15px}
+.kpi-person summary::-webkit-details-marker{display:none}
+.kpi-person-main{display:grid;gap:3px;min-width:0}.kpi-person-main>b{font-size:16px}.kpi-person-main>span{font-size:12px;color:var(--muted)}
+.kpi-score{min-width:82px;text-align:right;display:grid;gap:2px}.kpi-score>b{font-size:24px;line-height:1}.kpi-score>span{font-size:11px;font-weight:700}
+.kpi-score.excellent b,.kpi-score.excellent span{color:#178447}.kpi-score.normal b,.kpi-score.normal span{color:#2366b1}.kpi-score.attention b,.kpi-score.attention span{color:#a66d00}.kpi-score.problem b,.kpi-score.problem span{color:#c73434}.kpi-score.nodata b,.kpi-score.nodata span{color:var(--muted)}
+.kpi-person-body{border-top:1px solid var(--line);padding:14px 15px;background:var(--soft)}
+.kpi-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kpi-metrics>div{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:10px;display:grid;gap:3px}.kpi-metrics span{font-size:11px;color:var(--muted)}.kpi-metrics b{font-size:14px}.kpi-metrics b.warn{color:#a66d00}.kpi-metrics b.bad{color:#c73434}
+.kpi-formula{font-size:12px;color:var(--muted);line-height:1.45;margin:12px 0}
+.kpi-issues{display:grid;gap:7px}.kpi-issues>b{font-size:13px;margin-bottom:2px}.kpi-issue{display:flex;justify-content:space-between;gap:12px;padding:9px 10px;border-radius:9px;background:var(--card);border:1px solid var(--line);font-size:12px}.kpi-issue span{color:var(--muted)}.kpi-issue.bad b,.kpi-issue.missed b,.kpi-issue.unclosed b{color:#c73434}.kpi-issue.late b,.kpi-issue.early b{color:#a66d00}
+.kpi-noissues{padding:10px 0;color:var(--muted);font-size:13px}
+@media(max-width:720px){
+  .today-head-actions{width:100%;justify-content:flex-start}
+  .kpi-head{align-items:center}.kpi-head .secondary{white-space:nowrap}
+  .kpi-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi-person summary{padding:13px 12px}.kpi-person-body{padding:12px}
+  .kpi-issue{display:grid;gap:3px}
+}
