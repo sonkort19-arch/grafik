@@ -46,5 +46,5 @@ Deno.serve(async(req)=>{
   if(wantsCount&&person){return json({ok:true,answer:`${person}: за выбранный период зафиксировано ${lateCount} опоздан${lateCount===1?"ие":"ия"} при открытии смены.\n\nВажно: приложение фиксирует открытие смены, а не физический вход сотрудника.`});}
   if(!lines.length){if(wantsLate)return json({ok:true,answer:"По имеющимся отметкам опозданий за выбранный период нет."});return json({ok:true,answer:"По этому запросу нет достоверных данных об открытии смены."});}
   return json({ok:true,answer:`${lines.join("\n")}\n\nВажно: это время открытия смены в приложении, а не подтверждение физического прихода каждого сотрудника.`});
- }catch(e){console.error("attendance",e);return json({ok:false,error:e?.message||"Ошибка данных о приходах"},400);}
+ }catch(e:any){console.error("attendance",e);return json({ok:false,error:e?.message||"Ошибка данных о приходах"},400);}
 });
