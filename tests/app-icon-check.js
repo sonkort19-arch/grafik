@@ -1,0 +1,1 @@
+const fs=require('fs');const m=JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));if(!m.icons?.some(x=>x.src.includes('ma-photo-icon-v2.jpg')))process.exit(1);console.log('icon manifest OK');
