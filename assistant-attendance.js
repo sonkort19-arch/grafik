@@ -8,7 +8,7 @@
   let busy=false;
   function normalize(v){return core?.normalizeText?core.normalizeText(v):String(v||"").toLowerCase().trim();}
   function isAttendance(text){const t=normalize(text);return /(пришел|пришла|пришли|приход|опозд|вовремя|не пришел|не пришла|не откры|открыл смен|во сколько.*(пришел|пришла)|кто.*сейчас.*работ|кто.*на работе)/.test(t);}
-  function isSchedule(text){const t=normalize(text);return /график/.test(t)||/когда\s+\S+\s+работ/.test(t)||/когда\s+работает\s+\S+/.test(t)||/в какие дни.*работ/.test(t);}
+  function isSchedule(text){const t=normalize(text);return /график/.test(t)||/кто.*(сегодня|завтра).*работ/.test(t)||/кто.*работает.*(сегодня|завтра)/.test(t)||/когда\s+\S+\s+работ/.test(t)||/когда\s+работает\s+\S+/.test(t)||/в какие дни.*работ/.test(t);}
   function isForbiddenEdit(text){return /(поменяй|измени|исправь|поставь|запиши).*(приход|пришел|опозд|время.*откр)/.test(normalize(text));}
   function session(){try{const x=JSON.parse(localStorage.getItem(AUTH_KEY)||"null");return x?.access_token?x:null;}catch(_){return null;}}
   async function refresh(){const s=session();if(!s?.refresh_token)return null;const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:"POST",headers:{"Content-Type":"application/json",apikey:PUBLISHABLE_KEY},body:JSON.stringify({refresh_token:s.refresh_token})});const d=await r.json().catch(()=>null);if(!r.ok||!d?.access_token)return null;const n={...s,...d};localStorage.setItem(AUTH_KEY,JSON.stringify(n));return n;}
