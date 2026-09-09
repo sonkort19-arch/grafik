@@ -50,3 +50,45 @@ jobs:
         run: |
           deno check supabase/functions/ma-grafik-write-api/index.ts
           deno check supabase/functions/ma-grafik-mcp/index.ts
+
+  production-smoke:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: regression-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Wait for production and verify plugin endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://grafik-umber.vercel.app"
+
+          wait_for() {
+            local url="$1"
+            local expected="$2"
+            for attempt in $(seq 1 24); do
+              body="$(curl -fsS --max-time 10 "$url" 2>/dev/null || true)"
+              if printf '%s' "$body" | grep -Fq "$expected"; then
+                echo "OK: $url"
+                return 0
+              fi
+              echo "Waiting for $url ($attempt/24)"
+              sleep 5
+            done
+            echo "FAILED: $url"
+            return 1
+          }
+
+          wait_for "$BASE/" "МА График"
+          wait_for "$BASE/mcp" '"service":"MA Grafik MCP"'
+          wait_for "$BASE/.well-known/oauth-protected-resource" '"resource":"https://grafik-umber.vercel.app/mcp"'
+          wait_for "$BASE/plugin/" "МА График для ChatGPT"
+          wait_for "$BASE/oauth/consent.html" "Подключение ChatGPT"
+
+          headers="$(curl -sS -i --max-time 10 -X POST "$BASE/mcp" \
+            -H 'Content-Type: application/json' \
+            --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ma-grafik-smoke","version":"1.0"}}}')"
+
+          printf '%s' "$headers" | grep -Eq '^HTTP/[^ ]+ 401'
+          printf '%s' "$headers" | grep -Fq 'resource_metadata="https://grafik-umber.vercel.app/.well-known/oauth-protected-resource"'
+          echo "OK: unauthorized MCP challenge points to public OAuth metadata"
