@@ -103,23 +103,82 @@
   global.MADataSafety={create};
 })(typeof window!=="undefined"?window:globalThis);
 
-// Минимальный загрузчик бесплатного помощника. Он отделён от app.js,
-// чтобы помощник можно было отключить без изменения основной логики графика.
+// Бесплатный помощник доступен только владельцу после входа администратора.
+// До входа его runtime вообще не запускается. После выхода UI удаляется.
 (function(){
   "use strict";
   if(typeof document==="undefined"||typeof window==="undefined")return;
   if(window.__maAssistantLoaderStarted)return;
   window.__maAssistantLoaderStarted=true;
 
-  function load(src,onload){
+  const AUTH_KEY="ma_schedule_admin_session_v1";
+  let coreLoaded=!!window.MAAssistantCore;
+  let coreLoading=false;
+  let assistantActive=false;
+  let lastAllowed=null;
+
+  function hasAdminSession(){
+    try{
+      const raw=localStorage.getItem(AUTH_KEY);
+      if(!raw)return false;
+      const session=JSON.parse(raw);
+      return !!(session&&session.access_token&&session.refresh_token);
+    }catch(_){return false;}
+  }
+
+  function load(src,onload,kind){
     const script=document.createElement("script");
     script.src=src;
     script.defer=true;
     script.dataset.maAssistant="1";
+    if(kind)script.dataset.maAssistantKind=kind;
     if(onload)script.onload=onload;
-    script.onerror=()=>console.warn("MA Assistant: не удалось загрузить",src);
+    script.onerror=()=>{
+      if(kind==="core")coreLoading=false;
+      if(kind==="runtime")assistantActive=false;
+      console.warn("MA Assistant: не удалось загрузить",src);
+    };
     document.head.appendChild(script);
   }
 
-  load("assistant-core.js",()=>load("assistant.js"));
+  function removeAssistantUi(){
+    document.getElementById("maAssistantBackdrop")?.remove();
+    document.getElementById("maAssistantLaunch")?.remove();
+    document.querySelectorAll('script[data-ma-assistant-kind="runtime"]').forEach(node=>node.remove());
+    assistantActive=false;
+  }
+
+  function startAssistant(){
+    if(assistantActive||!hasAdminSession())return;
+    const run=()=>{
+      if(assistantActive||!hasAdminSession())return;
+      assistantActive=true;
+      load(`assistant.js?v=${Date.now()}`,null,"runtime");
+    };
+    if(coreLoaded||window.MAAssistantCore){coreLoaded=true;run();return;}
+    if(coreLoading)return;
+    coreLoading=true;
+    load("assistant-core.js",()=>{
+      coreLoading=false;
+      coreLoaded=!!window.MAAssistantCore;
+      if(coreLoaded)run();
+    },"core");
+  }
+
+  function syncAssistantAccess(){
+    const allowed=hasAdminSession();
+    if(allowed===lastAllowed){
+      if(allowed&&!assistantActive&&!document.getElementById("maAssistantLaunch"))startAssistant();
+      return;
+    }
+    lastAllowed=allowed;
+    if(allowed)startAssistant();
+    else removeAssistantUi();
+  }
+
+  window.addEventListener("storage",event=>{if(!event.key||event.key===AUTH_KEY)syncAssistantAccess();});
+  window.addEventListener("focus",syncAssistantAccess);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncAssistantAccess();});
+  setInterval(syncAssistantAccess,700);
+  setTimeout(syncAssistantAccess,250);
 })();
