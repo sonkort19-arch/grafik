@@ -32,7 +32,7 @@ jobs:
       - name: Rebuild exact photo icon assets
         shell: bash
         run: |
-          cat .icon-upload/source.b64.part01 .icon-upload/source.b64.part02 .icon-upload/source.b64.part03 | base64 --decode > /tmp/ma-photo-source.jpg
+          cat .icon-upload/source.b64.part01 .icon-upload/source.b64.part02 .icon-upload/source.b64.part03 .icon-upload/source.b64.part04 .icon-upload/source.b64.part05 .icon-upload/source.b64.part06 | base64 --decode > /tmp/ma-photo-source.jpg
           python - <<'PY'
           from PIL import Image
           source = Image.open('/tmp/ma-photo-source.jpg').convert('RGB')
