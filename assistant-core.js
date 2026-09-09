@@ -106,9 +106,32 @@
 
   function employeeAliases(name){
     const normalized=normalizeText(name);
-    const aliases=[normalized];
-    if(normalized==="асик") aliases.push("аслан");
-    return aliases;
+    const aliases=new Set([normalized]);
+    const add=value=>{if(value)aliases.add(value);};
+
+    if(normalized.endsWith("ий")){
+      const stem=normalized.slice(0,-2);
+      add(`${stem}ия`);add(`${stem}ию`);add(`${stem}ии`);
+    }else if(normalized.endsWith("ия")){
+      const stem=normalized.slice(0,-1);
+      add(`${stem}и`);add(`${stem}ю`);
+    }else if(normalized.endsWith("й")){
+      const stem=normalized.slice(0,-1);
+      add(`${stem}я`);add(`${stem}ю`);add(`${stem}е`);
+    }else if(normalized.endsWith("а")){
+      const stem=normalized.slice(0,-1);
+      add(`${stem}ы`);add(`${stem}е`);add(`${stem}у`);
+    }else if(normalized.endsWith("я")){
+      const stem=normalized.slice(0,-1);
+      add(`${stem}и`);add(`${stem}е`);add(`${stem}ю`);
+    }else if(/[бвгджзклмнпрстфхцчшщк]$/.test(normalized)){
+      add(`${normalized}а`);add(`${normalized}у`);add(`${normalized}е`);
+    }
+
+    if(normalized==="асик"){
+      ["аслан","аслана","аслану","аслане"].forEach(add);
+    }
+    return [...aliases];
   }
 
   function findMentionedEmployees(text,names){
@@ -126,11 +149,11 @@
   }
 
   function parseReplacement(text,names){
-    const t=normalizeText(text);
+    const t=` ${normalizeText(text)} `;
     const mentions=findMentionedEmployees(text,names);
     if(mentions.length<2) return null;
 
-    const instead=t.indexOf("вместо");
+    const instead=t.indexOf(" вместо ");
     if(instead>=0){
       const oldCandidates=mentions.filter(x=>x.index>instead);
       const newCandidates=mentions.filter(x=>x.index<instead);
@@ -139,7 +162,7 @@
       }
     }
 
-    const replace=t.indexOf("замени");
+    const replace=t.indexOf(" замени ");
     const on=t.indexOf(" на ",Math.max(0,replace));
     if(replace>=0&&on>replace){
       const oldCandidates=mentions.filter(x=>x.index>replace&&x.index<on);
