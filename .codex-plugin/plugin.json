@@ -1,20 +1,32 @@
 {
   "name": "ma-grafik",
-  "version": "0.1.0",
-  "description": "Управление рабочим графиком Мобильного Ангела через защищённый MCP: просмотр смен, графика сотрудников и подтверждённые однодневные замены.",
+  "version": "0.2.0",
+  "description": "Защищённая интеграция рабочего графика Мобильного Ангела с ChatGPT: просмотр смен, графика сотрудников и подтверждённые однодневные замены.",
+  "author": {
+    "name": "МА График",
+    "url": "https://grafik-umber.vercel.app/plugin/"
+  },
+  "homepage": "https://grafik-umber.vercel.app/plugin/",
+  "repository": "https://github.com/sonkort19-arch/grafik",
   "keywords": ["schedule", "staffing", "operations", "crm"],
   "skills": "./skills/",
   "interface": {
     "displayName": "МА График",
     "shortDescription": "График сотрудников и безопасные замены",
-    "longDescription": "Позволяет ChatGPT читать актуальный график МА График, проверять смены сотрудников и выполнять подтверждённые однодневные замены через защищённый MCP-сервер.",
+    "longDescription": "Позволяет ChatGPT читать актуальный график МА График, проверять смены и назначения сотрудников, предварительно проверять однодневные замены и применять их только после явного подтверждения пользователя.",
     "developerName": "МА График",
     "category": "Productivity",
     "capabilities": ["Read", "Write"],
+    "websiteURL": "https://grafik-umber.vercel.app/plugin/",
+    "privacyPolicyURL": "https://grafik-umber.vercel.app/plugin/privacy.html",
+    "termsOfServiceURL": "https://grafik-umber.vercel.app/plugin/terms.html",
     "defaultPrompt": [
       "Кто сегодня работает в Мобе и Нове?",
       "Покажи график сотрудников на следующую неделю.",
+      "Покажи график Олега на ближайшие две недели.",
       "Проверь замену сотрудника на выбранную дату, но пока ничего не меняй."
-    ]
+    ],
+    "composerIcon": "./icon-192.png",
+    "logo": "./icon-512.png"
   }
 }
