@@ -34,6 +34,7 @@ jobs:
           node --check tests/assistant-tests.js
           node --check tests/assistant-robustness-tests.js
           node --check tests/assistant-date-regression-tests.js
+          node --check tests/assistant-routing-tests.js
           node --input-type=module --check < api/mcp.js
           node --input-type=module --check < api/oauth-protected-resource.js
           node --input-type=module --check < api/openai-apps-challenge.js
@@ -47,6 +48,8 @@ jobs:
         run: node tests/assistant-robustness-tests.js
       - name: Run assistant date regression tests
         run: node tests/assistant-date-regression-tests.js
+      - name: Run assistant routing regression tests
+        run: node tests/assistant-routing-tests.js
       - name: Check read API syntax
         run: node --input-type=module --check < supabase/functions/ma-grafik-api/index.ts
       - name: Set up Deno
