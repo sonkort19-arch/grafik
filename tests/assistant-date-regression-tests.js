@@ -1,0 +1,10 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const code=fs.readFileSync('assistant-core.js','utf8');const ctx={globalThis:{}};vm.createContext(ctx);vm.runInContext(code,ctx);const c=ctx.globalThis.MAAssistantCore,T='2026-09-09';
+assert.equal(c.parseDate('сегодня',T).key,'2026-09-09');
+assert.equal(c.parseDate('вчера',T).key,'2026-09-08');
+assert.equal(c.parseDate('позавчера',T).key,'2026-09-07');
+assert.equal(c.parseDate('завтра',T).key,'2026-09-10');
+assert.equal(c.parseDate('послезавтра',T).key,'2026-09-11');
+const r=c.parseRange('Покажи график Олега на неделю',T);assert.equal(r.from,T);assert.equal(r.to,'2026-09-15');assert.equal(r.days,7);
+assert.equal(c.dateKey('2026-09-09'),'');
+console.log('assistant date regression tests: OK');
