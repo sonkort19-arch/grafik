@@ -99,7 +99,8 @@
 
   function parseService(text){
     const t=normalizeText(text);
-    if(/(?:^|\s)моб(?:а|е|у|ы)?(?:\s|$)/.test(t)||t.includes("мобильный ангел")) return "Моба";
+    if(/(?:^|\s)моб(?:а|е|у|ы)?(?:\s|$)/.test(t)) return "Моба";
+    if(/(?:^|\s)мобильн(?:ый|ого|ому|ым|ом)\s+ангел(?:а|у|ом|е)?(?:\s|$)/.test(t)) return "Моба";
     if(/(?:^|\s)нов(?:а|е|у|ы)?(?:\s|$)/.test(t)) return "Нова";
     return "";
   }
@@ -111,25 +112,25 @@
 
     if(normalized.endsWith("ий")){
       const stem=normalized.slice(0,-2);
-      add(`${stem}ия`);add(`${stem}ию`);add(`${stem}ии`);
+      add(`${stem}ия`);add(`${stem}ию`);add(`${stem}ии`);add(`${stem}ием`);
     }else if(normalized.endsWith("ия")){
       const stem=normalized.slice(0,-1);
-      add(`${stem}и`);add(`${stem}ю`);
+      add(`${stem}и`);add(`${stem}ю`);add(`${stem}ей`);
     }else if(normalized.endsWith("й")){
       const stem=normalized.slice(0,-1);
-      add(`${stem}я`);add(`${stem}ю`);add(`${stem}е`);
+      add(`${stem}я`);add(`${stem}ю`);add(`${stem}е`);add(`${stem}ем`);
     }else if(normalized.endsWith("а")){
       const stem=normalized.slice(0,-1);
-      add(`${stem}ы`);add(`${stem}е`);add(`${stem}у`);
+      add(`${stem}ы`);add(`${stem}е`);add(`${stem}у`);add(`${stem}ой`);
     }else if(normalized.endsWith("я")){
       const stem=normalized.slice(0,-1);
-      add(`${stem}и`);add(`${stem}е`);add(`${stem}ю`);
+      add(`${stem}и`);add(`${stem}е`);add(`${stem}ю`);add(`${stem}ей`);
     }else if(/[бвгджзклмнпрстфхцчшщк]$/.test(normalized)){
-      add(`${normalized}а`);add(`${normalized}у`);add(`${normalized}е`);
+      add(`${normalized}а`);add(`${normalized}у`);add(`${normalized}е`);add(`${normalized}ом`);
     }
 
     if(normalized==="асик"){
-      ["аслан","аслана","аслану","аслане"].forEach(add);
+      ["аслан","аслана","аслану","аслане","асланом"].forEach(add);
     }
     return [...aliases];
   }
@@ -162,7 +163,7 @@
       }
     }
 
-    const replace=t.indexOf(" замени ");
+    const replace=t.search(/ замен(?:и|ить|яй|яем|ите)? /);
     const on=t.indexOf(" на ",Math.max(0,replace));
     if(replace>=0&&on>replace){
       const oldCandidates=mentions.filter(x=>x.index>replace&&x.index<on);
@@ -172,17 +173,30 @@
       }
     }
 
+    if(replace>=0){
+      const oldCandidates=mentions.filter(x=>x.index<replace);
+      const newCandidates=mentions.filter(x=>x.index>replace);
+      if(oldCandidates.length&&newCandidates.length){
+        return {oldName:oldCandidates[oldCandidates.length-1].name,newName:newCandidates[0].name,kind:"replace-spoken"};
+      }
+    }
+
     return {oldName:mentions[1].name,newName:mentions[0].name,kind:"ordered"};
   }
 
   function isConfirmation(text){
     const t=normalizeText(text);
+    if(isCancellation(t))return false;
     return /^(да|сделай|меняй|подтверждаю|подтвердить|применить|ок|окей)$/.test(t);
   }
 
   function isCancellation(text){
     const t=normalizeText(text);
-    return /^(нет|отмена|отмени|не надо|не меняй|стоп)$/.test(t);
+    if(/^(нет|отмена|отмени|не надо|не меняй|стоп)$/.test(t))return true;
+    if(t.includes("не меняй")||t.includes("ничего не меняй"))return true;
+    if(t.includes("не будем менять")||t.includes("не надо менять"))return true;
+    if(t.includes("отмени")||t.includes("отмена"))return true;
+    return false;
   }
 
   global.MAAssistantCore={
