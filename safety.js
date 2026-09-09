@@ -102,3 +102,24 @@
 
   global.MADataSafety={create};
 })(typeof window!=="undefined"?window:globalThis);
+
+// Минимальный загрузчик бесплатного помощника. Он отделён от app.js,
+// чтобы помощник можно было отключить без изменения основной логики графика.
+(function(){
+  "use strict";
+  if(typeof document==="undefined"||typeof window==="undefined")return;
+  if(window.__maAssistantLoaderStarted)return;
+  window.__maAssistantLoaderStarted=true;
+
+  function load(src,onload){
+    const script=document.createElement("script");
+    script.src=src;
+    script.defer=true;
+    script.dataset.maAssistant="1";
+    if(onload)script.onload=onload;
+    script.onerror=()=>console.warn("MA Assistant: не удалось загрузить",src);
+    document.head.appendChild(script);
+  }
+
+  load("assistant-core.js",()=>load("assistant.js"));
+})();
