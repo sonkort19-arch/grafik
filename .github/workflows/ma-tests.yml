@@ -68,7 +68,7 @@ jobs:
             local expected="$2"
             for attempt in $(seq 1 24); do
               body="$(curl -fsS --max-time 10 "$url" 2>/dev/null || true)"
-              if printf '%s' "$body" | grep -Fq "$expected"; then
+              if [[ "$body" == *"$expected"* ]]; then
                 echo "OK: $url"
                 return 0
               fi
@@ -89,6 +89,6 @@ jobs:
             -H 'Content-Type: application/json' \
             --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ma-grafik-smoke","version":"1.0"}}}')"
 
-          printf '%s' "$headers" | grep -Eq '^HTTP/[^ ]+ 401'
-          printf '%s' "$headers" | grep -Fq 'resource_metadata="https://grafik-umber.vercel.app/.well-known/oauth-protected-resource"'
+          [[ "$headers" =~ ^HTTP/[^[:space:]]+[[:space:]]401 ]]
+          [[ "$headers" == *'resource_metadata="https://grafik-umber.vercel.app/.well-known/oauth-protected-resource"'* ]]
           echo "OK: unauthorized MCP challenge points to public OAuth metadata"
