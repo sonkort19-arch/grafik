@@ -27,7 +27,6 @@
   global.MADataSafety={create};
 })(typeof window!=="undefined"?window:globalThis);
 
-// Бесплатный помощник доступен только владельцу после входа администратора.
 (function(){
   "use strict";
   if(typeof document==="undefined"||typeof window==="undefined")return;
@@ -37,8 +36,8 @@
   let coreLoaded=!!window.MAAssistantCore,coreLoading=false,assistantActive=false,lastAllowed=null;
   function hasAdminSession(){try{const raw=localStorage.getItem(AUTH_KEY);if(!raw)return false;const session=JSON.parse(raw);return !!(session&&session.access_token&&session.refresh_token);}catch(_){return false;}}
   function load(src,onload,kind){const script=document.createElement("script");script.src=src;script.defer=true;script.dataset.maAssistant="1";if(kind)script.dataset.maAssistantKind=kind;if(onload)script.onload=onload;script.onerror=()=>{if(kind==="core")coreLoading=false;if(kind==="runtime")assistantActive=false;console.warn("MA Assistant: не удалось загрузить",src);};document.head.appendChild(script);}
-  function removeAssistantUi(){document.getElementById("maAssistantBackdrop")?.remove();document.getElementById("maAssistantLaunch")?.remove();document.querySelectorAll('script[data-ma-assistant-kind="runtime"],script[data-ma-assistant-kind="attendance"]').forEach(node=>node.remove());assistantActive=false;window.__maAttendanceAssistantStarted=false;}
-  function startAssistant(){if(assistantActive||!hasAdminSession())return;const run=()=>{if(assistantActive||!hasAdminSession())return;assistantActive=true;load(`assistant.js?v=${Date.now()}`,()=>{if(hasAdminSession())load(`assistant-attendance.js?v=${Date.now()}`,null,"attendance");},"runtime");};if(coreLoaded||window.MAAssistantCore){coreLoaded=true;run();return;}if(coreLoading)return;coreLoading=true;load("assistant-core.js",()=>{coreLoading=false;coreLoaded=!!window.MAAssistantCore;if(coreLoaded)run();},"core");}
+  function removeAssistantUi(){document.getElementById("maAssistantBackdrop")?.remove();document.getElementById("maAssistantLaunch")?.remove();document.querySelectorAll('script[data-ma-assistant-kind="runtime"],script[data-ma-assistant-kind="attendance"],script[data-ma-assistant-kind="owner"]').forEach(node=>node.remove());assistantActive=false;window.__maAttendanceAssistantStarted=false;window.__maOwnerAssistantStarted=false;}
+  function startAssistant(){if(assistantActive||!hasAdminSession())return;const run=()=>{if(assistantActive||!hasAdminSession())return;assistantActive=true;load(`assistant.js?v=${Date.now()}`,()=>{if(!hasAdminSession())return;load(`assistant-attendance.js?v=${Date.now()}`,()=>{if(hasAdminSession())load(`assistant-owner.js?v=${Date.now()}`,null,"owner");},"attendance");},"runtime");};if(coreLoaded||window.MAAssistantCore){coreLoaded=true;run();return;}if(coreLoading)return;coreLoading=true;load("assistant-core.js",()=>{coreLoading=false;coreLoaded=!!window.MAAssistantCore;if(coreLoaded)run();},"core");}
   function syncAssistantAccess(){const allowed=hasAdminSession();if(allowed===lastAllowed){if(allowed&&!assistantActive&&!document.getElementById("maAssistantLaunch"))startAssistant();return;}lastAllowed=allowed;if(allowed)startAssistant();else removeAssistantUi();}
   window.addEventListener("storage",event=>{if(!event.key||event.key===AUTH_KEY)syncAssistantAccess();});window.addEventListener("focus",syncAssistantAccess);document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncAssistantAccess();});setInterval(syncAssistantAccess,700);setTimeout(syncAssistantAccess,250);
 })();
