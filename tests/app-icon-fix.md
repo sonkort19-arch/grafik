@@ -1,0 +1,1 @@
+The app icon is now stored as a correctly base64-decoded binary JPEG blob. The same full-frame photo is used for PWA and the existing Apple touch icon path to avoid the previous partially decoded gray area.
