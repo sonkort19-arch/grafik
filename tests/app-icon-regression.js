@@ -1,0 +1,1 @@
+const fs=require('fs');const assert=require('assert');const m=fs.readFileSync('manifest.webmanifest','utf8');assert(m.includes('ma-photo-icon-v2.jpg?v=20260909-photo2'));console.log('app icon regression: OK');
