@@ -1,0 +1,400 @@
+(function(global){
+  "use strict";
+  if(typeof document==="undefined"||!global.MAAssistantCore) return;
+
+  const core=global.MAAssistantCore;
+  const SUPABASE_URL="https://yedzfmibceboncrytbqz.supabase.co";
+  const PUBLISHABLE_KEY="sb_publishable_tSqbw3aeAgxYuzHhQurCuw_yDze4ZNn";
+  const AUTH_KEY="ma_schedule_admin_session_v1";
+  const READ_API=`${SUPABASE_URL}/functions/v1/ma-grafik-api`;
+  const WRITE_API=`${SUPABASE_URL}/functions/v1/ma-grafik-write-api`;
+
+  const state={
+    busy:false,
+    pendingPreview:null,
+    pendingReplacement:null
+  };
+
+  function same(a,b){return core.normalizeText(a)===core.normalizeText(b);}
+
+  function moscowToday(){
+    const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Moscow",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+    const o={};
+    parts.forEach(p=>{if(p.type!=="literal")o[p.type]=p.value;});
+    return `${o.year}-${o.month}-${o.day}`;
+  }
+
+  function formatDate(key){
+    const dt=core.dateFromKey(key);
+    if(!dt)return key;
+    try{
+      return new Intl.DateTimeFormat("ru-RU",{timeZone:"UTC",day:"numeric",month:"long",weekday:"short"}).format(dt);
+    }catch(_){return key;}
+  }
+
+  function readSession(){
+    try{
+      const raw=localStorage.getItem(AUTH_KEY);
+      const session=raw?JSON.parse(raw):null;
+      return session&&session.access_token?session:null;
+    }catch(_){return null;}
+  }
+
+  async function refreshSession(){
+    const current=readSession();
+    if(!current?.refresh_token) return null;
+    try{
+      const res=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json",apikey:PUBLISHABLE_KEY},
+        body:JSON.stringify({refresh_token:current.refresh_token})
+      });
+      const data=await res.json().catch(()=>null);
+      if(!res.ok||!data?.access_token) return null;
+      const next={...current,...data};
+      localStorage.setItem(AUTH_KEY,JSON.stringify(next));
+      return next;
+    }catch(_){return null;}
+  }
+
+  async function authorizedFetch(url,options={},retry=true){
+    let session=readSession();
+    if(!session) throw new Error("OWNER_LOGIN_REQUIRED");
+    const headers=new Headers(options.headers||{});
+    headers.set("Authorization",`Bearer ${session.access_token}`);
+    if(options.body&&!headers.has("Content-Type")) headers.set("Content-Type","application/json");
+    let res=await fetch(url,{...options,headers});
+    if(res.status===401&&retry){
+      session=await refreshSession();
+      if(!session) throw new Error("OWNER_LOGIN_REQUIRED");
+      headers.set("Authorization",`Bearer ${session.access_token}`);
+      res=await fetch(url,{...options,headers});
+    }
+    return res;
+  }
+
+  async function getJson(path,params={}){
+    const url=new URL(`${READ_API}${path}`);
+    Object.entries(params).forEach(([k,v])=>{if(v!==undefined&&v!==null&&v!=="")url.searchParams.set(k,String(v));});
+    const res=await authorizedFetch(url.toString());
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok||!data?.ok) throw new Error(data?.error||`Ошибка ${res.status}`);
+    return data;
+  }
+
+  async function postJson(path,body){
+    const res=await authorizedFetch(`${WRITE_API}${path}`,{method:"POST",body:JSON.stringify(body)});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok||!data?.ok){
+      const error=new Error(data?.error||`Ошибка ${res.status}`);
+      error.status=res.status;
+      throw error;
+    }
+    return data;
+  }
+
+  function injectStyles(){
+    if(document.getElementById("maAssistantStyles"))return;
+    const style=document.createElement("style");
+    style.id="maAssistantStyles";
+    style.textContent=`
+      .ma-assistant-launch{position:fixed;right:14px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:1150;border:0;border-radius:999px;background:#111827;color:#fff;padding:11px 15px;font:700 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.22);cursor:pointer}
+      .ma-assistant-backdrop{position:fixed;inset:0;z-index:2200;background:rgba(15,23,42,.35);display:flex;align-items:flex-end;justify-content:center;padding:12px}
+      .ma-assistant-backdrop.hidden{display:none}
+      .ma-assistant-panel{width:min(620px,100%);height:min(720px,calc(100dvh - 24px));background:#fff;border-radius:22px;box-shadow:0 24px 70px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111827}
+      .ma-assistant-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #e5e7eb}
+      .ma-assistant-head b{display:block;font-size:18px}.ma-assistant-head span{display:block;color:#6b7280;font-size:12px;margin-top:3px}.ma-assistant-close{border:0;background:#eef2f7;width:36px;height:36px;border-radius:10px;font-size:22px;cursor:pointer}
+      .ma-assistant-messages{flex:1;overflow:auto;padding:14px;background:#f8fafc}
+      .ma-msg{max-width:88%;margin:0 0 10px;padding:10px 12px;border-radius:14px;white-space:pre-wrap;font-size:14px;line-height:1.4;word-break:break-word}
+      .ma-msg.assistant{background:#fff;border:1px solid #e5e7eb;border-bottom-left-radius:5px}.ma-msg.user{margin-left:auto;background:#111827;color:#fff;border-bottom-right-radius:5px}
+      .ma-msg.error{background:#fff1f2;border:1px solid #fecdd3;color:#9f1239}
+      .ma-assistant-actions{display:flex;gap:8px;flex-wrap:wrap;margin:-2px 0 12px}.ma-assistant-actions button,.ma-assistant-examples button{border:1px solid #d1d5db;background:#fff;border-radius:999px;padding:8px 11px;font-size:13px;cursor:pointer}.ma-assistant-actions button.primary{background:#111827;color:#fff;border-color:#111827}
+      .ma-assistant-examples{padding:8px 14px;display:flex;gap:7px;overflow:auto;border-top:1px solid #e5e7eb}.ma-assistant-examples button{white-space:nowrap;background:#f8fafc}
+      .ma-assistant-compose{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid #e5e7eb;background:#fff}.ma-assistant-input{flex:1;min-width:0;resize:none;max-height:100px;border:1px solid #cbd5e1;border-radius:12px;padding:10px 11px;font:16px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;outline:none}.ma-assistant-send{border:0;border-radius:12px;background:#111827;color:#fff;font-weight:700;padding:0 15px;cursor:pointer}.ma-assistant-send:disabled{opacity:.5}
+      @media(max-width:640px){.ma-assistant-backdrop{padding:0}.ma-assistant-panel{width:100%;height:100dvh;border-radius:0}.ma-assistant-launch{right:12px;bottom:calc(70px + env(safe-area-inset-bottom));padding:10px 13px}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function createUi(){
+    if(document.getElementById("maAssistantLaunch"))return;
+    injectStyles();
+    const launch=document.createElement("button");
+    launch.id="maAssistantLaunch";
+    launch.className="ma-assistant-launch";
+    launch.type="button";
+    launch.textContent="Помощник";
+    launch.setAttribute("aria-label","Открыть помощника МА График");
+
+    const backdrop=document.createElement("div");
+    backdrop.id="maAssistantBackdrop";
+    backdrop.className="ma-assistant-backdrop hidden";
+    backdrop.innerHTML=`
+      <div class="ma-assistant-panel" role="dialog" aria-modal="true" aria-label="Помощник МА График">
+        <div class="ma-assistant-head"><div><b>Помощник МА График</b><span>Работает без платного AI · изменения только после подтверждения</span></div><button class="ma-assistant-close" type="button" aria-label="Закрыть">×</button></div>
+        <div class="ma-assistant-messages" id="maAssistantMessages"></div>
+        <div class="ma-assistant-examples">
+          <button type="button" data-text="Кто завтра работает?">Кто завтра?</button>
+          <button type="button" data-text="Покажи график Олега на неделю">График Олега</button>
+          <button type="button" data-text="12 сентября поставь Георгия вместо Асика">Сделать замену</button>
+        </div>
+        <div class="ma-assistant-compose"><textarea class="ma-assistant-input" id="maAssistantInput" rows="1" placeholder="Например: кто завтра работает?"></textarea><button class="ma-assistant-send" id="maAssistantSend" type="button">Отправить</button></div>
+      </div>`;
+    document.body.append(launch,backdrop);
+
+    launch.addEventListener("click",openPanel);
+    backdrop.querySelector(".ma-assistant-close").addEventListener("click",closePanel);
+    backdrop.addEventListener("click",e=>{if(e.target===backdrop)closePanel();});
+    $("maAssistantSend").addEventListener("click",sendCurrent);
+    $("maAssistantInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendCurrent();}});
+    backdrop.querySelectorAll("[data-text]").forEach(btn=>btn.addEventListener("click",()=>submitText(btn.dataset.text||"")));
+
+    addMessage("assistant","Я могу бесплатно работать с твоим настоящим графиком.\n\nСпроси, кто работает, попроси график сотрудника или напиши замену. Перед любой записью я сначала покажу «было → станет».");
+  }
+
+  function $(id){return document.getElementById(id);}
+
+  function openPanel(){
+    $("maAssistantBackdrop")?.classList.remove("hidden");
+    setTimeout(()=>$("maAssistantInput")?.focus(),50);
+  }
+
+  function closePanel(){$("maAssistantBackdrop")?.classList.add("hidden");}
+
+  function scrollBottom(){const box=$("maAssistantMessages");if(box)box.scrollTop=box.scrollHeight;}
+
+  function addMessage(role,text,actions=[]){
+    const box=$("maAssistantMessages");if(!box)return;
+    const msg=document.createElement("div");
+    msg.className=`ma-msg ${role}`;
+    msg.textContent=String(text||"");
+    box.appendChild(msg);
+    if(actions.length){
+      const row=document.createElement("div");
+      row.className="ma-assistant-actions";
+      actions.forEach(action=>{
+        const btn=document.createElement("button");
+        btn.type="button";
+        if(action.primary)btn.classList.add("primary");
+        btn.textContent=action.label;
+        btn.addEventListener("click",action.onClick);
+        row.appendChild(btn);
+      });
+      box.appendChild(row);
+    }
+    scrollBottom();
+  }
+
+  function setBusy(value){
+    state.busy=!!value;
+    const send=$("maAssistantSend");if(send)send.disabled=state.busy;
+    const input=$("maAssistantInput");if(input)input.disabled=state.busy;
+  }
+
+  function sendCurrent(){
+    const input=$("maAssistantInput");
+    const text=String(input?.value||"").trim();
+    if(!text||state.busy)return;
+    input.value="";
+    submitText(text);
+  }
+
+  async function submitText(text){
+    const clean=String(text||"").trim();if(!clean||state.busy)return;
+    openPanel();
+    addMessage("user",clean);
+    setBusy(true);
+    try{await handleCommand(clean);}catch(error){handleError(error);}finally{setBusy(false);}
+  }
+
+  function handleError(error){
+    if(error?.message==="OWNER_LOGIN_REQUIRED"||/вход владельца|требуется вход/i.test(error?.message||"")){
+      addMessage("error","Нужен вход владельца. Закрой помощника, нажми «Администратор» в МА График и войди. После этого повтори команду.");
+      return;
+    }
+    addMessage("error",error?.message||"Не удалось выполнить команду");
+  }
+
+  function pairText(pair){
+    if(!pair)return "—";
+    if(same(pair.manager,pair.master)) return `${pair.master} — ответственный`;
+    return `менеджер ${pair.manager}; мастер ${pair.master}`;
+  }
+
+  function formatToday(payload,date){
+    const planned=payload?.planned||{};
+    const services=planned.services||{};
+    const lines=[formatDate(planned.date||date)];
+    Object.entries(services).forEach(([service,pair])=>lines.push(`${service}: ${pairText(pair)}`));
+    const actual=Array.isArray(payload?.actual)?payload.actual:[];
+    const opened=actual.filter(x=>x.opened_at&&!x.closed_at).map(x=>x.service);
+    if(opened.length)lines.push(`Открыты сейчас: ${opened.join(", ")}`);
+    return lines.join("\n");
+  }
+
+  async function showDay(date){
+    const data=await getJson("/today",{date});
+    addMessage("assistant",formatToday(data,date));
+  }
+
+  async function showSchedule(from,to){
+    const data=await getJson("/schedule",{from,to});
+    const lines=[`График: ${formatDate(from)} — ${formatDate(to)}`];
+    (data.days||[]).forEach(day=>{
+      const pairs=Object.entries(day.services||{}).map(([s,p])=>`${s}: ${pairText(p)}`).join(" · ");
+      lines.push(`${formatDate(day.date)}\n${pairs}`);
+    });
+    addMessage("assistant",lines.join("\n\n"));
+  }
+
+  async function activeEmployees(date){
+    const data=await getJson("/employees",{date});
+    return data.employees||[];
+  }
+
+  async function showEmployee(name,from,to){
+    const data=await getJson("/employee",{name,from,to});
+    const lines=[`${data.employee}: ${formatDate(from)} — ${formatDate(to)}`];
+    (data.days||[]).forEach(day=>{
+      if(day.assignment){
+        const role=day.assignment.role==="responsible"?"ответственный":(day.assignment.role==="manager"?"менеджер":"мастер");
+        lines.push(`${formatDate(day.date)} — ${day.assignment.service}, ${role}`);
+      }else{
+        lines.push(`${formatDate(day.date)} — выходной`);
+      }
+    });
+    addMessage("assistant",lines.join("\n"));
+  }
+
+  function occurrences(planned,name,serviceFilter=""){
+    const result=[];
+    for(const [service,pair] of Object.entries(planned?.services||{})){
+      if(serviceFilter&&!same(service,serviceFilter))continue;
+      const roles=[];
+      if(same(pair.manager,name))roles.push("manager");
+      if(same(pair.master,name))roles.push("master");
+      if(roles.length)result.push({service,pair:{manager:pair.manager,master:pair.master},roles});
+    }
+    return result;
+  }
+
+  async function askReplacementForDayOff(date,oldName,serviceFilter=""){
+    const read=await getJson("/today",{date});
+    const found=occurrences(read.planned,oldName,serviceFilter);
+    if(!found.length){addMessage("assistant",`${oldName} и так не стоит в графике на ${formatDate(date)}.`);return;}
+    if(found.length>1){addMessage("assistant",`${oldName} указан в нескольких точках. Напиши точку: Моба или Нова.`);return;}
+    state.pendingReplacement={date,oldName,service:found[0].service};
+    addMessage("assistant",`${formatDate(date)}: ${oldName} стоит в ${found[0].service}.\nКого поставить вместо ${oldName}?`);
+  }
+
+  async function prepareReplacement(date,oldName,newName,serviceFilter="",reason="Замена через бесплатного помощника"){
+    if(same(oldName,newName)){addMessage("assistant","Это один и тот же сотрудник — менять нечего.");return;}
+    const read=await getJson("/today",{date});
+    const found=occurrences(read.planned,oldName,serviceFilter);
+    if(!found.length){addMessage("assistant",`${oldName} не найден в рабочем графике на ${formatDate(date)}${serviceFilter?` в ${serviceFilter}`:""}.`);return;}
+    if(found.length>1){addMessage("assistant",`${oldName} найден в нескольких точках. Укажи «в Мобе» или «в Нове».`);return;}
+
+    const hit=found[0];
+    const target={manager:hit.pair.manager,master:hit.pair.master};
+    if(hit.roles.includes("manager"))target.manager=newName;
+    if(hit.roles.includes("master"))target.master=newName;
+
+    const body={
+      date,
+      service:hit.service,
+      expectedConfigUpdatedAt:read.configUpdatedAt,
+      expectedCurrent:hit.pair,
+      target,
+      reason
+    };
+    const preview=await postJson("/preview-change",body);
+    state.pendingPreview={body,preview};
+    state.pendingReplacement=null;
+    addMessage("assistant",`${formatDate(date)} · ${hit.service}\nБыло: ${pairText(preview.before)}\nСтанет: ${pairText(preview.after)}\n\nПока ничего не изменено.`,[
+      {label:"Подтвердить",primary:true,onClick:()=>submitText("Подтверждаю")},
+      {label:"Отмена",onClick:()=>submitText("Отмена")}
+    ]);
+  }
+
+  async function applyPending(){
+    const pending=state.pendingPreview;
+    if(!pending){addMessage("assistant","Сейчас нет подготовленного изменения.");return;}
+    const body={...pending.body,confirm:true};
+    try{
+      const applied=await postJson("/apply-change",body);
+      const fresh=await getJson("/today",{date:body.date});
+      const pair=fresh?.planned?.services?.[body.service];
+      const verified=pair&&same(pair.manager,body.target.manager)&&same(pair.master,body.target.master);
+      state.pendingPreview=null;
+      if(!verified)throw new Error("Изменение записано, но повторная проверка не совпала. Обнови график перед следующей заменой.");
+      addMessage("assistant",`Готово. ${formatDate(body.date)} · ${body.service}\nТеперь: ${pairText(pair)}\nЗапись проверена повторным чтением.${applied.auditId?`\nЖурнал изменения: #${applied.auditId}`:""}`);
+      try{global.dispatchEvent(new CustomEvent("ma-grafik-assistant-applied",{detail:{date:body.date,service:body.service}}));}catch(_){ }
+    }catch(error){
+      state.pendingPreview=null;
+      if(error?.status===409) throw new Error("График успел измениться после предпросмотра. Я ничего не перезаписал. Повтори команду, чтобы получить новый вариант.");
+      throw error;
+    }
+  }
+
+  function help(){
+    addMessage("assistant","Что я понимаю сейчас:\n• «Кто завтра работает?»\n• «Покажи график на неделю»\n• «Покажи график Олега на две недели»\n• «12 сентября поставь Георгия вместо Асика»\n• «Дай Дине выходной 15 сентября» — я спрошу, кого поставить вместо неё.\n\nЯ не придумываю сотрудников и не меняю график без предпросмотра и подтверждения.");
+  }
+
+  async function handleCommand(text){
+    const t=core.normalizeText(text);
+
+    if(state.pendingPreview&&core.isConfirmation(text)){await applyPending();return;}
+    if((state.pendingPreview||state.pendingReplacement)&&core.isCancellation(text)){
+      state.pendingPreview=null;state.pendingReplacement=null;addMessage("assistant","Отменено. График не изменён.");return;
+    }
+
+    if(state.pendingReplacement){
+      const employees=await activeEmployees(state.pendingReplacement.date);
+      const names=employees.map(x=>x.name).filter(n=>!same(n,state.pendingReplacement.oldName));
+      const mentioned=core.findMentionedEmployees(text,names);
+      if(!mentioned.length){addMessage("assistant","Не понял, кого поставить. Напиши только имя сотрудника, например: Георгий.");return;}
+      const pending={...state.pendingReplacement};
+      await prepareReplacement(pending.date,pending.oldName,mentioned[0].name,pending.service,`Выходной ${pending.oldName} через бесплатного помощника`);
+      return;
+    }
+
+    if(/^(помощь|что умеешь|команды)$/.test(t)){help();return;}
+
+    const today=moscowToday();
+    const parsedDate=core.parseDate(text,today);
+    const date=parsedDate?.key||today;
+    const service=core.parseService(text);
+
+    if(/выходн/.test(t)){
+      const employees=await activeEmployees(date);
+      const mentioned=core.findMentionedEmployees(text,employees.map(x=>x.name));
+      if(!mentioned.length){addMessage("assistant","Укажи имя сотрудника, которому нужен выходной.");return;}
+      await askReplacementForDayOff(date,mentioned[0].name,service);
+      return;
+    }
+
+    if(/замен|вместо|поставь/.test(t)){
+      const employees=await activeEmployees(date);
+      const replacement=core.parseReplacement(text,employees.map(x=>x.name));
+      if(!replacement){addMessage("assistant","Для замены нужны два имени. Например: «12 сентября поставь Георгия вместо Асика».");return;}
+      await prepareReplacement(date,replacement.oldName,replacement.newName,service,`Команда: ${String(text).slice(0,180)}`);
+      return;
+    }
+
+    if(/график/.test(t)){
+      const range=core.parseRange(text,today);
+      const employees=await activeEmployees(range.from);
+      const mentioned=core.findMentionedEmployees(text,employees.map(x=>x.name));
+      if(mentioned.length){await showEmployee(mentioned[0].name,range.from,range.to);return;}
+      await showSchedule(range.from,range.to);return;
+    }
+
+    if(/кто.*работ|кто.*смен|работает|на смене/.test(t)){
+      await showDay(date);return;
+    }
+
+    help();
+  }
+
+  setTimeout(createUi,500);
+})(typeof window!=="undefined"?window:globalThis);

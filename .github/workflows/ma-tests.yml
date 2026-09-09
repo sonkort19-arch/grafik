@@ -26,8 +26,11 @@ jobs:
           node --check history.js
           node --check kpi.js
           node --check safety.js
+          node --check assistant-core.js
+          node --check assistant.js
           node --check app.js
           node --check tests/run-tests.js
+          node --check tests/assistant-tests.js
           node --input-type=module --check < api/mcp.js
           node --input-type=module --check < api/oauth-protected-resource.js
           node --input-type=module --check < api/openai-apps-challenge.js
@@ -37,6 +40,9 @@ jobs:
 
       - name: Run MA Grafik regression suite
         run: node tests/run-tests.js
+
+      - name: Run free assistant parser tests
+        run: node tests/assistant-tests.js
 
       - name: Check read API syntax
         run: node --input-type=module --check < supabase/functions/ma-grafik-api/index.ts
@@ -80,6 +86,9 @@ jobs:
           }
 
           wait_for "$BASE/" "MA График"
+          wait_for "$BASE/assistant-core.js" "MAAssistantCore"
+          wait_for "$BASE/assistant.js" "Помощник МА График"
+          wait_for "$BASE/safety.js" "assistant-core.js"
           wait_for "$BASE/mcp" '"service":"MA Grafik MCP"'
           wait_for "$BASE/.well-known/oauth-protected-resource" '"resource":"https://grafik-umber.vercel.app/mcp"'
           wait_for "$BASE/plugin/" "МА График для ChatGPT"
