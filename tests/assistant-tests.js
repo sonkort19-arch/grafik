@@ -60,4 +60,14 @@ test("подтверждение и отмена не путаются",()=>{
   assert.strictEqual(core.isConfirmation("пока ничего не меняй"),false);
 });
 
+test("помощник загружается только при админ-сессии и удаляется после выхода",()=>{
+  const safety=fs.readFileSync("safety.js","utf8");
+  assert(safety.includes('const AUTH_KEY="ma_schedule_admin_session_v1"'));
+  assert(safety.includes("function hasAdminSession()"));
+  assert(safety.includes("if(allowed)startAssistant();"));
+  assert(safety.includes("else removeAssistantUi();"));
+  assert(safety.includes('document.getElementById("maAssistantLaunch")?.remove()'));
+  assert(safety.includes('document.getElementById("maAssistantBackdrop")?.remove()'));
+});
+
 console.log("\nMA Assistant: все тесты пройдены.");
