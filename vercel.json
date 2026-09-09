@@ -3,5 +3,43 @@
     { "source": "/mcp", "destination": "/api/mcp" },
     { "source": "/.well-known/oauth-protected-resource", "destination": "/api/oauth-protected-resource" },
     { "source": "/.well-known/openai-apps-challenge", "destination": "/api/openai-apps-challenge" }
+  ],
+  "headers": [
+    {
+      "source": "/manifest.webmanifest",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/ma-favicon-final-v6.png",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/ma-apple-touch-final-v6.png",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/ma-icon-final-v6-192.png",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/ma-icon-final-v6-512.png",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/ma-photo-icon-v1.jpg",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    }
   ]
 }
