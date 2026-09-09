@@ -31,6 +31,7 @@ jobs:
           node --check app.js
           node --check tests/run-tests.js
           node --check tests/assistant-tests.js
+          node --check tests/assistant-robustness-tests.js
           node --input-type=module --check < api/mcp.js
           node --input-type=module --check < api/oauth-protected-resource.js
           node --input-type=module --check < api/openai-apps-challenge.js
@@ -43,6 +44,9 @@ jobs:
 
       - name: Run free assistant parser tests
         run: node tests/assistant-tests.js
+
+      - name: Run free assistant robustness tests
+        run: node tests/assistant-robustness-tests.js
 
       - name: Check read API syntax
         run: node --input-type=module --check < supabase/functions/ma-grafik-api/index.ts
