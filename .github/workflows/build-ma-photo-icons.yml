@@ -1,0 +1,56 @@
+name: Build MA photo icons
+
+on:
+  push:
+    branches:
+      - icon-photo-current-20260909
+    paths:
+      - .github/workflows/build-ma-photo-icons.yml
+
+permissions:
+  contents: write
+
+jobs:
+  build-icons:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: icon-photo-current-20260909
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Pillow
+        run: python -m pip install --disable-pip-version-check pillow
+
+      - name: Rebuild exact photo icon assets
+        shell: bash
+        run: |
+          cat .icon-upload/source.b64.part01 .icon-upload/source.b64.part02 .icon-upload/source.b64.part03 | base64 --decode > /tmp/ma-photo-source.jpg
+          python - <<'PY'
+          from PIL import Image
+          source = Image.open('/tmp/ma-photo-source.jpg').convert('RGB')
+          targets = {
+              'ma-favicon-final-v6.png': (64, 64),
+              'ma-apple-touch-final-v6.png': (180, 180),
+              'ma-icon-final-v6-192.png': (192, 192),
+              'ma-icon-final-v6-512.png': (512, 512),
+          }
+          for path, size in targets.items():
+              source.resize(size, Image.Resampling.LANCZOS).save(path, format='PNG', optimize=True)
+          PY
+
+      - name: Commit generated icons
+        shell: bash
+        run: |
+          rm -rf .icon-upload
+          rm -f .github/workflows/build-ma-photo-icons.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Replace MA Grafik app icons with uploaded photo"
+          git push origin HEAD:icon-photo-current-20260909
