@@ -1,11 +1,13 @@
 name: Build MA photo icons
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - icon-photo-current-20260909
     paths:
       - .github/workflows/build-ma-photo-icons.yml
+      - .icon-upload/**
 
 permissions:
   contents: write
