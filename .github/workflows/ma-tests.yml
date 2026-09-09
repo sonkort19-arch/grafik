@@ -28,9 +28,9 @@ jobs:
           node --check safety.js
           node --check app.js
           node --check tests/run-tests.js
-          node --check api/mcp.js
-          node --check api/oauth-protected-resource.js
-          node --check api/openai-apps-challenge.js
+          node --input-type=module --check < api/mcp.js
+          node --input-type=module --check < api/oauth-protected-resource.js
+          node --input-type=module --check < api/openai-apps-challenge.js
 
       - name: Validate plugin manifest
         run: node -e "const fs=require('fs'); JSON.parse(fs.readFileSync('.codex-plugin/plugin.json','utf8')); console.log('plugin.json OK')"
