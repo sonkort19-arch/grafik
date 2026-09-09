@@ -86,7 +86,7 @@
     const t=normalizeText(text);
     const explicit=parseDate(text,todayKey);
     let from=explicit?.key||todayKey;
-    if(!explicit && /следующ\w*\s+недел/.test(t)) from=nextMonday(todayKey);
+    if(!explicit && t.includes("следующ") && t.includes("недел")) from=nextMonday(todayKey);
 
     let days=1;
     if(/(?:^|\s)(две|2)\s+недел/.test(t)||/(?:^|\s)14\s+дн/.test(t)) days=14;
