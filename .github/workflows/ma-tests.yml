@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Check JavaScript syntax
         run: |
           node --check schedule.js
@@ -28,6 +27,7 @@ jobs:
           node --check safety.js
           node --check assistant-core.js
           node --check assistant.js
+          node --check assistant-attendance.js
           node --check app.js
           node --check tests/run-tests.js
           node --check tests/assistant-tests.js
@@ -35,31 +35,25 @@ jobs:
           node --input-type=module --check < api/mcp.js
           node --input-type=module --check < api/oauth-protected-resource.js
           node --input-type=module --check < api/openai-apps-challenge.js
-
       - name: Validate plugin manifest
         run: node -e "const fs=require('fs'); JSON.parse(fs.readFileSync('.codex-plugin/plugin.json','utf8')); console.log('plugin.json OK')"
-
       - name: Run MA Grafik regression suite
         run: node tests/run-tests.js
-
       - name: Run free assistant parser tests
         run: node tests/assistant-tests.js
-
       - name: Run free assistant robustness tests
         run: node tests/assistant-robustness-tests.js
-
       - name: Check read API syntax
         run: node --input-type=module --check < supabase/functions/ma-grafik-api/index.ts
-
       - name: Set up Deno
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-
-      - name: Type-check new protected integration functions
+      - name: Type-check protected integration functions
         run: |
           deno check supabase/functions/ma-grafik-write-api/index.ts
           deno check supabase/functions/ma-grafik-mcp/index.ts
+          deno check supabase/functions/ma-grafik-attendance-api/index.ts
 
   production-smoke:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -72,36 +66,25 @@ jobs:
         run: |
           set -euo pipefail
           BASE="https://grafik-umber.vercel.app"
-
           wait_for() {
-            local url="$1"
-            local expected="$2"
+            local url="$1"; local expected="$2"
             for attempt in $(seq 1 24); do
               body="$(curl -fsS --max-time 10 "$url" 2>/dev/null || true)"
-              if [[ "$body" == *"$expected"* ]]; then
-                echo "OK: $url"
-                return 0
-              fi
-              echo "Waiting for $url ($attempt/24)"
-              sleep 5
+              if [[ "$body" == *"$expected"* ]]; then echo "OK: $url"; return 0; fi
+              echo "Waiting for $url ($attempt/24)"; sleep 5
             done
-            echo "FAILED: $url"
-            return 1
+            echo "FAILED: $url"; return 1
           }
-
           wait_for "$BASE/" "MA График"
           wait_for "$BASE/assistant-core.js" "MAAssistantCore"
           wait_for "$BASE/assistant.js" "Помощник МА График"
-          wait_for "$BASE/safety.js" "assistant-core.js"
+          wait_for "$BASE/assistant-attendance.js" "ma-grafik-attendance-api"
+          wait_for "$BASE/safety.js" "assistant-attendance.js"
           wait_for "$BASE/mcp" '"service":"MA Grafik MCP"'
           wait_for "$BASE/.well-known/oauth-protected-resource" '"resource":"https://grafik-umber.vercel.app/mcp"'
           wait_for "$BASE/plugin/" "МА График для ChatGPT"
           wait_for "$BASE/oauth/consent.html" "Подключение ChatGPT"
-
-          headers="$(curl -sS -i --max-time 10 -X POST "$BASE/mcp" \
-            -H 'Content-Type: application/json' \
-            --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ma-grafik-smoke","version":"1.0"}}}')"
-
+          headers="$(curl -sS -i --max-time 10 -X POST "$BASE/mcp" -H 'Content-Type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ma-grafik-smoke","version":"1.0"}}}')"
           [[ "$headers" =~ ^HTTP/[^[:space:]]+[[:space:]]401 ]]
           [[ "$headers" == *'resource_metadata="https://grafik-umber.vercel.app/.well-known/oauth-protected-resource"'* ]]
           echo "OK: unauthorized MCP challenge points to public OAuth metadata"
