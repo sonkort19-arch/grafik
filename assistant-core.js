@@ -52,9 +52,9 @@
   function parseDate(text,todayKey){
     const today=isDateKey(todayKey)?todayKey:dateKey(new Date());
     const t=normalizeText(text);
-    if(/\bпослезавтра\b/.test(t)) return {key:addDays(today,2),source:"relative"};
-    if(/\bзавтра\b/.test(t)) return {key:addDays(today,1),source:"relative"};
-    if(/\bсегодня\b/.test(t)) return {key:today,source:"relative"};
+    if(t.includes("послезавтра")) return {key:addDays(today,2),source:"relative"};
+    if(t.includes("завтра")) return {key:addDays(today,1),source:"relative"};
+    if(t.includes("сегодня")) return {key:today,source:"relative"};
 
     const numeric=t.match(/(?:^|\s)(\d{1,2})[.\/-](\d{1,2})(?:[.\/-](\d{2,4}))?(?:\s|$)/);
     if(numeric){
@@ -89,10 +89,10 @@
     if(!explicit && /следующ\w*\s+недел/.test(t)) from=nextMonday(todayKey);
 
     let days=1;
-    if(/\b(две|2)\s+недел/.test(t)||/\b14\s+дн/.test(t)) days=14;
-    else if(/\b(три|3)\s+недел/.test(t)||/\b21\s+дн/.test(t)) days=21;
-    else if(/\bнедел/.test(t)||/\b7\s+дн/.test(t)) days=7;
-    else if(/\bмесяц/.test(t)||/\b30\s+дн/.test(t)||/\b31\s+дн/.test(t)) days=31;
+    if(/(?:^|\s)(две|2)\s+недел/.test(t)||/(?:^|\s)14\s+дн/.test(t)) days=14;
+    else if(/(?:^|\s)(три|3)\s+недел/.test(t)||/(?:^|\s)21\s+дн/.test(t)) days=21;
+    else if(t.includes("недел")||/(?:^|\s)7\s+дн/.test(t)) days=7;
+    else if(t.includes("месяц")||/(?:^|\s)(30|31)\s+дн/.test(t)) days=31;
 
     return {from,to:addDays(from,days-1),days};
   }
