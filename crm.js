@@ -8,347 +8,144 @@
   const CRM_EMPLOYEE_KEY="ma_crm_employee_v1";
   const EMPLOYEE_KEY="ma_employee_name_v1";
 
-  const STATUS={
-    accepted:"Принят",
-    diagnostics:"Диагностика",
-    in_work:"В работе",
-    waiting_part:"Ждём запчасть",
-    ready:"Готов",
-    issued:"Выдан"
-  };
+  const STATUS={accepted:"Принят",diagnostics:"Диагностика",in_work:"В работе",waiting_part:"Ждём запчасть",ready:"Готов",issued:"Выдан"};
   const STATUS_ORDER=Object.keys(STATUS);
+  const VIEW_META={
+    dashboard:["Обзор","Рабочая картина сервисного центра"],
+    orders:["Заказы","Ремонты, статусы и исполнители"],
+    clients:["Клиенты","История обращений и покупок"],
+    sales:["Продажи","Продажа телефонов и другой техники"],
+    inventory:["Склад","Запчасти и остатки"],
+    payments:["Платежи","Доходы, расходы и кассы"],
+    reports:["Отчёты","Основные показатели CRM"]
+  };
 
   const $=id=>document.getElementById(id);
   const state={
-    bootstrap:null,
-    repairs:[],
-    sales:[],
-    repairStatus:"",
-    repairService:"",
-    repairQuery:"",
-    saleQuery:"",
-    currentRepair:null,
-    repairLoadSeq:0,
-    saleLoadSeq:0
+    bootstrap:null,view:"dashboard",allRepairs:[],allSales:[],repairs:[],sales:[],clients:[],
+    repairStatus:"",repairService:"",repairQuery:"",saleQuery:"",clientQuery:"",currentRepair:null,
+    repairLoadSeq:0,saleLoadSeq:0,baseLoadSeq:0
   };
-  let toastTimer=null;
-  let repairSearchTimer=null;
-  let saleSearchTimer=null;
+  let toastTimer=null,repairSearchTimer=null,saleSearchTimer=null,clientSearchTimer=null;
 
   class AuthError extends Error{}
-
-  function esc(value){
-    return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
-  }
-  function num(value){ const n=Number(value); return Number.isFinite(n)?n:0; }
-  function money(value){
-    return new Intl.NumberFormat("ru-RU",{maximumFractionDigits:2}).format(num(value))+" ₽";
-  }
-  function dateTime(value){
-    if(!value) return "—";
-    const d=new Date(value); if(Number.isNaN(d.getTime())) return "—";
-    return new Intl.DateTimeFormat("ru-RU",{timeZone:"Europe/Moscow",day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}).format(d);
-  }
-  function toast(message){
-    const root=$("crmToast"); root.textContent=String(message||""); root.classList.add("show");
-    clearTimeout(toastTimer); toastTimer=setTimeout(()=>root.classList.remove("show"),2600);
-  }
-  function setBusy(button,busy,text){
-    if(!button) return;
-    if(busy){ button.dataset.oldText=button.textContent; button.disabled=true; if(text) button.textContent=text; }
-    else{ button.disabled=false; if(button.dataset.oldText) button.textContent=button.dataset.oldText; delete button.dataset.oldText; }
-  }
-  function readJsonStorage(key){
-    try{return JSON.parse(localStorage.getItem(key)||"null");}catch(_){return null;}
-  }
-  function adminToken(){ return readJsonStorage(ADMIN_SESSION_KEY)?.access_token||""; }
-  function crmSession(){ try{return localStorage.getItem(CRM_SESSION_KEY)||"";}catch(_){return "";} }
-  function authHeaders(){
-    const headers={"Content-Type":"application/json","apikey":API_KEY};
-    const admin=adminToken(),staff=crmSession();
-    if(admin) headers.Authorization=`Bearer ${admin}`;
-    if(staff) headers["x-crm-session"]=staff;
-    return headers;
-  }
+  function esc(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));}
+  function num(value){const n=Number(value);return Number.isFinite(n)?n:0;}
+  function money(value){return new Intl.NumberFormat("ru-RU",{maximumFractionDigits:2}).format(num(value))+" ₽";}
+  function shortMoney(value){const n=num(value);if(Math.abs(n)>=1000000)return new Intl.NumberFormat("ru-RU",{maximumFractionDigits:1}).format(n/1000000)+" млн ₽";if(Math.abs(n)>=1000)return new Intl.NumberFormat("ru-RU",{maximumFractionDigits:0}).format(n/1000)+" тыс ₽";return money(n);}
+  function dateTime(value){if(!value)return"—";const d=new Date(value);if(Number.isNaN(d.getTime()))return"—";return new Intl.DateTimeFormat("ru-RU",{timeZone:"Europe/Moscow",day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}).format(d);}
+  function dateOnly(value){if(!value)return"—";const d=new Date(value);if(Number.isNaN(d.getTime()))return"—";return new Intl.DateTimeFormat("ru-RU",{timeZone:"Europe/Moscow",day:"2-digit",month:"short",year:"numeric"}).format(d);}
+  function dateKey(value){const d=value instanceof Date?value:new Date(value);if(Number.isNaN(d.getTime()))return"";const p=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Moscow",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d),o={};p.forEach(x=>{if(x.type!=="literal")o[x.type]=x.value;});return`${o.year}-${o.month}-${o.day}`;}
+  function todayKey(){return dateKey(new Date());}
+  function initials(name){const parts=String(name||"MA").trim().split(/\s+/).filter(Boolean);return(parts.slice(0,2).map(x=>x[0]).join("")||"MA").toUpperCase();}
+  function currentPrice(r){return r.final_price!==null&&r.final_price!==undefined?r.final_price:r.estimated_price;}
+  function toast(message){const root=$("crmToast");if(!root)return;root.textContent=String(message||"");root.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>root.classList.remove("show"),2600);}
+  function setBusy(button,busy,text){if(!button)return;if(busy){button.dataset.oldText=button.textContent;button.disabled=true;if(text)button.textContent=text;}else{button.disabled=false;if(button.dataset.oldText)button.textContent=button.dataset.oldText;delete button.dataset.oldText;}}
+  function readJsonStorage(key){try{return JSON.parse(localStorage.getItem(key)||"null");}catch(_){return null;}}
+  function adminToken(){return readJsonStorage(ADMIN_SESSION_KEY)?.access_token||"";}
+  function crmSession(){try{return localStorage.getItem(CRM_SESSION_KEY)||"";}catch(_){return"";}}
+  function authHeaders(){const h={"Content-Type":"application/json","apikey":API_KEY},admin=adminToken(),staff=crmSession();if(admin)h.Authorization=`Bearer ${admin}`;if(staff)h["x-crm-session"]=staff;return h;}
   async function api(op,payload={}){
-    const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),18000);
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),18000);
     try{
       const res=await fetch(API_URL,{method:"POST",headers:authHeaders(),body:JSON.stringify({op,...payload}),signal:controller.signal,cache:"no-store"});
       const data=await res.json().catch(()=>({ok:false,error:"Сервер вернул непонятный ответ"}));
-      if(!res.ok||data?.ok===false){
-        const msg=data?.error||`Ошибка ${res.status}`;
-        if(res.status===403) throw new AuthError(msg);
-        throw new Error(msg);
-      }
+      if(!res.ok||data?.ok===false){const msg=data?.error||`Ошибка ${res.status}`;if(res.status===403||/нужен вход/i.test(msg))throw new AuthError(msg);throw new Error(msg);}
       return data;
-    }catch(e){
-      if(e?.name==="AbortError") throw new Error("Сервер долго не отвечает. Проверь интернет.");
-      throw e;
-    }finally{ clearTimeout(timer); }
+    }catch(e){if(e?.name==="AbortError")throw new Error("Сервер долго не отвечает. Проверь интернет.");throw e;}finally{clearTimeout(timer);}
   }
 
-  function showLogin(message=""){
-    $("crmMain").classList.add("hidden");
-    $("loginOverlay").classList.remove("hidden");
-    const remembered=localStorage.getItem(CRM_EMPLOYEE_KEY)||localStorage.getItem(EMPLOYEE_KEY)||"";
-    if(!$("crmLoginName").value) $("crmLoginName").value=remembered;
-    $("crmLoginError").textContent=message;
-    setTimeout(()=>remembered?$("crmLoginPin").focus():$("crmLoginName").focus(),30);
-  }
-  function showMain(){
-    $("loginOverlay").classList.add("hidden");
-    $("crmMain").classList.remove("hidden");
-  }
-  function actorName(){ return state.bootstrap?.actor?.employee||localStorage.getItem(CRM_EMPLOYEE_KEY)||""; }
-  function updateUser(){
-    const actor=state.bootstrap?.actor;
-    $("crmUser").textContent=actor ? (actor.kind==="admin"?"Администратор":actor.employee) : "CRM";
-  }
-
-  function employeeOptions(role,value="",includeBlank=false){
-    const employees=(state.bootstrap?.employees||[]).filter(x=>!role||x.role===role);
-    const names=[...new Set(employees.map(x=>x.name).filter(Boolean))];
-    if(value&&!names.includes(value)) names.unshift(value);
-    return `${includeBlank?'<option value="">Не назначен</option>':""}${names.map(name=>`<option value="${esc(name)}" ${name===value?"selected":""}>${esc(name)}</option>`).join("")}`;
-  }
-  function populateStaticSelects(){
-    const services=state.bootstrap?.services||[];
-    const serviceOptions=services.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join("");
-    $("repairService").innerHTML=serviceOptions;
-    $("saleService").innerHTML=serviceOptions;
-    $("repairServiceFilter").innerHTML='<option value="">Все точки</option>'+serviceOptions;
-    $("repairMaster").innerHTML=employeeOptions("master","",true);
-    const actor=actorName();
-    $("repairManager").innerHTML=employeeOptions("manager",actor,false);
-    $("saleManager").innerHTML=employeeOptions("manager",actor,false);
-    if(services.length){ $("repairService").value=services[0]; $("saleService").value=services[0]; }
-  }
+  function showLogin(message=""){$("crmMain")?.classList.add("hidden");$("loginOverlay")?.classList.remove("hidden");const remembered=localStorage.getItem(CRM_EMPLOYEE_KEY)||localStorage.getItem(EMPLOYEE_KEY)||"";if(!$("crmLoginName").value)$("crmLoginName").value=remembered;$("crmLoginError").textContent=message;setTimeout(()=>remembered?$("crmLoginPin").focus():$("crmLoginName").focus(),30);}
+  function showMain(){$("loginOverlay")?.classList.add("hidden");$("crmMain")?.classList.remove("hidden");}
+  function actorName(){return state.bootstrap?.actor?.employee||localStorage.getItem(CRM_EMPLOYEE_KEY)||"";}
+  function updateUser(){const actor=state.bootstrap?.actor,name=actor?(actor.kind==="admin"?"Администратор":actor.employee):"CRM";$("crmUser").textContent=name;$("crmUserRole").textContent=actor?.kind==="admin"?"Владелец / администратор":"Сотрудник";$("crmAvatar").textContent=initials(name);}
+  function employeeOptions(role,value="",includeBlank=false){const employees=(state.bootstrap?.employees||[]).filter(x=>!role||x.role===role),names=[...new Set(employees.map(x=>x.name).filter(Boolean))];if(value&&!names.includes(value))names.unshift(value);return`${includeBlank?'<option value="">Не назначен</option>':""}${names.map(name=>`<option value="${esc(name)}" ${name===value?"selected":""}>${esc(name)}</option>`).join("")}`;}
+  function populateStaticSelects(){const services=state.bootstrap?.services||[],opts=services.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join("");$("repairService").innerHTML=opts;$("saleService").innerHTML=opts;$("repairServiceFilter").innerHTML='<option value="">Все точки</option>'+opts;$("repairMaster").innerHTML=employeeOptions("master","",true);const actor=actorName();$("repairManager").innerHTML=employeeOptions("manager",actor,false);$("saleManager").innerHTML=employeeOptions("manager",actor,false);if(services.length){$("repairService").value=services[0];$("saleService").value=services[0];}}
 
   async function bootstrap(){
-    try{
-      state.bootstrap=await api("bootstrap");
-      updateUser(); populateStaticSelects(); showMain();
-      await loadRepairs();
-    }catch(e){
-      if(e instanceof AuthError){
-        if(crmSession()){ localStorage.removeItem(CRM_SESSION_KEY); }
-        showLogin(e.message==="Нужен вход в CRM"?"":e.message);
-      }else{
-        showLogin(e.message||"Не удалось подключиться к CRM");
-      }
-    }
+    try{state.bootstrap=await api("bootstrap");updateUser();populateStaticSelects();showMain();await refreshBaseData();switchView("dashboard",false);}
+    catch(e){if(e instanceof AuthError){if(crmSession())localStorage.removeItem(CRM_SESSION_KEY);showLogin(e.message==="Нужен вход в CRM"?"":e.message);}else showLogin(e.message||"Не удалось подключиться к CRM");}
   }
 
-  function switchTab(tab){
-    document.querySelectorAll(".crm-tab").forEach(btn=>btn.classList.toggle("active",btn.dataset.tab===tab));
-    $("repairsPage").classList.toggle("hidden",tab!=="repairs");
-    $("newRepairPage").classList.toggle("hidden",tab!=="newRepair");
-    $("salesPage").classList.toggle("hidden",tab!=="sales");
-    if(tab==="repairs") loadRepairs();
-    if(tab==="sales") loadSales();
-    if(tab==="newRepair") setTimeout(()=>$("repairPhone").focus(),30);
-    window.scrollTo({top:0,behavior:"smooth"});
+  function switchView(view,refresh=true){
+    if(!VIEW_META[view])view="dashboard";state.view=view;
+    document.querySelectorAll("[data-view-panel]").forEach(el=>el.classList.toggle("hidden",el.dataset.viewPanel!==view));
+    document.querySelectorAll(".nav-item[data-view],.mobile-bottom-nav [data-view]").forEach(btn=>btn.classList.toggle("active",btn.dataset.view===view));
+    $("viewTitle").textContent=VIEW_META[view][0];$("viewSubtitle").textContent=VIEW_META[view][1];closeSidebar();
+    if(refresh&&view==="orders")loadRepairs();
+    if(refresh&&view==="sales")loadSales();
+    if(view==="clients")renderClients();
+    if(view==="dashboard")renderDashboard();
+    if(view==="reports")renderReports();
+    window.scrollTo({top:0,behavior:"auto"});
   }
 
-  function repairCard(r){
-    const customer=r.customer||{};
-    const device=[r.device,r.model].filter(Boolean).join(" · ")||"Устройство не указано";
-    const price=r.final_price!==null&&r.final_price!==undefined?r.final_price:r.estimated_price;
-    return `<article class="crm-card" data-repair-id="${esc(r.id)}">
-      <div class="crm-card-top">
-        <div><div class="crm-order">Заказ №${esc(r.order_no)}</div><div class="crm-device">${esc(device)}</div></div>
-        <span class="status-badge status-${esc(r.status)}">${esc(STATUS[r.status]||r.status)}</span>
-      </div>
-      <div class="crm-card-line"><strong>${esc(customer.name||"Без имени")}</strong><span>${esc(customer.phone||"")}</span><span>${esc(r.service||"")}</span></div>
-      <div class="crm-card-line"><span>Мастер: <strong>${esc(r.master||"не назначен")}</strong></span><span>${esc(r.issue||"")}</span></div>
-      <div class="crm-card-bottom"><span class="crm-muted">${esc(dateTime(r.accepted_at))}</span><span class="crm-price">${esc(money(price))}</span></div>
-    </article>`;
-  }
-  async function loadRepairs(){
-    const seq=++state.repairLoadSeq;
-    $("repairList").innerHTML='<div class="crm-loading">Загружаем заказы…</div>';
+  async function refreshBaseData(){
+    const seq=++state.baseLoadSeq;
     try{
-      const data=await api("list-repairs",{q:state.repairQuery,status:state.repairStatus,service:state.repairService});
-      if(seq!==state.repairLoadSeq) return;
-      state.repairs=data.repairs||[];
-      $("repairCount").textContent=`Заказов: ${state.repairs.length}`;
-      $("repairList").innerHTML=state.repairs.length?state.repairs.map(repairCard).join(""):'<div class="crm-empty">Заказов по этому фильтру пока нет</div>';
-      document.querySelectorAll("[data-repair-id]").forEach(card=>card.addEventListener("click",()=>openRepair(card.dataset.repairId)));
-    }catch(e){
-      if(e instanceof AuthError){showLogin("Сессия закончилась. Войдите снова.");return;}
-      $("repairList").innerHTML=`<div class="crm-empty">${esc(e.message||"Не удалось загрузить заказы")}</div>`;
-    }
+      const [rep,sales]=await Promise.all([api("list-repairs",{q:"",status:"",service:""}),api("list-sales",{q:""})]);
+      if(seq!==state.baseLoadSeq)return;
+      state.allRepairs=rep.repairs||[];state.allSales=sales.sales||[];state.repairs=state.allRepairs;state.sales=state.allSales;
+      state.clients=aggregateClients(state.allRepairs,state.allSales);renderOrders(state.repairs);renderSales(state.sales);renderDashboard();renderClients();renderReports();updateNavCounts();
+    }catch(e){if(e instanceof AuthError){showLogin("Сессия закончилась. Войдите снова.");return;}toast(e.message||"Не удалось обновить CRM");}
   }
+  function updateNavCounts(){const open=state.allRepairs.filter(r=>r.status!=="issued").length;$("navOrdersCount").textContent=String(open);}
 
-  async function submitRepair(event){
-    event.preventDefault();
-    const btn=$("saveRepairBtn"); $("repairFormError").textContent=""; setBusy(btn,true,"Сохраняем…");
-    try{
-      const data=await api("create-repair",{
-        customerName:$("repairCustomerName").value,
-        phone:$("repairPhone").value,
-        service:$("repairService").value,
-        device:$("repairDevice").value,
-        model:$("repairModel").value,
-        imei:$("repairImei").value,
-        issue:$("repairIssue").value,
-        estimatedPrice:$("repairPrice").value,
-        manager:$("repairManager").value,
-        master:$("repairMaster").value,
-        comment:$("repairComment").value
-      });
-      const orderNo=data.repair?.order_no;
-      $("repairForm").reset(); populateStaticSelects();
-      toast(orderNo?`Заказ №${orderNo} создан`:"Заказ создан");
-      switchTab("repairs");
-    }catch(e){
-      if(e instanceof AuthError){showLogin("Сессия закончилась. Войдите снова.");return;}
-      $("repairFormError").textContent=e.message||"Не удалось создать заказ";
-    }finally{setBusy(btn,false);}
-  }
+  function statusBadge(status){return`<span class="status-badge status-${esc(status)}">${esc(STATUS[status]||status||"—")}</span>`;}
+  function repairRow(r){const c=r.customer||{},device=[r.device,r.model].filter(Boolean).join(" · ")||"Устройство не указано";return`<tr data-repair-id="${esc(r.id)}"><td><span class="order-number">${esc(r.order_no)}</span></td><td><div class="client-cell"><b>${esc(c.name||"Без имени")}</b><small>${esc(c.phone||"")}</small></div></td><td><div class="device-cell"><b>${esc(device)}</b><small>${esc(r.issue||"")}</small></div></td><td>${statusBadge(r.status)}</td><td>${esc(r.master||"—")}</td><td class="amount-cell">${esc(money(currentPrice(r)))}</td><td class="muted-cell">${esc(dateTime(r.updated_at||r.accepted_at))}</td></tr>`;}
+  function repairMobileCard(r){const c=r.customer||{},device=[r.device,r.model].filter(Boolean).join(" · ")||"Устройство";return`<article class="mobile-row-card" data-repair-id="${esc(r.id)}"><div class="mobile-row-top"><div><span class="order-number">Заказ №${esc(r.order_no)}</span><h3>${esc(device)}</h3></div>${statusBadge(r.status)}</div><p><b>${esc(c.name||"Без имени")}</b> · ${esc(c.phone||"")}<br>${esc(r.issue||"")}</p><div class="mobile-row-meta"><span>${esc(r.master||"Мастер не назначен")}</span><b>${esc(money(currentPrice(r)))}</b></div></article>`;}
+  function renderOrders(rows){state.repairs=rows||[];$("repairCount").textContent=`${state.repairs.length} шт.`;$("repairTableBody").innerHTML=state.repairs.length?state.repairs.map(repairRow).join(""):'<tr><td colspan="7" class="table-empty">Заказов по этому фильтру нет</td></tr>';$("repairMobileList").innerHTML=state.repairs.length?state.repairs.map(repairMobileCard).join(""):'<div class="table-empty">Заказов по этому фильтру нет</div>';document.querySelectorAll("[data-repair-id]").forEach(el=>el.addEventListener("click",()=>openRepair(el.dataset.repairId)));}
+  async function loadRepairs(){const seq=++state.repairLoadSeq;$("repairTableBody").innerHTML='<tr><td colspan="7" class="table-empty">Загрузка…</td></tr>';$("repairMobileList").innerHTML='<div class="table-empty">Загрузка…</div>';try{const data=await api("list-repairs",{q:state.repairQuery,status:state.repairStatus,service:state.repairService});if(seq!==state.repairLoadSeq)return;renderOrders(data.repairs||[]);}catch(e){if(e instanceof AuthError){showLogin("Сессия закончилась. Войдите снова.");return;}const msg=esc(e.message||"Не удалось загрузить заказы");$("repairTableBody").innerHTML=`<tr><td colspan="7" class="table-empty">${msg}</td></tr>`;$("repairMobileList").innerHTML=`<div class="table-empty">${msg}</div>`;}}
 
-  function detailPair(label,value){return `<div class="detail-pair"><span>${esc(label)}</span><b>${esc(value||"—")}</b></div>`;}
-  function repairDetailHtml(data){
-    const r=data.repair,c=r.customer||{},history=data.history||[],past=data.customerHistory?.repairs||[],sales=data.customerHistory?.sales||[];
-    const currentPrice=r.final_price!==null&&r.final_price!==undefined?r.final_price:r.estimated_price;
-    return `<div class="detail-summary">
-      <div class="detail-block"><h3>Клиент и устройство</h3>
-        ${detailPair("Клиент",c.name||"Без имени")}${detailPair("Телефон",c.phone)}${detailPair("Устройство",[r.device,r.model].filter(Boolean).join(" · "))}${detailPair("IMEI / S/N",r.imei)}${detailPair("Неисправность",r.issue)}
-      </div>
-      <div class="detail-block"><h3>Заказ</h3>
-        ${detailPair("Точка",r.service)}${detailPair("Менеджер",r.manager)}${detailPair("Мастер",r.master||"Не назначен")}${detailPair("Цена",money(currentPrice))}${detailPair("Принят",dateTime(r.accepted_at))}
-      </div>
-    </div>
-    <div class="status-actions">${STATUS_ORDER.map(s=>`<button class="status-action ${r.status===s?"current":""}" data-set-status="${s}" type="button">${esc(STATUS[s])}</button>`).join("")}</div>
-    <div class="detail-edit">
-      <div class="form-section-title">Изменить заказ</div>
-      <div class="form-grid two">
-        <label><span>Тип устройства</span><input id="detailDevice" value="${esc(r.device||"")}"></label>
-        <label><span>Модель</span><input id="detailModel" value="${esc(r.model||"")}"></label>
-        <label><span>IMEI / серийный</span><input id="detailImei" value="${esc(r.imei||"")}"></label>
-        <label><span>Предварительная цена, ₽</span><input id="detailEstimated" inputmode="decimal" value="${esc(r.estimated_price??0)}"></label>
-        <label><span>Итоговая цена, ₽</span><input id="detailFinal" inputmode="decimal" value="${r.final_price===null||r.final_price===undefined?"":esc(r.final_price)}" placeholder="Пока не указана"></label>
-        <label><span>Мастер</span><select id="detailMaster">${employeeOptions("master",r.master,true)}</select></label>
-        <label><span>Менеджер</span><select id="detailManager">${employeeOptions("manager",r.manager,false)}</select></label>
-      </div>
-      <label class="form-full"><span>Неисправность</span><textarea id="detailIssue" rows="2">${esc(r.issue||"")}</textarea></label>
-      <label class="form-full"><span>Комментарий</span><textarea id="detailComment" rows="2">${esc(r.comment||"")}</textarea></label>
-      <div class="form-error" id="detailError"></div>
-      <div class="form-actions"><button class="btn btn-primary" id="saveRepairChanges" type="button">Сохранить изменения</button></div>
-    </div>
-    <div class="customer-history">
-      <div class="history-box"><h4>Предыдущие ремонты клиента</h4>${past.length?past.map(x=>`<div class="history-item">№${esc(x.order_no)} · ${esc([x.device,x.model].filter(Boolean).join(" "))} · ${esc(STATUS[x.status]||x.status)}</div>`).join(""):'<div class="history-item">Пока нет</div>'}</div>
-      <div class="history-box"><h4>Покупки клиента</h4>${sales.length?sales.map(x=>`<div class="history-item">№${esc(x.sale_no)} · ${esc([x.device,x.model].filter(Boolean).join(" "))} · ${esc(money(x.sale_price))}</div>`).join(""):'<div class="history-item">Пока нет</div>'}</div>
-    </div>
-    <div class="detail-history"><h3>История статусов</h3>${history.length?history.map(h=>`<div class="history-row"><b>${esc(STATUS[h.new_status]||h.new_status)}</b> · ${esc(h.changed_by||"—")} · ${esc(dateTime(h.created_at))}</div>`).join(""):'<div class="history-row">История пока пустая</div>'}</div>`;
-  }
-  async function openRepair(id){
-    $("repairDetailOverlay").classList.remove("hidden"); $("repairDetailBody").innerHTML='<div class="crm-loading">Загрузка…</div>';
-    try{
-      const data=await api("repair",{id}); state.currentRepair=data.repair;
-      $("repairDetailTitle").textContent=`Заказ №${data.repair.order_no}`;
-      $("repairDetailSub").textContent=`${STATUS[data.repair.status]||data.repair.status} · ${data.repair.service}`;
-      $("repairDetailBody").innerHTML=repairDetailHtml(data);
-      document.querySelectorAll("[data-set-status]").forEach(btn=>btn.addEventListener("click",()=>setRepairStatus(data.repair.id,btn.dataset.setStatus,btn)));
-      $("saveRepairChanges").addEventListener("click",()=>saveRepairChanges(data.repair.id));
-    }catch(e){
-      $("repairDetailBody").innerHTML=`<div class="crm-empty">${esc(e.message||"Не удалось открыть заказ")}</div>`;
-    }
-  }
-  async function setRepairStatus(id,status,button){
-    setBusy(button,true,"…");
-    try{
-      await api("set-status",{id,status}); toast(`Статус: ${STATUS[status]}`); await openRepair(id); loadRepairs();
-    }catch(e){toast(e.message||"Не удалось изменить статус");}
-    finally{setBusy(button,false);}
-  }
-  async function saveRepairChanges(id){
-    const btn=$("saveRepairChanges"); $("detailError").textContent=""; setBusy(btn,true,"Сохраняем…");
-    try{
-      await api("update-repair",{
-        id,device:$("detailDevice").value,model:$("detailModel").value,imei:$("detailImei").value,
-        issue:$("detailIssue").value,estimatedPrice:$("detailEstimated").value,finalPrice:$("detailFinal").value,
-        master:$("detailMaster").value,manager:$("detailManager").value,comment:$("detailComment").value
-      });
-      toast("Заказ обновлён"); await openRepair(id); loadRepairs();
-    }catch(e){$("detailError").textContent=e.message||"Не удалось сохранить";}
-    finally{setBusy(btn,false);}
-  }
+  function openNewRepair(){closeSidebar();$("newRepairBackdrop").classList.remove("hidden");$("newRepairDrawer").classList.remove("hidden");document.body.style.overflow="hidden";setTimeout(()=>$("repairPhone").focus(),40);}
+  function closeNewRepair(){$("newRepairBackdrop").classList.add("hidden");$("newRepairDrawer").classList.add("hidden");document.body.style.overflow="";}
+  async function submitRepair(event){event.preventDefault();const btn=$("saveRepairBtn");$("repairFormError").textContent="";setBusy(btn,true,"Сохраняем…");try{const data=await api("create-repair",{customerName:$("repairCustomerName").value,phone:$("repairPhone").value,service:$("repairService").value,device:$("repairDevice").value,model:$("repairModel").value,imei:$("repairImei").value,issue:$("repairIssue").value,estimatedPrice:$("repairPrice").value,manager:$("repairManager").value,master:$("repairMaster").value,comment:$("repairComment").value});const no=data.repair?.order_no;$("repairForm").reset();populateStaticSelects();closeNewRepair();toast(no?`Заказ №${no} создан`:"Заказ создан");await refreshBaseData();switchView("orders",false);}catch(e){if(e instanceof AuthError){closeNewRepair();showLogin("Сессия закончилась. Войдите снова.");return;}$("repairFormError").textContent=e.message||"Не удалось создать заказ";}finally{setBusy(btn,false);}}
 
-  function saleCard(s){
-    const profit=num(s.sale_price)-num(s.purchase_price),customer=s.customer||{};
-    return `<article class="crm-card sale-card">
-      <div class="crm-card-top"><div><div class="crm-order">Продажа №${esc(s.sale_no)}</div><div class="crm-device">${esc([s.device,s.model].filter(Boolean).join(" · "))}</div></div><div class="sale-profit ${profit<0?"negative":""}">+${esc(money(profit))}</div></div>
-      <div class="crm-card-line"><strong>${esc(customer.name||"Без имени")}</strong><span>${esc(customer.phone||"")}</span><span>${esc(s.service||"")}</span></div>
-      <div class="crm-card-line"><span>IMEI: ${esc(s.imei||"—")}</span><span>Менеджер: <strong>${esc(s.manager||"—")}</strong></span></div>
-      <div class="crm-card-bottom"><span class="crm-muted">${esc(dateTime(s.sold_at))}</span><span class="crm-price">${esc(money(s.sale_price))}</span></div>
-    </article>`;
-  }
-  async function loadSales(){
-    const seq=++state.saleLoadSeq; $("saleList").innerHTML='<div class="crm-loading">Загружаем продажи…</div>';
-    try{
-      const data=await api("list-sales",{q:state.saleQuery}); if(seq!==state.saleLoadSeq)return;
-      state.sales=data.sales||[]; $("saleCount").textContent=`Продаж: ${state.sales.length}`;
-      $("saleList").innerHTML=state.sales.length?state.sales.map(saleCard).join(""):'<div class="crm-empty">Продаж пока нет</div>';
-    }catch(e){
-      if(e instanceof AuthError){showLogin("Сессия закончилась. Войдите снова.");return;}
-      $("saleList").innerHTML=`<div class="crm-empty">${esc(e.message||"Не удалось загрузить продажи")}</div>`;
-    }
-  }
-  function updateProfitPreview(){
-    const purchase=Number(String($("salePurchasePrice").value||0).replace(/\s/g,"").replace(",","."))||0;
-    const sale=Number(String($("salePrice").value||0).replace(/\s/g,"").replace(",","."))||0;
-    const profit=sale-purchase; $("saleProfitPreview").textContent=`Прибыль: ${money(profit)}`;
-  }
-  function openSale(){ $("saleOverlay").classList.remove("hidden"); updateProfitPreview(); setTimeout(()=>$("salePhone").focus(),30); }
-  function closeSale(){ $("saleOverlay").classList.add("hidden"); }
-  async function submitSale(event){
-    event.preventDefault(); const btn=$("saveSaleBtn"); $("saleFormError").textContent=""; setBusy(btn,true,"Сохраняем…");
-    try{
-      const data=await api("create-sale",{
-        customerName:$("saleCustomerName").value,phone:$("salePhone").value,service:$("saleService").value,
-        device:$("saleDevice").value,model:$("saleModel").value,imei:$("saleImei").value,
-        purchasePrice:$("salePurchasePrice").value,salePrice:$("salePrice").value,manager:$("saleManager").value,comment:$("saleComment").value
-      });
-      $("saleForm").reset(); populateStaticSelects(); updateProfitPreview(); closeSale();
-      toast(data.sale?.sale_no?`Продажа №${data.sale.sale_no} сохранена`:"Продажа сохранена"); loadSales();
-    }catch(e){
-      if(e instanceof AuthError){closeSale();showLogin("Сессия закончилась. Войдите снова.");return;}
-      $("saleFormError").textContent=e.message||"Не удалось сохранить продажу";
-    }finally{setBusy(btn,false);}
-  }
+  function detailItem(label,value,full=false){return`<div class="detail-item ${full?"full":""}"><span>${esc(label)}</span><b>${esc(value||"—")}</b></div>`;}
+  function repairDetailHtml(data){const r=data.repair,c=r.customer||{},history=data.history||[],past=data.customerHistory?.repairs||[],sales=data.customerHistory?.sales||[];return`<div class="order-layout"><div class="order-main"><div class="detail-panel"><h3>Статус заказа</h3><div class="status-stepper">${STATUS_ORDER.map(s=>`<button class="${r.status===s?"current":""}" data-set-status="${s}" type="button">${esc(STATUS[s])}</button>`).join("")}</div></div><div class="detail-panel"><h3>Клиент и устройство</h3><div class="detail-grid">${detailItem("Клиент",c.name||"Без имени")}${detailItem("Телефон",c.phone)}${detailItem("Устройство",[r.device,r.model].filter(Boolean).join(" · "))}${detailItem("IMEI / S/N",r.imei)}${detailItem("Неисправность",r.issue,true)}${detailItem("Комментарий",r.comment,true)}</div></div><div class="detail-panel"><h3>Редактирование</h3><div class="edit-grid"><label><span>Тип устройства</span><input id="detailDevice" value="${esc(r.device||"")}"></label><label><span>Модель</span><input id="detailModel" value="${esc(r.model||"")}"></label><label><span>IMEI / серийный</span><input id="detailImei" value="${esc(r.imei||"")}"></label><label><span>Предварительная цена, ₽</span><input id="detailEstimated" inputmode="decimal" value="${esc(r.estimated_price??0)}"></label><label><span>Итоговая цена, ₽</span><input id="detailFinal" inputmode="decimal" value="${r.final_price===null||r.final_price===undefined?"":esc(r.final_price)}" placeholder="Пока не указана"></label><label><span>Мастер</span><select id="detailMaster">${employeeOptions("master",r.master,true)}</select></label><label><span>Менеджер</span><select id="detailManager">${employeeOptions("manager",r.manager,false)}</select></label><label><span>Неисправность</span><textarea id="detailIssue" rows="2">${esc(r.issue||"")}</textarea></label><label class="form-full"><span>Комментарий</span><textarea id="detailComment" rows="2">${esc(r.comment||"")}</textarea></label></div><div class="form-error" id="detailError"></div><div class="detail-edit-actions"><button class="btn btn-primary" id="saveRepairChanges" type="button">Сохранить изменения</button></div></div></div><div class="order-side"><div class="detail-panel"><h3>Заказ</h3><div class="detail-grid">${detailItem("Точка",r.service)}${detailItem("Менеджер",r.manager)}${detailItem("Мастер",r.master||"Не назначен")}${detailItem("Сумма",money(currentPrice(r)))}${detailItem("Принят",dateTime(r.accepted_at))}${detailItem("Обновлён",dateTime(r.updated_at))}</div></div><div class="detail-panel"><h3>История клиента</h3><div class="history-mini">${past.length?past.slice(0,6).map(x=>`<div class="history-mini-row"><b>Ремонт №${esc(x.order_no)}</b>${esc([x.device,x.model].filter(Boolean).join(" "))} · ${esc(STATUS[x.status]||x.status)}</div>`).join(""):"<div class=\"history-mini-row\">Других ремонтов пока нет</div>"}${sales.length?sales.slice(0,4).map(x=>`<div class="history-mini-row"><b>Продажа №${esc(x.sale_no)}</b>${esc([x.device,x.model].filter(Boolean).join(" "))} · ${esc(money(x.sale_price))}</div>`).join(""):""}</div></div><div class="detail-panel"><h3>История статусов</h3><div class="timeline">${history.length?history.map(h=>`<div class="timeline-row"><b>${esc(STATUS[h.new_status]||h.new_status)}</b> · ${esc(h.changed_by||"—")}<br>${esc(dateTime(h.created_at))}</div>`).join(""):'<div class="timeline-row">История пока пустая</div>'}</div></div></div></div>`;}
+  async function openRepair(id){$("repairDetailOverlay").classList.remove("hidden");document.body.style.overflow="hidden";$("repairDetailBody").innerHTML='<div class="loading-row">Загрузка…</div>';try{const data=await api("repair",{id});state.currentRepair=data.repair;$("repairDetailTitle").textContent=`Заказ №${data.repair.order_no}`;$("repairDetailStatus").textContent=(STATUS[data.repair.status]||data.repair.status).toUpperCase();$("repairDetailSub").textContent=`${data.repair.service} · ${[data.repair.device,data.repair.model].filter(Boolean).join(" ")}`;$("repairDetailBody").innerHTML=repairDetailHtml(data);document.querySelectorAll("[data-set-status]").forEach(btn=>btn.addEventListener("click",()=>setRepairStatus(data.repair.id,btn.dataset.setStatus,btn)));$("saveRepairChanges").addEventListener("click",()=>saveRepairChanges(data.repair.id));}catch(e){$("repairDetailBody").innerHTML=`<div class="loading-row">${esc(e.message||"Не удалось открыть заказ")}</div>`;}}
+  function closeRepairDetail(){$("repairDetailOverlay").classList.add("hidden");document.body.style.overflow="";state.currentRepair=null;}
+  async function setRepairStatus(id,status,button){setBusy(button,true,"…");try{await api("set-status",{id,status});toast(`Статус: ${STATUS[status]}`);await refreshBaseData();await openRepair(id);}catch(e){toast(e.message||"Не удалось изменить статус");}finally{setBusy(button,false);}}
+  async function saveRepairChanges(id){const btn=$("saveRepairChanges");$("detailError").textContent="";setBusy(btn,true,"Сохраняем…");try{await api("update-repair",{id,device:$("detailDevice").value,model:$("detailModel").value,imei:$("detailImei").value,issue:$("detailIssue").value,estimatedPrice:$("detailEstimated").value,finalPrice:$("detailFinal").value,master:$("detailMaster").value,manager:$("detailManager").value,comment:$("detailComment").value});toast("Заказ обновлён");await refreshBaseData();await openRepair(id);}catch(e){$("detailError").textContent=e.message||"Не удалось сохранить";}finally{setBusy(btn,false);}}
+
+  function saleRow(s){const c=s.customer||{},profit=num(s.sale_price)-num(s.purchase_price);return`<tr><td><span class="order-number">${esc(s.sale_no)}</span></td><td><div class="client-cell"><b>${esc(c.name||"Без имени")}</b><small>${esc(c.phone||"")}</small></div></td><td><div class="device-cell"><b>${esc([s.device,s.model].filter(Boolean).join(" · "))}</b><small>IMEI: ${esc(s.imei||"—")}</small></div></td><td>${esc(s.service||"—")}</td><td class="amount-cell">${esc(money(s.sale_price))}</td><td class="${profit>=0?"profit-positive":"profit-negative"}">${esc((profit>=0?"+":"")+money(profit))}</td><td class="muted-cell">${esc(dateTime(s.sold_at))}</td></tr>`;}
+  function saleMobileCard(s){const c=s.customer||{},profit=num(s.sale_price)-num(s.purchase_price);return`<article class="mobile-row-card"><div class="mobile-row-top"><div><span class="order-number">Продажа №${esc(s.sale_no)}</span><h3>${esc([s.device,s.model].filter(Boolean).join(" · "))}</h3></div><b class="${profit>=0?"profit-positive":"profit-negative"}">${esc((profit>=0?"+":"")+money(profit))}</b></div><p>${esc(c.name||"Без имени")} · ${esc(c.phone||"")}<br>${esc(s.service||"")} · ${esc(s.manager||"—")}</p><div class="mobile-row-meta"><span>${esc(dateOnly(s.sold_at))}</span><b>${esc(money(s.sale_price))}</b></div></article>`;}
+  function renderSales(rows){state.sales=rows||[];$("saleCount").textContent=`${state.sales.length} шт.`;$("saleTableBody").innerHTML=state.sales.length?state.sales.map(saleRow).join(""):'<tr><td colspan="7" class="table-empty">Продаж пока нет</td></tr>';$("saleMobileList").innerHTML=state.sales.length?state.sales.map(saleMobileCard).join(""):'<div class="table-empty">Продаж пока нет</div>';}
+  async function loadSales(){const seq=++state.saleLoadSeq;$("saleTableBody").innerHTML='<tr><td colspan="7" class="table-empty">Загрузка…</td></tr>';$("saleMobileList").innerHTML='<div class="table-empty">Загрузка…</div>';try{const data=await api("list-sales",{q:state.saleQuery});if(seq!==state.saleLoadSeq)return;renderSales(data.sales||[]);}catch(e){if(e instanceof AuthError){showLogin("Сессия закончилась. Войдите снова.");return;}const msg=esc(e.message||"Не удалось загрузить продажи");$("saleTableBody").innerHTML=`<tr><td colspan="7" class="table-empty">${msg}</td></tr>`;$("saleMobileList").innerHTML=`<div class="table-empty">${msg}</div>`;}}
+  function updateProfitPreview(){const purchase=Number(String($("salePurchasePrice").value||0).replace(/\s/g,"").replace(",","."))||0,sale=Number(String($("salePrice").value||0).replace(/\s/g,"").replace(",","."))||0;$("saleProfitPreview").textContent=`Прибыль: ${money(sale-purchase)}`;}
+  function openSale(){$("saleOverlay").classList.remove("hidden");document.body.style.overflow="hidden";updateProfitPreview();setTimeout(()=>$("salePhone").focus(),30);}
+  function closeSale(){$("saleOverlay").classList.add("hidden");document.body.style.overflow="";}
+  async function submitSale(event){event.preventDefault();const btn=$("saveSaleBtn");$("saleFormError").textContent="";setBusy(btn,true,"Сохраняем…");try{const data=await api("create-sale",{customerName:$("saleCustomerName").value,phone:$("salePhone").value,service:$("saleService").value,device:$("saleDevice").value,model:$("saleModel").value,imei:$("saleImei").value,purchasePrice:$("salePurchasePrice").value,salePrice:$("salePrice").value,manager:$("saleManager").value,comment:$("saleComment").value});$("saleForm").reset();populateStaticSelects();updateProfitPreview();closeSale();toast(data.sale?.sale_no?`Продажа №${data.sale.sale_no} сохранена`:"Продажа сохранена");await refreshBaseData();switchView("sales",false);}catch(e){if(e instanceof AuthError){closeSale();showLogin("Сессия закончилась. Войдите снова.");return;}$("saleFormError").textContent=e.message||"Не удалось сохранить продажу";}finally{setBusy(btn,false);}}
+
+  function aggregateClients(repairs,sales){const map=new Map();function take(c){if(!c)return null;const key=String(c.id||c.phone_normalized||c.phone||"").trim();if(!key)return null;if(!map.has(key))map.set(key,{id:c.id||key,name:c.name||"",phone:c.phone||"",repairs:0,sales:0,turnover:0,lastAt:""});const x=map.get(key);if(c.name)x.name=c.name;if(c.phone)x.phone=c.phone;return x;}for(const r of repairs||[]){const x=take(r.customer);if(!x)continue;x.repairs++;if(r.status==="issued")x.turnover+=num(currentPrice(r));const at=r.updated_at||r.accepted_at;if(!x.lastAt||new Date(at)>new Date(x.lastAt))x.lastAt=at;}for(const s of sales||[]){const x=take(s.customer);if(!x)continue;x.sales++;x.turnover+=num(s.sale_price);const at=s.sold_at||s.created_at;if(!x.lastAt||new Date(at)>new Date(x.lastAt))x.lastAt=at;}return[...map.values()].sort((a,b)=>new Date(b.lastAt||0)-new Date(a.lastAt||0));}
+  function clientRows(){const q=state.clientQuery.toLowerCase(),digits=q.replace(/\D/g,"");return state.clients.filter(c=>!q||`${c.name} ${c.phone}`.toLowerCase().includes(q)||(digits&&String(c.phone).replace(/\D/g,"").includes(digits)));}
+  function renderClients(){const rows=clientRows();$("clientCount").textContent=`${rows.length} чел.`;$("clientTableBody").innerHTML=rows.length?rows.map(c=>`<tr data-client-phone="${esc(c.phone)}"><td><div class="client-cell"><b>${esc(c.name||"Без имени")}</b><small>Клиент MA CRM</small></div></td><td>${esc(c.phone||"—")}</td><td>${c.repairs}</td><td>${c.sales}</td><td class="amount-cell">${esc(money(c.turnover))}</td><td class="muted-cell">${esc(dateTime(c.lastAt))}</td></tr>`).join(""):'<tr><td colspan="6" class="table-empty">Клиенты не найдены</td></tr>';$("clientMobileList").innerHTML=rows.length?rows.map(c=>`<article class="mobile-row-card" data-client-phone="${esc(c.phone)}"><div class="mobile-row-top"><div><span class="order-number">Клиент</span><h3>${esc(c.name||"Без имени")}</h3></div><b>${esc(money(c.turnover))}</b></div><p>${esc(c.phone||"")}<br>Ремонтов: ${c.repairs} · Покупок: ${c.sales}</p><div class="mobile-row-meta"><span>Последнее обращение</span><b>${esc(dateOnly(c.lastAt))}</b></div></article>`).join(""):'<div class="table-empty">Клиенты не найдены</div>';document.querySelectorAll("[data-client-phone]").forEach(el=>el.addEventListener("click",()=>{state.repairQuery=el.dataset.clientPhone||"";$("repairSearch").value=state.repairQuery;switchView("orders");}));}
+
+  function renderDashboard(){const repairs=state.allRepairs,sales=state.allSales,today=todayKey(),newToday=repairs.filter(r=>dateKey(r.accepted_at)===today).length,work=repairs.filter(r=>["diagnostics","in_work","waiting_part"].includes(r.status)).length,ready=repairs.filter(r=>r.status==="ready").length,issuedToday=repairs.filter(r=>dateKey(r.issued_at)===today).reduce((s,r)=>s+num(currentPrice(r)),0),salesToday=sales.filter(s=>dateKey(s.sold_at)===today).reduce((a,s)=>a+num(s.sale_price),0);$("metricNew").textContent=newToday;$("metricWork").textContent=work;$("metricReady").textContent=ready;$("metricRevenue").textContent=shortMoney(issuedToday+salesToday);$("dashboardDate").textContent=new Intl.DateTimeFormat("ru-RU",{timeZone:"Europe/Moscow",weekday:"long",day:"numeric",month:"long"}).format(new Date());const hour=Number(new Intl.DateTimeFormat("ru-RU",{timeZone:"Europe/Moscow",hour:"2-digit",hour12:false}).format(new Date()));$("dashboardGreeting").textContent=hour<12?"Доброе утро":hour<18?"Рабочий день":"Итоги дня";$("statusOverview").innerHTML=STATUS_ORDER.map(s=>{const count=repairs.filter(r=>r.status===s).length;return`<div class="status-tile"><span><i class="dot-${s}"></i>${esc(STATUS[s])}</span><b>${count}</b></div>`;}).join("");const recent=[...repairs].sort((a,b)=>new Date(b.updated_at||b.accepted_at)-new Date(a.updated_at||a.accepted_at)).slice(0,6);$("recentRepairs").innerHTML=recent.length?recent.map(r=>`<button class="compact-order text-button" data-recent-repair="${esc(r.id)}"><span><b>№${esc(r.order_no)} · ${esc([r.device,r.model].filter(Boolean).join(" ")||"Устройство")}</b><span>${esc(r.customer?.name||"Без имени")} · ${esc(r.issue||"")}</span></span>${statusBadge(r.status)}</button>`).join(""):'<div class="loading-row">Заказов пока нет</div>';document.querySelectorAll("[data-recent-repair]").forEach(el=>el.addEventListener("click",()=>openRepair(el.dataset.recentRepair)));}
+
+  function renderReports(){const repairs=state.allRepairs,sales=state.allSales,issued=repairs.filter(r=>r.status==="issued"),repairTurnover=issued.reduce((s,r)=>s+num(currentPrice(r)),0),salesTurnover=sales.reduce((s,x)=>s+num(x.sale_price),0),salesProfit=sales.reduce((s,x)=>s+num(x.sale_price)-num(x.purchase_price),0),avg=issued.length?repairTurnover/issued.length:0;$("reportSummary").innerHTML=`<div class="report-card"><span>Оборот ремонтов</span><b>${esc(shortMoney(repairTurnover))}</b><small>по выданным заказам</small></div><div class="report-card"><span>Продажи техники</span><b>${esc(shortMoney(salesTurnover))}</b><small>оборот продаж</small></div><div class="report-card"><span>Прибыль продаж</span><b>${esc(shortMoney(salesProfit))}</b><small>продажа минус закупка</small></div><div class="report-card"><span>Средний ремонт</span><b>${esc(shortMoney(avg))}</b><small>по выданным заказам</small></div>`;const max=Math.max(1,...STATUS_ORDER.map(s=>repairs.filter(r=>r.status===s).length));$("reportStatusBars").innerHTML=STATUS_ORDER.map(s=>{const count=repairs.filter(r=>r.status===s).length,pct=Math.round(count/max*100);return`<div class="bar-row"><span>${esc(STATUS[s])}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><b>${count}</b></div>`;}).join("");const counts=new Map();repairs.forEach(r=>{const n=String(r.master||"").trim();if(n)counts.set(n,(counts.get(n)||0)+1);});const people=[...counts.entries()].sort((a,b)=>b[1]-a[1]);$("reportPeople").innerHTML=people.length?people.map(([name,count])=>`<div class="person-row"><span class="person-avatar">${esc(initials(name))}</span><span><b>${esc(name)}</b><small>назначенные ремонты</small></span><strong>${count}</strong></div>`).join(""):'<div class="loading-row">Назначений пока нет</div>';}
+
+  function openSidebar(){$("crmSidebar").classList.add("open");$("sidebarBackdrop").classList.remove("hidden");}
+  function closeSidebar(){$("crmSidebar").classList.remove("open");$("sidebarBackdrop").classList.add("hidden");}
+  function setOnlineState(){const online=navigator.onLine;$("crmOffline").classList.toggle("hidden",online);$("onlineState").classList.toggle("offline",!online);$("onlineState").querySelector("span").textContent=online?"Онлайн":"Нет сети";}
 
   function bind(){
-    document.querySelectorAll(".crm-tab").forEach(btn=>btn.addEventListener("click",()=>switchTab(btn.dataset.tab)));
-    $("openNewRepairTop").addEventListener("click",()=>switchTab("newRepair"));
-    $("cancelRepairForm").addEventListener("click",()=>switchTab("repairs"));
-    $("repairForm").addEventListener("submit",submitRepair);
-    $("crmLoginForm").addEventListener("submit",async event=>{
-      event.preventDefault(); const btn=$("crmLoginBtn"); $("crmLoginError").textContent=""; setBusy(btn,true,"Входим…");
-      try{
-        const employee=$("crmLoginName").value.trim(),pin=$("crmLoginPin").value;
-        const data=await api("login",{employee,pin}); localStorage.setItem(CRM_SESSION_KEY,data.session); localStorage.setItem(CRM_EMPLOYEE_KEY,data.employee); $("crmLoginPin").value=""; await bootstrap();
-      }catch(e){$("crmLoginError").textContent=e.message||"Не удалось войти";}
-      finally{setBusy(btn,false);}
-    });
-    $("repairSearch").addEventListener("input",event=>{clearTimeout(repairSearchTimer);repairSearchTimer=setTimeout(()=>{state.repairQuery=event.target.value.trim();loadRepairs();},300);});
-    $("repairServiceFilter").addEventListener("change",event=>{state.repairService=event.target.value;loadRepairs();});
-    $("repairStatusFilters").addEventListener("click",event=>{
-      const btn=event.target.closest("button[data-status]");if(!btn)return;
-      state.repairStatus=btn.dataset.status;document.querySelectorAll("#repairStatusFilters button").forEach(x=>x.classList.toggle("active",x===btn));loadRepairs();
-    });
-    $("closeRepairDetail").addEventListener("click",()=>$("repairDetailOverlay").classList.add("hidden"));
-    $("repairDetailOverlay").addEventListener("click",event=>{if(event.target===$("repairDetailOverlay"))$("repairDetailOverlay").classList.add("hidden");});
-    $("openSaleModal").addEventListener("click",openSale); $("closeSaleModal").addEventListener("click",closeSale); $("cancelSale").addEventListener("click",closeSale);
-    $("saleOverlay").addEventListener("click",event=>{if(event.target===$("saleOverlay"))closeSale();});
-    $("saleForm").addEventListener("submit",submitSale); $("salePurchasePrice").addEventListener("input",updateProfitPreview); $("salePrice").addEventListener("input",updateProfitPreview);
-    $("saleSearch").addEventListener("input",event=>{clearTimeout(saleSearchTimer);saleSearchTimer=setTimeout(()=>{state.saleQuery=event.target.value.trim();loadSales();},300);});
-    window.addEventListener("online",()=>{$("crmOffline").classList.add("hidden");if(!$("crmMain").classList.contains("hidden"))loadRepairs();});
-    window.addEventListener("offline",()=>$("crmOffline").classList.remove("hidden"));
-    if(!navigator.onLine)$("crmOffline").classList.remove("hidden");
+    document.querySelectorAll(".nav-item[data-view],.mobile-bottom-nav [data-view],[data-go-view]").forEach(btn=>btn.addEventListener("click",()=>switchView(btn.dataset.view||btn.dataset.goView)));
+    $("globalNewRepair").addEventListener("click",openNewRepair);$("mobileNewRepair").addEventListener("click",openNewRepair);$("closeNewRepair").addEventListener("click",closeNewRepair);$("cancelRepairForm").addEventListener("click",closeNewRepair);$("newRepairBackdrop").addEventListener("click",closeNewRepair);$("repairForm").addEventListener("submit",submitRepair);
+    $("openSidebar").addEventListener("click",openSidebar);$("sidebarBackdrop").addEventListener("click",closeSidebar);
+    $("crmLoginForm").addEventListener("submit",async event=>{event.preventDefault();const btn=$("crmLoginBtn");$("crmLoginError").textContent="";setBusy(btn,true,"Входим…");try{const employee=$("crmLoginName").value.trim(),pin=$("crmLoginPin").value,data=await api("login",{employee,pin});localStorage.setItem(CRM_SESSION_KEY,data.session);localStorage.setItem(CRM_EMPLOYEE_KEY,data.employee);$("crmLoginPin").value="";await bootstrap();}catch(e){$("crmLoginError").textContent=e.message||"Не удалось войти";}finally{setBusy(btn,false);}});
+    $("repairSearch").addEventListener("input",e=>{clearTimeout(repairSearchTimer);repairSearchTimer=setTimeout(()=>{state.repairQuery=e.target.value.trim();loadRepairs();},280);});
+    $("repairServiceFilter").addEventListener("change",e=>{state.repairService=e.target.value;loadRepairs();});
+    $("repairStatusFilters").addEventListener("click",e=>{const btn=e.target.closest("button[data-status]");if(!btn)return;state.repairStatus=btn.dataset.status;document.querySelectorAll("#repairStatusFilters button").forEach(x=>x.classList.toggle("active",x===btn));loadRepairs();});
+    $("toggleStatusFilters").addEventListener("click",()=>$("repairStatusFilters").classList.toggle("hidden"));
+    $("closeRepairDetail").addEventListener("click",closeRepairDetail);$("repairDetailOverlay").addEventListener("click",e=>{if(e.target===$("repairDetailOverlay"))closeRepairDetail();});
+    $("openSaleModal").addEventListener("click",openSale);$("closeSaleModal").addEventListener("click",closeSale);$("cancelSale").addEventListener("click",closeSale);$("saleOverlay").addEventListener("click",e=>{if(e.target===$("saleOverlay"))closeSale();});$("saleForm").addEventListener("submit",submitSale);$("salePurchasePrice").addEventListener("input",updateProfitPreview);$("salePrice").addEventListener("input",updateProfitPreview);
+    $("saleSearch").addEventListener("input",e=>{clearTimeout(saleSearchTimer);saleSearchTimer=setTimeout(()=>{state.saleQuery=e.target.value.trim();loadSales();},280);});
+    $("clientSearch").addEventListener("input",e=>{clearTimeout(clientSearchTimer);clientSearchTimer=setTimeout(()=>{state.clientQuery=e.target.value.trim();renderClients();},160);});
+    $("refreshDashboard").addEventListener("click",async e=>{setBusy(e.currentTarget,true,"Обновляем…");await refreshBaseData();setBusy(e.currentTarget,false);});
+    window.addEventListener("online",()=>{setOnlineState();refreshBaseData();});window.addEventListener("offline",setOnlineState);setOnlineState();
+    document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(!$("repairDetailOverlay").classList.contains("hidden"))closeRepairDetail();else if(!$("newRepairDrawer").classList.contains("hidden"))closeNewRepair();else if(!$("saleOverlay").classList.contains("hidden"))closeSale();else closeSidebar();});
   }
 
-  bind();
-  bootstrap();
+  bind();bootstrap();
 })();
