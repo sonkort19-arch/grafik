@@ -41,3 +41,23 @@
   function syncAssistantAccess(){const allowed=hasAdminSession();if(allowed===lastAllowed){if(allowed&&!assistantActive&&!document.getElementById("maAssistantLaunch"))startAssistant();return;}lastAllowed=allowed;if(allowed)startAssistant();else removeAssistantUi();}
   window.addEventListener("storage",event=>{if(!event.key||event.key===AUTH_KEY)syncAssistantAccess();});window.addEventListener("focus",syncAssistantAccess);document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncAssistantAccess();});setInterval(syncAssistantAccess,700);setTimeout(syncAssistantAccess,250);
 })();
+
+(function(){
+  "use strict";
+  if(typeof document==="undefined"||typeof window==="undefined")return;
+  function mountCrmButton(){
+    if(document.getElementById("maCrmEntry"))return;
+    const adminBtn=document.getElementById("adminBtn");
+    const actions=adminBtn?.parentElement;
+    if(!actions)return;
+    const link=document.createElement("a");
+    link.id="maCrmEntry";
+    link.href="./crm.html";
+    link.textContent="CRM";
+    link.setAttribute("aria-label","Открыть MA CRM");
+    link.style.cssText="display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 10px;border-radius:999px;border:1px solid #0f5bd7;background:#0f5bd7;color:#fff;text-decoration:none;font-size:12px;font-weight:800;white-space:nowrap";
+    actions.insertBefore(link,adminBtn);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mountCrmButton,{once:true});
+  else mountCrmButton();
+})();
