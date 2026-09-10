@@ -31,6 +31,7 @@ jobs:
           node --check assistant-owner.js
           node --check app.js
           node --check crm-phase1.js
+          node --check crm-inventory.js
           node --check crm.js
           node --check tests/run-tests.js
           node --check tests/assistant-tests.js
@@ -71,6 +72,7 @@ jobs:
           deno check supabase/functions/ma-grafik-attendance-api/index.ts
           deno check supabase/functions/ma-crm-api/index.ts
           deno check supabase/functions/ma-crm-phase1-api/index.ts
+          deno check supabase/functions/ma-crm-inventory-api/index.ts
 
   production-smoke:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -95,8 +97,9 @@ jobs:
           wait_for "$BASE/.well-known/oauth-protected-resource" '"resource":"https://grafik-umber.vercel.app/mcp"'
           wait_for "$BASE/plugin/" "МА График для ChatGPT"
           wait_for "$BASE/oauth/consent.html" "Подключение ChatGPT"
-          wait_for "$BASE/crm.html" "crm-phase1.js"
+          wait_for "$BASE/crm.html" "crm-inventory.js"
           wait_for "$BASE/crm-phase1.js" "ma-crm-phase1-api"
+          wait_for "$BASE/crm-inventory.js" "ma-crm-inventory-api"
           headers="$(curl -sS -i --max-time 10 -X POST "$BASE/mcp" -H 'Content-Type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ma-grafik-smoke","version":"1.0"}}}')"
           [[ "$headers" =~ ^HTTP/[^[:space:]]+[[:space:]]401 ]]
           echo "OK: production smoke"
