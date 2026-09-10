@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="crm.css?v=20260910-v2">
 <link rel="stylesheet" href="crm-phase1.css?v=20260911-1">
 <link rel="stylesheet" href="crm-inventory.css?v=20260911-2">
+<link rel="stylesheet" href="crm-finance.css?v=20260911-3">
 </head>
 <body>
 <div class="crm-shell">
@@ -25,7 +26,7 @@
       <button class="nav-item" data-view="sales"><span class="nav-icon">₽</span><span>Продажи</span></button>
       <div class="nav-caption">УПРАВЛЕНИЕ</div>
       <button class="nav-item" data-view="inventory"><span class="nav-icon">□</span><span>Склад</span></button>
-      <button class="nav-item" data-view="payments"><span class="nav-icon">↔</span><span>Платежи</span><em>скоро</em></button>
+      <button class="nav-item" data-view="payments"><span class="nav-icon">↔</span><span>Финансы</span></button>
       <button class="nav-item" data-view="reports"><span class="nav-icon">⌁</span><span>Отчёты</span></button>
     </nav>
     <div class="sidebar-bottom">
@@ -140,7 +141,7 @@
           <div class="panel"><div class="panel-head"><div><h3>Воронка ремонтов</h3><p>Распределение заказов по статусам</p></div></div><div class="report-bars" id="reportStatusBars"></div></div>
           <div class="panel"><div class="panel-head"><div><h3>Сотрудники</h3><p>Количество назначенных заказов</p></div></div><div class="report-people" id="reportPeople"></div></div>
         </div>
-        <div class="report-note">Отчёт строится по данным, загруженным в текущую CRM. Расширенная финансовая аналитика будет подключена отдельным этапом.</div>
+        <div class="report-note">Отчёт строится по данным, загруженным в текущую CRM. Расширенная финансовая аналитика доступна в разделе «Финансы».</div>
       </section>
 
       <section class="view hidden" id="inventoryView" data-view-panel="inventory">
@@ -148,7 +149,7 @@
       </section>
 
       <section class="view hidden" id="paymentsView" data-view-panel="payments">
-        <div class="coming-soon"><div class="coming-icon">₽</div><h2>Платежи</h2><p>Следующий этап: оплаты, предоплаты, кассы, способы оплаты и автоматическая прибыль по заказам.</p><button class="btn btn-primary" data-go-view="orders">Вернуться к заказам</button></div>
+        <div class="coming-soon"><div class="coming-icon">₽</div><h2>Финансы</h2><p>Загружаем финансовый модуль.</p></div>
       </section>
     </main>
   </div>
@@ -211,6 +212,7 @@
 <div class="toast" id="crmToast" aria-live="polite"></div>
 <script src="crm-phase1.js?v=20260911-1"></script>
 <script src="crm-inventory.js?v=20260911-2"></script>
+<script src="crm-finance.js?v=20260911-3"></script>
 <script src="crm.js?v=20260910-v2"></script>
 </body>
 </html>
