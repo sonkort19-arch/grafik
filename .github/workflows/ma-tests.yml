@@ -87,7 +87,7 @@ jobs:
           wait_for "$BASE/assistant.js" "Помощник МА График"
           wait_for "$BASE/assistant-attendance.js" "/assets/ma-assistant-icon.svg"
           wait_for "$BASE/assets/ma-assistant-icon.svg" "#a8ff00"
-          wait_for "$BASE/assistant-owner.js" "Что сегодня не так?"
+          wait_for "$BASE/assistant-owner.js" "MA Assistant owner"
           wait_for "$BASE/safety.js" "assistant-owner.js"
           wait_for "$BASE/mcp" '"service":"MA Grafik MCP"'
           wait_for "$BASE/.well-known/oauth-protected-resource" '"resource":"https://grafik-umber.vercel.app/mcp"'
