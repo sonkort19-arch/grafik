@@ -18,6 +18,7 @@
   }
 
   function syncCrmEntryVisibility(session,storageKey=DEFAULT_STORAGE_KEY){
+    if(typeof document==="undefined") return;
     const allowed=session===undefined ? sessionIsAdmin(storedAdminSession(storageKey)) : sessionIsAdmin(session);
     const apply=()=>document.body?.classList.toggle(CRM_ADMIN_CLASS,allowed);
     if(document.body) apply();
