@@ -9,6 +9,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="ma-apple-touch-final-v6.png">
 <link rel="stylesheet" href="crm.css?v=20260910-v2">
 <link rel="stylesheet" href="crm-phase1.css?v=20260911-1">
+<link rel="stylesheet" href="crm-inventory.css?v=20260911-2">
 </head>
 <body>
 <div class="crm-shell">
@@ -23,7 +24,7 @@
       <button class="nav-item" data-view="clients"><span class="nav-icon">◉</span><span>Клиенты</span></button>
       <button class="nav-item" data-view="sales"><span class="nav-icon">₽</span><span>Продажи</span></button>
       <div class="nav-caption">УПРАВЛЕНИЕ</div>
-      <button class="nav-item" data-view="inventory"><span class="nav-icon">□</span><span>Склад</span><em>скоро</em></button>
+      <button class="nav-item" data-view="inventory"><span class="nav-icon">□</span><span>Склад</span></button>
       <button class="nav-item" data-view="payments"><span class="nav-icon">↔</span><span>Платежи</span><em>скоро</em></button>
       <button class="nav-item" data-view="reports"><span class="nav-icon">⌁</span><span>Отчёты</span></button>
     </nav>
@@ -143,7 +144,7 @@
       </section>
 
       <section class="view hidden" id="inventoryView" data-view-panel="inventory">
-        <div class="coming-soon"><div class="coming-icon">□</div><h2>Склад</h2><p>Следующий этап: запчасти, аксессуары, остатки по точкам, приход, списание и привязка деталей к ремонту.</p><button class="btn btn-primary" data-go-view="orders">Вернуться к заказам</button></div>
+        <div class="coming-soon"><div class="coming-icon">□</div><h2>Склад</h2><p>Загружаем складской модуль.</p></div>
       </section>
 
       <section class="view hidden" id="paymentsView" data-view-panel="payments">
@@ -209,6 +210,7 @@
 
 <div class="toast" id="crmToast" aria-live="polite"></div>
 <script src="crm-phase1.js?v=20260911-1"></script>
+<script src="crm-inventory.js?v=20260911-2"></script>
 <script src="crm.js?v=20260910-v2"></script>
 </body>
 </html>
