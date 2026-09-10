@@ -1,0 +1,194 @@
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-crm-session",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ADMIN_EMAIL = (Deno.env.get("ADMIN_EMAIL") || "bul782@mail.ru").toLowerCase();
+const PIN_PEPPER = Deno.env.get("PIN_PEPPER") || "";
+const db = createClient(SUPABASE_URL, SERVICE_ROLE, {auth:{persistSession:false,autoRefreshToken:false}});
+
+function json(data: unknown, status = 200){
+  return new Response(JSON.stringify(data), {status, headers:{...corsHeaders,"Content-Type":"application/json"}});
+}
+function text(v: unknown, max = 500){ return String(v ?? "").trim().slice(0,max); }
+function decimal(v: unknown, max = 100000000){
+  const n = Number(String(v ?? 0).replace(/\s/g,"").replace(",","."));
+  if(!Number.isFinite(n) || n < 0 || n > max) throw new Error("Неверное числовое значение");
+  return Math.round(n * 100) / 100;
+}
+function positive(v: unknown, max = 100000000){
+  const n = decimal(v,max);
+  if(n <= 0) throw new Error("Значение должно быть больше нуля");
+  return n;
+}
+function optionalDate(v: unknown){
+  const raw = text(v,80);
+  if(!raw) return null;
+  const d = new Date(raw);
+  if(Number.isNaN(d.getTime())) throw new Error("Неверная дата");
+  return d.toISOString();
+}
+function b64url(bytes: Uint8Array){
+  let s=""; for(const b of bytes) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
+}
+function fromB64url(value: string){
+  const base=value.replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-value.length%4)%4);
+  const raw=atob(base); return Uint8Array.from(raw,c=>c.charCodeAt(0));
+}
+async function hmac(value: string){
+  if(!PIN_PEPPER) throw new Error("CRM auth is not configured");
+  const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(PIN_PEPPER),{name:"HMAC",hash:"SHA-256"},false,["sign","verify"]);
+  return new Uint8Array(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(value)));
+}
+async function readSession(req: Request){
+  const token=req.headers.get("x-crm-session")||"";
+  const [payload,sig]=token.split(".");
+  if(!payload||!sig) return null;
+  const expected=await hmac(payload), actual=fromB64url(sig);
+  if(actual.length!==expected.length) return null;
+  let diff=0; for(let i=0;i<actual.length;i++) diff|=actual[i]^expected[i];
+  if(diff!==0) return null;
+  try{
+    const data=JSON.parse(new TextDecoder().decode(fromB64url(payload)));
+    if(!data?.employee || Number(data.exp)<Date.now()) return null;
+    const {data:pin}=await db.from("ma_employee_pins").select("employee,active").eq("employee",data.employee).eq("active",true).maybeSingle();
+    return pin ? {kind:"staff",employee:String(data.employee)} : null;
+  }catch(_){ return null; }
+}
+async function readAdmin(req: Request){
+  const token=(req.headers.get("authorization")||"").replace(/^Bearer\s+/i,"");
+  if(!token) return null;
+  const {data,error}=await db.auth.getUser(token);
+  if(error||!data.user||data.user.email?.toLowerCase()!==ADMIN_EMAIL) return null;
+  return {kind:"admin",employee:"Администратор",email:data.user.email||ADMIN_EMAIL};
+}
+async function requireAuth(req: Request){
+  const actor=await readAdmin(req) || await readSession(req);
+  if(!actor) throw new Error("Нужен вход в CRM");
+  return actor;
+}
+async function requireRepair(idRaw: unknown){
+  const id=text(idRaw,80);
+  if(!id) throw new Error("Не указан заказ");
+  const {data,error}=await db.from("ma_crm_repairs").select("id,order_no,estimated_price,final_price,due_at,warranty_days,warranty_note,issued_at,ready_at").eq("id",id).single();
+  if(error||!data) throw new Error("Заказ не найден");
+  return data;
+}
+function warrantyUntil(repair: any){
+  const days=Number(repair?.warranty_days||0);
+  const start=repair?.issued_at || null;
+  if(!start || days<=0) return null;
+  const d=new Date(start);
+  if(Number.isNaN(d.getTime())) return null;
+  d.setUTCDate(d.getUTCDate()+days);
+  return d.toISOString();
+}
+async function recalcRepairTotal(repairId: string){
+  const {data,error}=await db.from("ma_crm_repair_items").select("quantity,unit_price").eq("repair_id",repairId);
+  if(error) throw error;
+  const items=data||[];
+  const total=items.reduce((sum:any,row:any)=>sum+Number(row.quantity||0)*Number(row.unit_price||0),0);
+  const finalPrice=items.length ? Math.round(total*100)/100 : null;
+  const {error:updateError}=await db.from("ma_crm_repairs").update({final_price:finalPrice,updated_at:new Date().toISOString()}).eq("id",repairId);
+  if(updateError) throw updateError;
+  return finalPrice;
+}
+async function detail(req: Request, body: any){
+  await requireAuth(req);
+  const repair=await requireRepair(body.id);
+  const [{data:items,error:itemError},{data:payments,error:paymentError}]=await Promise.all([
+    db.from("ma_crm_repair_items").select("*").eq("repair_id",repair.id).order("created_at",{ascending:true}),
+    db.from("ma_crm_payments").select("*").eq("repair_id",repair.id).order("created_at",{ascending:false}),
+  ]);
+  if(itemError) throw itemError;
+  if(paymentError) throw paymentError;
+  const rows=items||[], pays=payments||[];
+  const itemsTotal=Math.round(rows.reduce((s:any,x:any)=>s+Number(x.quantity||0)*Number(x.unit_price||0),0)*100)/100;
+  const partsCost=Math.round(rows.filter((x:any)=>x.item_type==="part").reduce((s:any,x:any)=>s+Number(x.quantity||0)*Number(x.unit_cost||0),0)*100)/100;
+  const paid=Math.round(pays.reduce((s:any,x:any)=>s+(x.kind==="refund"?-1:1)*Number(x.amount||0),0)*100)/100;
+  const orderTotal=rows.length?itemsTotal:Number(repair.final_price ?? repair.estimated_price ?? 0);
+  return {ok:true,repair:{...repair,warranty_until:warrantyUntil(repair)},items:rows,payments:pays,totals:{itemsTotal,partsCost,paid,orderTotal,balance:Math.round((orderTotal-paid)*100)/100}};
+}
+async function updateMeta(req: Request, body: any){
+  const actor=await requireAuth(req);
+  const repair=await requireRepair(body.id);
+  const patch:any={updated_by:actor.employee,updated_at:new Date().toISOString()};
+  if("dueAt" in body) patch.due_at=optionalDate(body.dueAt);
+  if("warrantyDays" in body){
+    const days=Number(body.warrantyDays);
+    if(!Number.isInteger(days)||days<0||days>730) throw new Error("Гарантия должна быть от 0 до 730 дней");
+    patch.warranty_days=days;
+  }
+  if("warrantyNote" in body) patch.warranty_note=text(body.warrantyNote,1000);
+  const {data,error}=await db.from("ma_crm_repairs").update(patch).eq("id",repair.id).select("id,due_at,warranty_days,warranty_note,issued_at,ready_at").single();
+  if(error) throw error;
+  return {ok:true,repair:{...data,warranty_until:warrantyUntil(data)}};
+}
+async function upsertItem(req: Request, body: any){
+  const actor=await requireAuth(req);
+  const repair=await requireRepair(body.repairId);
+  const itemType=text(body.itemType,20);
+  if(itemType!=="service"&&itemType!=="part") throw new Error("Выбери тип позиции");
+  const title=text(body.title,240);
+  if(!title) throw new Error("Укажи название услуги или запчасти");
+  const payload:any={repair_id:repair.id,item_type:itemType,title,quantity:positive(body.quantity,10000),unit_price:decimal(body.unitPrice),unit_cost:itemType==="part"?decimal(body.unitCost):0,updated_at:new Date().toISOString()};
+  let data:any, error:any;
+  const id=text(body.id,80);
+  if(id){
+    ({data,error}=await db.from("ma_crm_repair_items").update(payload).eq("id",id).eq("repair_id",repair.id).select("*").single());
+  }else{
+    payload.created_by=actor.employee;
+    ({data,error}=await db.from("ma_crm_repair_items").insert(payload).select("*").single());
+  }
+  if(error) throw error;
+  const finalPrice=await recalcRepairTotal(repair.id);
+  return {ok:true,item:data,finalPrice};
+}
+async function deleteItem(req: Request, body: any){
+  await requireAuth(req);
+  const repair=await requireRepair(body.repairId);
+  const id=text(body.id,80);
+  if(!id) throw new Error("Не указана позиция");
+  const {error}=await db.from("ma_crm_repair_items").delete().eq("id",id).eq("repair_id",repair.id);
+  if(error) throw error;
+  const finalPrice=await recalcRepairTotal(repair.id);
+  return {ok:true,finalPrice};
+}
+async function addPayment(req: Request, body: any){
+  const actor=await requireAuth(req);
+  const repair=await requireRepair(body.repairId);
+  const kind=text(body.kind,20)||"payment";
+  const method=text(body.method,20)||"cash";
+  if(kind!=="payment"&&kind!=="refund") throw new Error("Неверный тип платежа");
+  if(!["cash","card","transfer","other"].includes(method)) throw new Error("Неверный способ оплаты");
+  const payload={repair_id:repair.id,kind,method,amount:positive(body.amount),note:text(body.note,500),created_by:actor.employee};
+  const {data,error}=await db.from("ma_crm_payments").insert(payload).select("*").single();
+  if(error) throw error;
+  return {ok:true,payment:data};
+}
+
+Deno.serve(async (req: Request)=>{
+  if(req.method==="OPTIONS") return new Response("ok",{headers:corsHeaders});
+  if(req.method!=="POST") return json({ok:false,error:"Method not allowed"},405);
+  try{
+    const body=await req.json().catch(()=>({}));
+    const op=text(body?.op,40);
+    if(op==="detail") return json(await detail(req,body));
+    if(op==="update-meta") return json(await updateMeta(req,body));
+    if(op==="upsert-item") return json(await upsertItem(req,body));
+    if(op==="delete-item") return json(await deleteItem(req,body));
+    if(op==="add-payment") return json(await addPayment(req,body));
+    return json({ok:false,error:"Неизвестная операция"},400);
+  }catch(e){
+    const message=e instanceof Error?e.message:String(e);
+    const status=/Нужен вход/.test(message)?403:400;
+    console.error("ma-crm-phase1-api",message);
+    return json({ok:false,error:message},status);
+  }
+});
