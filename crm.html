@@ -3,171 +3,210 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#f6f7f9">
 <title>MA CRM</title>
 <link rel="icon" type="image/png" sizes="64x64" href="ma-favicon-final-v6.png">
 <link rel="apple-touch-icon" sizes="180x180" href="ma-apple-touch-final-v6.png">
-<link rel="stylesheet" href="crm.css?v=20260910-1">
+<link rel="stylesheet" href="crm.css?v=20260910-v2">
 </head>
 <body>
-<div class="crm-app">
-  <header class="crm-header">
-    <div class="crm-header-main">
-      <div>
-        <div class="crm-brand">MA CRM</div>
-        <div class="crm-subtitle">Ремонт и продажа техники</div>
-      </div>
-      <div class="crm-header-actions">
-        <span class="crm-user" id="crmUser">Проверяем вход…</span>
-        <a class="crm-back" href="./">График</a>
-      </div>
+<div class="crm-shell">
+  <aside class="sidebar" id="crmSidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark">MA</div>
+      <div><b>MA CRM</b><span>Мобильный Ангел</span></div>
     </div>
-    <div class="crm-offline hidden" id="crmOffline">Нет связи с интернетом</div>
-  </header>
-
-  <main class="crm-main hidden" id="crmMain">
-    <nav class="crm-tabs" aria-label="Разделы CRM">
-      <button class="crm-tab active" data-tab="repairs">Ремонты</button>
-      <button class="crm-tab crm-tab-primary" data-tab="newRepair">+ Заказ</button>
-      <button class="crm-tab" data-tab="sales">Продажи</button>
+    <nav class="sidebar-nav" aria-label="Разделы CRM">
+      <button class="nav-item active" data-view="dashboard"><span class="nav-icon">⌂</span><span>Обзор</span></button>
+      <button class="nav-item" data-view="orders"><span class="nav-icon">▣</span><span>Заказы</span><i id="navOrdersCount">0</i></button>
+      <button class="nav-item" data-view="clients"><span class="nav-icon">◉</span><span>Клиенты</span></button>
+      <button class="nav-item" data-view="sales"><span class="nav-icon">₽</span><span>Продажи</span></button>
+      <div class="nav-caption">УПРАВЛЕНИЕ</div>
+      <button class="nav-item" data-view="inventory"><span class="nav-icon">□</span><span>Склад</span><em>скоро</em></button>
+      <button class="nav-item" data-view="payments"><span class="nav-icon">↔</span><span>Платежи</span><em>скоро</em></button>
+      <button class="nav-item" data-view="reports"><span class="nav-icon">⌁</span><span>Отчёты</span></button>
     </nav>
+    <div class="sidebar-bottom">
+      <a href="./" class="back-to-grafik"><span>←</span><span><b>MA График</b><small>Смены и сотрудники</small></span></a>
+      <div class="sidebar-user"><span class="user-avatar" id="crmAvatar">МА</span><span><b id="crmUser">Проверяем вход…</b><small id="crmUserRole">CRM</small></span></div>
+    </div>
+  </aside>
 
-    <section class="crm-page" id="repairsPage">
-      <div class="crm-page-head">
-        <div>
-          <h1>Ремонты</h1>
-          <div class="crm-muted" id="repairCount">Загрузка…</div>
+  <div class="sidebar-backdrop hidden" id="sidebarBackdrop"></div>
+
+  <div class="crm-workspace">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-button mobile-menu" id="openSidebar" aria-label="Открыть меню">☰</button>
+        <div><h1 id="viewTitle">Обзор</h1><p id="viewSubtitle">Рабочая картина сервисного центра</p></div>
+      </div>
+      <div class="topbar-actions">
+        <span class="online-state" id="onlineState"><i></i><span>Онлайн</span></span>
+        <button class="btn btn-primary" id="globalNewRepair" type="button">+ Новый заказ</button>
+      </div>
+    </header>
+
+    <div class="offline-banner hidden" id="crmOffline">Нет связи с интернетом. Изменения пока недоступны.</div>
+
+    <main class="workspace-content hidden" id="crmMain">
+      <section class="view" id="dashboardView" data-view-panel="dashboard">
+        <div class="dashboard-hero">
+          <div><span class="eyebrow">СЕГОДНЯ</span><h2 id="dashboardGreeting">Рабочий день</h2><p id="dashboardDate">—</p></div>
+          <button class="btn btn-secondary" id="refreshDashboard" type="button">↻ Обновить</button>
         </div>
-        <button class="btn btn-primary desktop-create" id="openNewRepairTop" type="button">+ Новый заказ</button>
-      </div>
-
-      <div class="crm-toolbar">
-        <input class="crm-search" id="repairSearch" type="search" autocomplete="off" placeholder="Поиск: телефон, модель, № заказа, IMEI">
-        <select id="repairServiceFilter" aria-label="Фильтр по точке"><option value="">Все точки</option></select>
-      </div>
-
-      <div class="status-filters" id="repairStatusFilters">
-        <button class="active" data-status="">Все</button>
-        <button data-status="accepted">Принят</button>
-        <button data-status="diagnostics">Диагностика</button>
-        <button data-status="in_work">В работе</button>
-        <button data-status="waiting_part">Ждём запчасть</button>
-        <button data-status="ready">Готов</button>
-        <button data-status="issued">Выдан</button>
-      </div>
-
-      <div class="crm-list" id="repairList"><div class="crm-loading">Загружаем заказы…</div></div>
-    </section>
-
-    <section class="crm-page hidden" id="newRepairPage">
-      <div class="crm-page-head">
-        <div><h1>Новый заказ</h1><div class="crm-muted">Приём устройства в ремонт</div></div>
-      </div>
-
-      <form class="crm-form-card" id="repairForm">
-        <div class="form-section-title">Клиент</div>
-        <div class="form-grid two">
-          <label><span>Имя клиента</span><input id="repairCustomerName" autocomplete="name" placeholder="Например, Алан"></label>
-          <label><span>Телефон *</span><input id="repairPhone" type="tel" autocomplete="tel" inputmode="tel" required placeholder="+7 928 000-00-00"></label>
+        <div class="metric-grid" id="dashboardMetrics">
+          <div class="metric-card"><span>Новые заказы</span><b id="metricNew">—</b><small>принято сегодня</small></div>
+          <div class="metric-card"><span>В работе</span><b id="metricWork">—</b><small>сейчас в ремонте</small></div>
+          <div class="metric-card"><span>Готовы</span><b id="metricReady">—</b><small>ждут выдачи</small></div>
+          <div class="metric-card"><span>Выручка сегодня</span><b id="metricRevenue">—</b><small>ремонты + продажи</small></div>
         </div>
-
-        <div class="form-section-title">Устройство</div>
-        <div class="form-grid two">
-          <label><span>Тип</span><select id="repairDevice"><option>Телефон</option><option>Ноутбук</option><option>Компьютер</option><option>Планшет</option><option>Игровая приставка</option><option>Другое</option></select></label>
-          <label><span>Модель</span><input id="repairModel" autocomplete="off" placeholder="iPhone 13 / Samsung A54"></label>
-          <label><span>IMEI / серийный номер</span><input id="repairImei" autocomplete="off" inputmode="numeric" placeholder="Необязательно"></label>
-          <label><span>Предварительная цена, ₽</span><input id="repairPrice" inputmode="decimal" placeholder="0"></label>
+        <div class="dashboard-grid">
+          <div class="panel">
+            <div class="panel-head"><div><h3>Заказы по статусам</h3><p>Текущая загрузка сервиса</p></div><button class="text-button" data-go-view="orders">Все заказы →</button></div>
+            <div class="status-overview" id="statusOverview"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Последние заказы</h3><p>Что менялось недавно</p></div></div>
+            <div class="compact-list" id="recentRepairs"><div class="loading-row">Загрузка…</div></div>
+          </div>
         </div>
-        <label class="form-full"><span>Неисправность *</span><textarea id="repairIssue" required rows="3" placeholder="Что не работает / со слов клиента"></textarea></label>
+      </section>
 
-        <div class="form-section-title">Работа</div>
-        <div class="form-grid two">
-          <label><span>Точка *</span><select id="repairService" required></select></label>
-          <label><span>Мастер</span><select id="repairMaster"><option value="">Не назначен</option></select></label>
-          <label><span>Принял заказ</span><select id="repairManager"></select></label>
+      <section class="view hidden" id="ordersView" data-view-panel="orders">
+        <div class="section-toolbar">
+          <div class="search-box"><span>⌕</span><input id="repairSearch" type="search" autocomplete="off" placeholder="Поиск по заказу, клиенту, телефону, модели, IMEI"></div>
+          <select id="repairServiceFilter"><option value="">Все точки</option></select>
+          <button class="filter-button" id="toggleStatusFilters" type="button">Статус <span>▾</span></button>
         </div>
-        <label class="form-full"><span>Комментарий</span><textarea id="repairComment" rows="2" placeholder="Комплектация, состояние, договорённости"></textarea></label>
-
-        <div class="form-error" id="repairFormError"></div>
-        <div class="form-actions">
-          <button class="btn btn-secondary" id="cancelRepairForm" type="button">Отмена</button>
-          <button class="btn btn-primary" id="saveRepairBtn" type="submit">Создать заказ</button>
+        <div class="status-filters" id="repairStatusFilters">
+          <button class="active" data-status="">Все</button>
+          <button data-status="accepted">Принят</button>
+          <button data-status="diagnostics">Диагностика</button>
+          <button data-status="in_work">В работе</button>
+          <button data-status="waiting_part">Ждём запчасть</button>
+          <button data-status="ready">Готов</button>
+          <button data-status="issued">Выдан</button>
         </div>
-      </form>
-    </section>
+        <div class="table-card">
+          <div class="table-headline"><div><b>Заказы</b><span id="repairCount">Загрузка…</span></div><div class="table-hint">Нажмите на строку, чтобы открыть карточку</div></div>
+          <div class="data-table-wrap">
+            <table class="data-table orders-table">
+              <thead><tr><th>№</th><th>Клиент</th><th>Устройство / проблема</th><th>Статус</th><th>Мастер</th><th>Сумма</th><th>Обновлён</th></tr></thead>
+              <tbody id="repairTableBody"><tr><td colspan="7" class="table-empty">Загружаем заказы…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="mobile-card-list" id="repairMobileList"></div>
+        </div>
+      </section>
 
-    <section class="crm-page hidden" id="salesPage">
-      <div class="crm-page-head">
-        <div><h1>Продажи техники</h1><div class="crm-muted" id="saleCount">Загрузка…</div></div>
-        <button class="btn btn-primary" id="openSaleModal" type="button">+ Продажа</button>
-      </div>
-      <div class="crm-toolbar one">
-        <input class="crm-search" id="saleSearch" type="search" autocomplete="off" placeholder="Поиск: модель, телефон, IMEI, № продажи">
-      </div>
-      <div class="crm-list" id="saleList"><div class="crm-loading">Загружаем продажи…</div></div>
-    </section>
-  </main>
-</div>
+      <section class="view hidden" id="clientsView" data-view-panel="clients">
+        <div class="section-toolbar clients-toolbar">
+          <div class="search-box"><span>⌕</span><input id="clientSearch" type="search" autocomplete="off" placeholder="Поиск клиента по имени или телефону"></div>
+        </div>
+        <div class="table-card">
+          <div class="table-headline"><div><b>Клиенты</b><span id="clientCount">—</span></div><div class="table-hint">История ремонтов и покупок</div></div>
+          <div class="data-table-wrap">
+            <table class="data-table clients-table">
+              <thead><tr><th>Клиент</th><th>Телефон</th><th>Ремонты</th><th>Покупки</th><th>Оборот</th><th>Последнее обращение</th></tr></thead>
+              <tbody id="clientTableBody"><tr><td colspan="6" class="table-empty">Загружаем клиентов…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="mobile-card-list" id="clientMobileList"></div>
+        </div>
+      </section>
 
-<div class="overlay hidden" id="loginOverlay">
-  <div class="modal-card login-card">
-    <div class="modal-brand">MA CRM</div>
-    <h2>Вход сотрудника</h2>
-    <p>Используйте свой рабочий PIN. Вход сохраняется на 12 часов.</p>
-    <form id="crmLoginForm">
-      <label><span>Имя</span><input id="crmLoginName" autocomplete="username" placeholder="Например, Арсен" required></label>
-      <label><span>PIN</span><input id="crmLoginPin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="4" pattern="[0-9]{4}" placeholder="••••" required></label>
-      <div class="form-error" id="crmLoginError"></div>
-      <button class="btn btn-primary btn-wide" id="crmLoginBtn" type="submit">Войти</button>
-    </form>
-    <a class="login-back" href="./">Вернуться в MA График</a>
+      <section class="view hidden" id="salesView" data-view-panel="sales">
+        <div class="section-toolbar">
+          <div class="search-box"><span>⌕</span><input id="saleSearch" type="search" autocomplete="off" placeholder="Поиск по продаже, клиенту, модели, IMEI"></div>
+          <button class="btn btn-primary" id="openSaleModal" type="button">+ Продажа</button>
+        </div>
+        <div class="table-card">
+          <div class="table-headline"><div><b>Продажи техники</b><span id="saleCount">Загрузка…</span></div><div class="table-hint">Себестоимость, продажа и прибыль</div></div>
+          <div class="data-table-wrap">
+            <table class="data-table sales-table">
+              <thead><tr><th>№</th><th>Покупатель</th><th>Техника</th><th>Точка</th><th>Продажа</th><th>Прибыль</th><th>Дата</th></tr></thead>
+              <tbody id="saleTableBody"><tr><td colspan="7" class="table-empty">Загружаем продажи…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="mobile-card-list" id="saleMobileList"></div>
+        </div>
+      </section>
+
+      <section class="view hidden" id="reportsView" data-view-panel="reports">
+        <div class="report-summary" id="reportSummary"></div>
+        <div class="dashboard-grid reports-grid">
+          <div class="panel"><div class="panel-head"><div><h3>Воронка ремонтов</h3><p>Распределение заказов по статусам</p></div></div><div class="report-bars" id="reportStatusBars"></div></div>
+          <div class="panel"><div class="panel-head"><div><h3>Сотрудники</h3><p>Количество назначенных заказов</p></div></div><div class="report-people" id="reportPeople"></div></div>
+        </div>
+        <div class="report-note">Отчёт строится по данным, загруженным в текущую CRM. Расширенная финансовая аналитика будет подключена отдельным этапом.</div>
+      </section>
+
+      <section class="view hidden" id="inventoryView" data-view-panel="inventory">
+        <div class="coming-soon"><div class="coming-icon">□</div><h2>Склад</h2><p>Следующий этап: запчасти, аксессуары, остатки по точкам, приход, списание и привязка деталей к ремонту.</p><button class="btn btn-primary" data-go-view="orders">Вернуться к заказам</button></div>
+      </section>
+
+      <section class="view hidden" id="paymentsView" data-view-panel="payments">
+        <div class="coming-soon"><div class="coming-icon">₽</div><h2>Платежи</h2><p>Следующий этап: оплаты, предоплаты, кассы, способы оплаты и автоматическая прибыль по заказам.</p><button class="btn btn-primary" data-go-view="orders">Вернуться к заказам</button></div>
+      </section>
+    </main>
   </div>
 </div>
 
+<div class="overlay hidden" id="loginOverlay">
+  <div class="login-card">
+    <div class="login-logo"><span>MA</span><div><b>MA CRM</b><small>Мобильный Ангел</small></div></div>
+    <h2>Вход сотрудника</h2>
+    <p>Используйте рабочий PIN. Сессия сохраняется на 12 часов.</p>
+    <form id="crmLoginForm">
+      <label><span>Имя сотрудника</span><input id="crmLoginName" autocomplete="username" placeholder="Например, Арсен" required></label>
+      <label><span>PIN</span><input id="crmLoginPin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="4" pattern="[0-9]{4}" placeholder="••••" required></label>
+      <div class="form-error" id="crmLoginError"></div>
+      <button class="btn btn-primary btn-wide" id="crmLoginBtn" type="submit">Войти в CRM</button>
+    </form>
+    <a class="login-back" href="./">← Вернуться в MA График</a>
+  </div>
+</div>
+
+<div class="drawer-backdrop hidden" id="newRepairBackdrop"></div>
+<aside class="drawer hidden" id="newRepairDrawer" aria-label="Новый заказ">
+  <div class="drawer-head"><div><span class="drawer-kicker">НОВЫЙ ЗАКАЗ</span><h2>Приём устройства</h2></div><button class="icon-button" id="closeNewRepair" type="button">×</button></div>
+  <form class="drawer-body" id="repairForm">
+    <div class="form-section"><h3>Клиент</h3><div class="form-grid two"><label><span>Имя клиента</span><input id="repairCustomerName" autocomplete="name" placeholder="Например, Алан"></label><label><span>Телефон *</span><input id="repairPhone" type="tel" autocomplete="tel" inputmode="tel" required placeholder="+7 928 000-00-00"></label></div></div>
+    <div class="form-section"><h3>Устройство</h3><div class="form-grid two"><label><span>Тип</span><select id="repairDevice"><option>Телефон</option><option>Ноутбук</option><option>Компьютер</option><option>Планшет</option><option>Игровая приставка</option><option>Другое</option></select></label><label><span>Модель</span><input id="repairModel" autocomplete="off" placeholder="iPhone 13 / Samsung A54"></label><label><span>IMEI / серийный номер</span><input id="repairImei" autocomplete="off" inputmode="numeric" placeholder="Необязательно"></label><label><span>Предварительная цена, ₽</span><input id="repairPrice" inputmode="decimal" placeholder="0"></label></div><label class="form-full"><span>Неисправность *</span><textarea id="repairIssue" required rows="3" placeholder="Что не работает / со слов клиента"></textarea></label></div>
+    <div class="form-section"><h3>Исполнение</h3><div class="form-grid two"><label><span>Точка *</span><select id="repairService" required></select></label><label><span>Мастер</span><select id="repairMaster"><option value="">Не назначен</option></select></label><label><span>Принял заказ</span><select id="repairManager"></select></label></div><label class="form-full"><span>Комментарий</span><textarea id="repairComment" rows="2" placeholder="Комплектация, состояние, договорённости"></textarea></label></div>
+    <div class="form-error" id="repairFormError"></div>
+  </form>
+  <div class="drawer-footer"><button class="btn btn-secondary" id="cancelRepairForm" type="button">Отмена</button><button class="btn btn-primary" id="saveRepairBtn" type="submit" form="repairForm">Создать заказ</button></div>
+</aside>
+
 <div class="overlay hidden" id="repairDetailOverlay">
-  <div class="modal-card modal-large">
-    <div class="modal-head">
-      <div><h2 id="repairDetailTitle">Заказ</h2><div class="crm-muted" id="repairDetailSub"></div></div>
-      <button class="modal-close" id="closeRepairDetail" type="button" aria-label="Закрыть">×</button>
-    </div>
-    <div id="repairDetailBody"><div class="crm-loading">Загрузка…</div></div>
+  <div class="order-modal">
+    <div class="order-modal-head"><div><span class="drawer-kicker" id="repairDetailStatus">ЗАКАЗ</span><h2 id="repairDetailTitle">Заказ</h2><p id="repairDetailSub">—</p></div><button class="icon-button" id="closeRepairDetail" type="button">×</button></div>
+    <div class="order-modal-body" id="repairDetailBody"><div class="loading-row">Загрузка…</div></div>
   </div>
 </div>
 
 <div class="overlay hidden" id="saleOverlay">
-  <div class="modal-card modal-large">
-    <div class="modal-head">
-      <div><h2>Новая продажа</h2><div class="crm-muted">Продажа телефона или другой техники</div></div>
-      <button class="modal-close" id="closeSaleModal" type="button" aria-label="Закрыть">×</button>
-    </div>
+  <div class="dialog-card">
+    <div class="dialog-head"><div><span class="drawer-kicker">НОВАЯ ПРОДАЖА</span><h2>Продажа техники</h2></div><button class="icon-button" id="closeSaleModal" type="button">×</button></div>
     <form id="saleForm">
-      <div class="form-section-title">Покупатель</div>
-      <div class="form-grid two">
-        <label><span>Имя</span><input id="saleCustomerName" autocomplete="name"></label>
-        <label><span>Телефон *</span><input id="salePhone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="+7 928 000-00-00"></label>
-      </div>
-      <div class="form-section-title">Техника</div>
-      <div class="form-grid two">
-        <label><span>Тип</span><select id="saleDevice"><option>Телефон</option><option>Ноутбук</option><option>Планшет</option><option>Другое</option></select></label>
-        <label><span>Модель *</span><input id="saleModel" required placeholder="Например, iPhone 14 128GB"></label>
-        <label><span>IMEI / серийный номер</span><input id="saleImei" autocomplete="off"></label>
-        <label><span>Точка *</span><select id="saleService" required></select></label>
-        <label><span>Закупка, ₽</span><input id="salePurchasePrice" inputmode="decimal" value="0"></label>
-        <label><span>Продажа, ₽ *</span><input id="salePrice" inputmode="decimal" required placeholder="0"></label>
-        <label><span>Менеджер</span><select id="saleManager"></select></label>
-      </div>
-      <div class="profit-preview" id="saleProfitPreview">Прибыль: 0 ₽</div>
-      <label class="form-full"><span>Комментарий</span><textarea id="saleComment" rows="2"></textarea></label>
+      <div class="form-section"><h3>Покупатель</h3><div class="form-grid two"><label><span>Имя</span><input id="saleCustomerName" autocomplete="name"></label><label><span>Телефон *</span><input id="salePhone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="+7 928 000-00-00"></label></div></div>
+      <div class="form-section"><h3>Техника и деньги</h3><div class="form-grid two"><label><span>Тип</span><select id="saleDevice"><option>Телефон</option><option>Ноутбук</option><option>Планшет</option><option>Другое</option></select></label><label><span>Модель *</span><input id="saleModel" required placeholder="Например, iPhone 14 128GB"></label><label><span>IMEI / серийный номер</span><input id="saleImei" autocomplete="off"></label><label><span>Точка *</span><select id="saleService" required></select></label><label><span>Закупка, ₽</span><input id="salePurchasePrice" inputmode="decimal" value="0"></label><label><span>Продажа, ₽ *</span><input id="salePrice" inputmode="decimal" required placeholder="0"></label><label><span>Менеджер</span><select id="saleManager"></select></label></div><div class="profit-preview" id="saleProfitPreview">Прибыль: 0 ₽</div><label class="form-full"><span>Комментарий</span><textarea id="saleComment" rows="2"></textarea></label></div>
       <div class="form-error" id="saleFormError"></div>
-      <div class="form-actions">
-        <button class="btn btn-secondary" id="cancelSale" type="button">Отмена</button>
-        <button class="btn btn-primary" id="saveSaleBtn" type="submit">Сохранить продажу</button>
-      </div>
+      <div class="dialog-actions"><button class="btn btn-secondary" id="cancelSale" type="button">Отмена</button><button class="btn btn-primary" id="saveSaleBtn" type="submit">Сохранить продажу</button></div>
     </form>
   </div>
 </div>
 
+<nav class="mobile-bottom-nav" id="mobileBottomNav">
+  <button class="active" data-view="dashboard"><span>⌂</span><small>Обзор</small></button>
+  <button data-view="orders"><span>▣</span><small>Заказы</small></button>
+  <button class="mobile-create" id="mobileNewRepair" type="button"><span>＋</span><small>Заказ</small></button>
+  <button data-view="clients"><span>◉</span><small>Клиенты</small></button>
+  <button data-view="sales"><span>₽</span><small>Продажи</small></button>
+</nav>
+
 <div class="toast" id="crmToast" aria-live="polite"></div>
-<script src="crm.js?v=20260910-1"></script>
+<script src="crm.js?v=20260910-v2"></script>
 </body>
 </html>
