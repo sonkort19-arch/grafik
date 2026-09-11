@@ -8,7 +8,8 @@
   .drawer{top:0;bottom:auto;height:var(--crm-visual-height,100dvh);max-height:var(--crm-visual-height,100dvh);min-height:0;overflow:hidden}
   .drawer-head{padding-top:calc(15px + env(safe-area-inset-top));padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right));flex:0 0 auto;background:#fff;z-index:2}
   .drawer-head .icon-button{flex:0 0 auto;align-self:center}
-  .drawer-body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scroll-padding-bottom:calc(110px + var(--crm-keyboard-offset,0px));min-height:0}
+  .drawer-body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scroll-padding-top:16px;scroll-padding-bottom:110px;min-height:0}
+  .drawer-body input,.drawer-body select,.drawer-body textarea{scroll-margin-top:24px;scroll-margin-bottom:90px}
   .drawer-footer{position:sticky;bottom:0;z-index:5;flex:0 0 auto;padding:10px max(14px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));box-shadow:0 -1px 0 var(--line),0 -10px 24px rgba(15,23,42,.05)}
   .drawer-footer .btn{min-height:46px;font-size:15px}
   #newRepairDrawer:not(.hidden) #repairPhone,#saleOverlay:not(.hidden) #salePhone{animation:crm-ios-delay-autofocus .14s step-end 1}
