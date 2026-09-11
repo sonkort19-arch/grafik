@@ -113,6 +113,46 @@ function checkClassicJavaScriptSyntax() {
   }
 }
 
+function assertSupabaseFunctionClassification() {
+  const functionsDir = path.join(ROOT, 'supabase', 'functions');
+  if (!fs.existsSync(functionsDir)) {
+    fail('Missing Supabase functions directory');
+    return;
+  }
+
+  // Strict functions are Deno type-checked in CI. Legacy functions are explicitly
+  // classified so existing technical debt cannot silently spread to new modules.
+  const strictFunctions = new Set([
+    'ma-grafik-write-api',
+    'ma-grafik-mcp',
+    'ma-grafik-attendance-api',
+    'ma-crm-api',
+    'ma-crm-phase1-api',
+    'ma-crm-inventory-api',
+    'ma-crm-finance-api',
+    'ma-crm-final-api',
+    'ma-shifts'
+  ]);
+  const legacyFunctions = new Set(['ma-grafik-api']);
+  const classified = new Set([...strictFunctions, ...legacyFunctions]);
+
+  const actual = fs.readdirSync(functionsDir)
+    .filter((name) => fs.existsSync(path.join(functionsDir, name, 'index.ts')))
+    .sort();
+
+  for (const name of actual) {
+    if (!classified.has(name)) {
+      fail(`New Supabase function is not classified for CI: ${name}`);
+    }
+  }
+
+  for (const name of classified) {
+    if (!actual.includes(name)) {
+      fail(`CI classifies a Supabase function that no longer exists: ${name}`);
+    }
+  }
+}
+
 [
   'index.html',
   'crm.html',
@@ -166,6 +206,7 @@ if (fs.existsSync(manifestPath)) {
   }
 }
 
+assertSupabaseFunctionClassification();
 checkClassicJavaScriptSyntax();
 
 if (failures.length) {
