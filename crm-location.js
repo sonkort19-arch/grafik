@@ -29,6 +29,7 @@
   const initials=name=>(String(name||"MA").trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("")||"MA").toUpperCase();
   const sameService=row=>!currentService||String(row?.service||"")===currentService;
   const parseMoney=text=>{const raw=String(text||"").replace(/[^\d,.-]/g,"").replace(/\s/g,"").replace(",",".");const n=Number(raw);return Number.isFinite(n)?n:0;};
+  const setHtml=(el,html)=>{if(el&&el.innerHTML!==html)el.innerHTML=html;};
 
   function readStored(){try{return localStorage.getItem(STORAGE_KEY)||"";}catch(_){return"";}}
   function persist(value){try{localStorage.setItem(STORAGE_KEY,value||"");}catch(_){ }}
@@ -165,10 +166,10 @@
     if($("metricWork"))$("metricWork").textContent=String(work);
     if($("metricReady"))$("metricReady").textContent=String(ready);
     if($("metricRevenue"))$("metricRevenue").textContent=shortMoney(issuedToday+salesToday);
-    if($("statusOverview"))$("statusOverview").innerHTML=STATUS_ORDER.map(status=>`<div class="status-tile"><span><i class="dot-${status}"></i>${esc(STATUS[status])}</span><b>${repairs.filter(r=>r.status===status).length}</b></div>`).join("");
+    setHtml($("statusOverview"),STATUS_ORDER.map(status=>`<div class="status-tile"><span><i class="dot-${status}"></i>${esc(STATUS[status])}</span><b>${repairs.filter(r=>r.status===status).length}</b></div>`).join(""));
     const recent=[...repairs].sort((a,b)=>new Date(b.updated_at||b.accepted_at)-new Date(a.updated_at||a.accepted_at)).slice(0,6);
     if($("recentRepairs")){
-      $("recentRepairs").innerHTML=recent.length?recent.map(r=>`<button class="compact-order text-button" data-location-repair="${esc(r.id)}" data-location-order="${esc(r.order_no)}"><span><b>№${esc(r.order_no)} · ${esc([r.device,r.model].filter(Boolean).join(" ")||"Устройство")}</b><span>${esc(r.customer?.name||"Без имени")} · ${esc(r.issue||"")}</span></span><span class="status-badge status-${esc(r.status)}">${esc(STATUS[r.status]||r.status||"—")}</span></button>`).join(""):'<div class="loading-row">Заказов пока нет</div>';
+      setHtml($("recentRepairs"),recent.length?recent.map(r=>`<button class="compact-order text-button" data-location-repair="${esc(r.id)}" data-location-order="${esc(r.order_no)}"><span><b>№${esc(r.order_no)} · ${esc([r.device,r.model].filter(Boolean).join(" ")||"Устройство")}</b><span>${esc(r.customer?.name||"Без имени")} · ${esc(r.issue||"")}</span></span><span class="status-badge status-${esc(r.status)}">${esc(STATUS[r.status]||r.status||"—")}</span></button>`).join(""):'<div class="loading-row">Заказов пока нет</div>');
     }
     if($("navOrdersCount"))$("navOrdersCount").textContent=String(repairs.filter(r=>r.status!=="issued").length);
   }
@@ -177,13 +178,13 @@
     if(!snapshot.loaded)return;
     const repairs=snapshot.repairs.filter(sameService),sales=snapshot.sales.filter(sameService),issued=repairs.filter(r=>r.status==="issued");
     const repairTurnover=issued.reduce((sum,r)=>sum+num(currentPrice(r)),0),salesTurnover=sales.reduce((sum,x)=>sum+num(x.sale_price),0),salesProfit=sales.reduce((sum,x)=>sum+num(x.sale_price)-num(x.purchase_price),0),avg=issued.length?repairTurnover/issued.length:0;
-    if($("reportSummary"))$("reportSummary").innerHTML=`<div class="report-card"><span>Оборот ремонтов</span><b>${esc(shortMoney(repairTurnover))}</b><small>по выданным заказам</small></div><div class="report-card"><span>Продажи техники</span><b>${esc(shortMoney(salesTurnover))}</b><small>оборот продаж</small></div><div class="report-card"><span>Прибыль продаж</span><b>${esc(shortMoney(salesProfit))}</b><small>продажа минус закупка</small></div><div class="report-card"><span>Средний ремонт</span><b>${esc(shortMoney(avg))}</b><small>по выданным заказам</small></div>`;
+    setHtml($("reportSummary"),`<div class="report-card"><span>Оборот ремонтов</span><b>${esc(shortMoney(repairTurnover))}</b><small>по выданным заказам</small></div><div class="report-card"><span>Продажи техники</span><b>${esc(shortMoney(salesTurnover))}</b><small>оборот продаж</small></div><div class="report-card"><span>Прибыль продаж</span><b>${esc(shortMoney(salesProfit))}</b><small>продажа минус закупка</small></div><div class="report-card"><span>Средний ремонт</span><b>${esc(shortMoney(avg))}</b><small>по выданным заказам</small></div>`);
     const max=Math.max(1,...STATUS_ORDER.map(status=>repairs.filter(r=>r.status===status).length));
-    if($("reportStatusBars"))$("reportStatusBars").innerHTML=STATUS_ORDER.map(status=>{const count=repairs.filter(r=>r.status===status).length,pct=Math.round(count/max*100);return`<div class="bar-row"><span>${esc(STATUS[status])}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><b>${count}</b></div>`;}).join("");
+    setHtml($("reportStatusBars"),STATUS_ORDER.map(status=>{const count=repairs.filter(r=>r.status===status).length,pct=Math.round(count/max*100);return`<div class="bar-row"><span>${esc(STATUS[status])}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><b>${count}</b></div>`;}).join(""));
     const counts=new Map();
     repairs.forEach(r=>{const name=String(r.master||"").trim();if(name)counts.set(name,(counts.get(name)||0)+1);});
     const people=[...counts.entries()].sort((a,b)=>b[1]-a[1]);
-    if($("reportPeople"))$("reportPeople").innerHTML=people.length?people.map(([name,count])=>`<div class="person-row"><span class="person-avatar">${esc(initials(name))}</span><span><b>${esc(name)}</b><small>назначенные ремонты</small></span><strong>${count}</strong></div>`).join(""):'<div class="loading-row">Назначений пока нет</div>';
+    setHtml($("reportPeople"),people.length?people.map(([name,count])=>`<div class="person-row"><span class="person-avatar">${esc(initials(name))}</span><span><b>${esc(name)}</b><small>назначенные ремонты</small></span><strong>${count}</strong></div>`).join(""):'<div class="loading-row">Назначений пока нет</div>');
   }
 
   function filterInventoryDom(){
@@ -285,7 +286,7 @@
       cur.orders++;cur.revenue+=num(s.sale_price);cur.profit+=num(s.sale_price)-num(s.purchase_price);people.set(key,cur);
     });
     const rows=[...people.values()].sort((a,b)=>b.profit-a.profit);
-    root.innerHTML=rows.length?rows.map(x=>`<div class="finance-report-row"><div><b>${esc(x.employee)} <span>${esc(x.role)}</span></b><small>${x.orders} операций · оборот ${esc(money(x.revenue))}</small></div><strong class="${x.profit<0?"negative":"positive"}">${esc(money(x.profit))}</strong></div>`).join(""):'<div class="finance-empty">Нет данных</div>';
+    setHtml(root,rows.length?rows.map(x=>`<div class="finance-report-row"><div><b>${esc(x.employee)} <span>${esc(x.role)}</span></b><small>${x.orders} операций · оборот ${esc(money(x.revenue))}</small></div><strong class="${x.profit<0?"negative":"positive"}">${esc(money(x.profit))}</strong></div>`).join(""):'<div class="finance-empty">Нет данных</div>');
   }
 
   function filterFinanceDialog(){
@@ -309,7 +310,6 @@
     try{
       const picker=$("crmLocationSwitch");if(picker&&picker.value!==currentService)picker.value=currentService;
       syncNativeFilters({dispatchOrders:false});
-      defaultCreationForms();
       filterSalesDom();
       renderDashboardFromSnapshot();
       renderReportsFromSnapshot();
@@ -344,7 +344,7 @@
   function setCurrentService(value,{source="api"}={}){
     try{
       const next=services.includes(value)?value:"";
-      if(next===currentService){defaultCreationForms();return;}
+      if(next===currentService)return;
       currentService=next;
       persist(currentService);
       const picker=$("crmLocationSwitch");if(picker)picker.value=currentService;
