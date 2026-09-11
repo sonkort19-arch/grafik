@@ -1,6 +1,14 @@
 @import url("./crm-final-legacy.css");
 @import url("./crm-stage7.css");
 
+/* Этап 9: финальный entry-point. Светлая тема и единый focus без отдельного слоя переопределений. */
+:root{color-scheme:light}
+button:focus-visible,
+a:focus-visible{
+  outline:3px solid rgba(36,107,253,.22);
+  outline-offset:2px;
+}
+
 /* Safety guard kept in the final entry stylesheet for CRM regression checks and iPhone Safari. */
 @media(max-width:760px){
   input,select,textarea,.phase-add-form input,.phase-add-form select,

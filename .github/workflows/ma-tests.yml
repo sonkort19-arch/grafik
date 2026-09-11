@@ -62,6 +62,7 @@ jobs:
           node --check tests/assistant-launcher-viewport-tests.js
           node --check tests/crm-regression-tests.js
           node --check tests/stability-gates.js
+          node --check tests/redesign-final-check.js
           node --input-type=module --check < api/mcp.js
           node --input-type=module --check < api/oauth-protected-resource.js
           node --input-type=module --check < api/openai-apps-challenge.js
@@ -96,6 +97,9 @@ jobs:
       - name: Run CRM audit regression checks
         run: node tests/crm-regression-tests.js
 
+      - name: Run final redesign guard
+        run: node tests/redesign-final-check.js
+
       - name: Set up Deno
         uses: denoland/setup-deno@v2
         with:
@@ -127,6 +131,9 @@ jobs:
           wait_for() { local url="$1"; local expected="$2"; for attempt in $(seq 1 24); do body="$(curl -fsS --max-time 10 "$url" 2>/dev/null || true)"; if [[ "$body" == *"$expected"* ]]; then echo "OK: $url"; return 0; fi; echo "Waiting for $url ($attempt/24)"; sleep 5; done; echo "FAILED: $url"; return 1; }
           wait_status() { local url="$1"; for attempt in $(seq 1 24); do if curl -fsS --max-time 10 "$url" >/dev/null 2>&1; then echo "OK: $url"; return 0; fi; echo "Waiting for $url ($attempt/24)"; sleep 5; done; echo "FAILED: $url"; return 1; }
           wait_for "$BASE/" "MA График"
+          wait_for "$BASE/styles.css" "styles-stage8.css"
+          wait_for "$BASE/styles-stage8.css" "ma-assistant-icon-blue.svg"
+          wait_for "$BASE/assets/ma-assistant-icon-blue.svg" "#246BFD"
           wait_for "$BASE/assistant-core.js" "MAAssistantCore"
           wait_for "$BASE/assistant.js" "Помощник МА График"
           wait_for "$BASE/assistant-attendance.js" "/assets/ma-assistant-icon.svg"
@@ -138,6 +145,7 @@ jobs:
           wait_for "$BASE/plugin/" "МА График для ChatGPT"
           wait_for "$BASE/oauth/consent.html" "Подключение ChatGPT"
           wait_for "$BASE/crm.html" "crm-final.js"
+          wait_for "$BASE/crm-final.css" "crm-stage7.css"
           wait_for "$BASE/crm-phase1.js" "ma-crm-phase1-api"
           wait_for "$BASE/crm-inventory.js" "ma-crm-inventory-api"
           wait_for "$BASE/crm-finance.js" "ma-crm-finance-api"
