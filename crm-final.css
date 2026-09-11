@@ -58,4 +58,57 @@ a:focus-visible{
     max-width:100%;
     min-width:0;
   }
+
+  /* Audit fix stage 2: one keyboard-safe rule for all CRM mobile dialogs. */
+  .overlay,.drawer-backdrop,.inv-overlay,.fin-overlay,.final-modal{
+    inset:auto 0 auto 0;
+    top:var(--crm-visual-top,0px);
+    height:var(--crm-visual-height,100dvh);
+    max-height:var(--crm-visual-height,100dvh);
+  }
+  .drawer{
+    top:var(--crm-visual-top,0px);
+    bottom:auto;
+    height:var(--crm-visual-height,100dvh);
+    max-height:var(--crm-visual-height,100dvh);
+  }
+  .dialog-card,.inv-dialog,.fin-dialog,.final-dialog,.login-card{
+    max-height:var(--crm-visual-height,100dvh);
+    min-width:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+    overscroll-behavior-x:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .drawer-body,.dialog-card form,.inv-form,.fin-form,.final-dialog,.login-card form{
+    min-width:0;
+    max-width:100%;
+  }
+  .drawer-body input,.drawer-body select,.drawer-body textarea,
+  .dialog-card input,.dialog-card select,.dialog-card textarea,
+  .inv-dialog input,.inv-dialog select,.inv-dialog textarea,
+  .fin-dialog input,.fin-dialog select,.fin-dialog textarea,
+  .final-dialog input,.login-card input{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+
+  /* Touch targets: close/delete/action controls must remain easy to hit on iPhone. */
+  .icon-button,.inv-close,.fin-close{
+    width:44px;
+    height:44px;
+    min-width:44px;
+    min-height:44px;
+    flex:0 0 44px;
+  }
+  .final-file-actions a,.final-file-actions button,
+  .inventory-row-actions button,.status-stepper button{
+    min-height:44px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  html.crm-keyboard-open .mobile-bottom-nav{visibility:hidden;pointer-events:none}
 }
