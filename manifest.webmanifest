@@ -4,8 +4,8 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f4f7fb",
-  "theme_color": "#0f5bd7",
+  "background_color": "#F6F7F9",
+  "theme_color": "#246BFD",
   "icons": [
     {
       "src": "ma-icon-final-v6-192.png?v=20260909-photo4",

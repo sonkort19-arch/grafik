@@ -13,6 +13,10 @@ const crmLegacy=read('crm-final-legacy.css');
 const crmStage7=read('crm-stage7.css');
 const index=read('index.html');
 const crmHtml=read('crm.html');
+const manifest=JSON.parse(read('manifest.webmanifest'));
+const smenaManifest=JSON.parse(read('smena.webmanifest'));
+const smenaInstall=read('smena-install.html');
+const serviceWorker=read('sw.js');
 
 assert.strictEqual(count(mainCss,'styles-redesign-v5.css'),1,'main CSS must load redesign shell exactly once');
 assert.strictEqual(count(mainCss,'styles-stage6.css'),1,'main CSS must load core module redesign exactly once');
@@ -23,7 +27,7 @@ assert(mainCss.includes('input,select,textarea{font-size:16px!important}'),'MA m
 
 assert(redesign.includes('--ma-primary:#246BFD'),'approved MA blue token must remain the primary color');
 assert(stage6.includes('этап 6'),'core redesign stylesheet must remain present');
-assert(stage8.includes("/assets/ma-assistant-icon-blue.svg"),'assistant launcher must use the final blue MA visual asset');
+assert(stage8.includes('/assets/ma-assistant-icon-blue.svg'),'assistant launcher must use the final blue MA visual asset');
 
 assert.strictEqual(count(crmFinal,'crm-final-legacy.css'),1,'CRM compatibility styles must load exactly once');
 assert.strictEqual(count(crmFinal,'crm-stage7.css'),1,'CRM redesign must load exactly once');
@@ -35,5 +39,14 @@ assert(crmStage7.includes('--crm-primary:#246BFD')||crmStage7.includes('#246BFD'
 
 assert(index.includes('viewport-fit=cover'),'MA Grafik must retain iPhone safe-area viewport support');
 assert(crmHtml.includes('viewport-fit=cover'),'MA CRM must retain iPhone safe-area viewport support');
+
+assert.strictEqual(manifest.background_color,'#F6F7F9','MA Grafik PWA background must match redesign');
+assert.strictEqual(manifest.theme_color,'#246BFD','MA Grafik PWA theme must match redesign');
+assert.strictEqual(smenaManifest.background_color,'#F6F7F9','MA Smena PWA background must match redesign');
+assert.strictEqual(smenaManifest.theme_color,'#246BFD','MA Smena PWA theme must match redesign');
+assert(smenaInstall.includes('name="theme-color" content="#246BFD"'),'MA Smena installer must use the final MA blue');
+assert(smenaInstall.includes('--bg:#F6F7F9')&&smenaInstall.includes('--blue:#246BFD'),'MA Smena installer must use the final design tokens');
+assert(serviceWorker.includes('ma-grafik-2026-09-12-audit-v10'),'service worker version must reflect the final audit release');
+assert(!serviceWorker.includes('photo-icon-v9'),'service worker must not keep the stale pre-audit version label');
 
 console.log('final redesign guard: OK');

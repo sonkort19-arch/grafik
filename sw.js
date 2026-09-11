@@ -1,4 +1,4 @@
-const SW_VERSION = "ma-grafik-2026-09-09-photo-icon-v9";
+const SW_VERSION = "ma-grafik-2026-09-12-audit-v10";
 
 // MA График intentionally does not cache index.html here.
 // The browser/network remains the source of truth for app updates.
