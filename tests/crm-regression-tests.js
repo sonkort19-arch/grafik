@@ -42,6 +42,18 @@ assert(mobileAuditJs.includes('--crm-visual-top'),'mobile audit guard must expos
 assert(mobileAuditJs.includes('loginOverlay'),'mobile audit guard must cover CRM login autofocus');
 assert(mobileAuditJs.includes('block:"nearest"')&&mobileAuditJs.includes('inline:"nearest"'),'focused modal controls must use nearest scrolling only');
 assert(!mobileAuditJs.includes('location.reload'),'mobile UX guard must not reload CRM');
+
+// Audit stage 3: mobile inventory/finance and iPhone landscape.
+assert(finalCss.includes('.inventory-table tbody tr,.finance-table tbody tr'),'inventory and finance rows must render as phone cards');
+assert(finalCss.includes('.inventory-table tbody td:nth-child(6)::before{content:"Действия"}'),'inventory mobile card must label its actions');
+assert(finalCss.includes('#financeTxBody td:nth-child(7)::before{content:"Сумма"}'),'finance operation cards must label amount');
+assert(finalCss.includes('#financeDebtBody td:nth-child(7)::before{content:"Остаток"}'),'finance debt cards must label balance');
+assert(finalCss.includes('#financeProfitBody td:nth-child(7)::before{content:"Валовая прибыль"}'),'finance profit cards must label profit');
+assert(finalCss.includes('(orientation:landscape) and (min-width:761px) and (max-width:960px) and (max-height:500px)'),'iPhone landscape must receive the phone shell');
+assert(mobileAuditJs.includes('(orientation: landscape) and (max-width: 960px) and (max-height: 500px)'),'keyboard guard must stay active on iPhone landscape');
+assert(finalCss.includes('.data-table-wrap{display:none}')&&finalCss.includes('.mobile-card-list{display:grid}'),'landscape phone must use existing CRM cards instead of desktop tables');
+assert(finalCss.includes('.inventory-table,.finance-table')&&finalCss.includes('min-width:0'),'mobile inventory and finance tables must not force desktop widths');
+
 assert(baseApi.includes('select("status,ready_at,issued_at")'),'status changes must read lifecycle timestamps');
 assert(baseApi.includes('patch.ready_at=null;patch.issued_at=null'),'reopening a repair must clear stale ready/issued timestamps');
 assert(finalApi.includes('if(new Date(until)<new Date())throw new Error("Срок гарантии закончился")'),'expired warranty must be blocked for every role');
