@@ -37,6 +37,13 @@ assert(!crmLegacy.includes('input,select,textarea,.phase-add-form input'),'legac
 assert(crmLegacy.includes('crm-ios-delay-autofocus'),'legacy CRM compatibility file must retain active iPhone drawer safeguards');
 assert(crmStage7.includes('--crm-primary:#246BFD')||crmStage7.includes('#246BFD'),'CRM redesign must retain the MA blue visual system');
 
+// Mobile readability: compact controls must remain legible on iPhone widths.
+assert(crmFinal.includes('Mobile readability audit'),'CRM must retain the mobile readability guard');
+assert(crmFinal.includes('width:clamp(148px,46vw,190px)!important'),'global location picker must reserve enough room for “Все точки”');
+assert(crmFinal.includes('min-width:148px!important'),'global location picker must not collapse back to the old 105–120px width');
+assert(crmFinal.includes('.section-toolbar>select'),'mobile toolbar selects must be allowed to shrink without overflowing');
+assert(crmFinal.includes('font-size:10px!important')&&crmFinal.includes('.mobile-bottom-nav button>small'),'CRM bottom navigation labels must remain readable');
+
 assert(index.includes('viewport-fit=cover'),'MA Grafik must retain iPhone safe-area viewport support');
 assert(crmHtml.includes('viewport-fit=cover'),'MA CRM must retain iPhone safe-area viewport support');
 
