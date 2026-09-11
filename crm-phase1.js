@@ -6,6 +6,82 @@
   const API_KEY="sb_publishable_tSqbw3aeAgxYuzHhQurCuw_yDze4ZNn";
   const ADMIN_SESSION_KEY="ma_schedule_admin_session_v1";
   const CRM_SESSION_KEY="ma_crm_session_v1";
+
+  function installSessionFetchCache(){
+    if(window.__maCrmSessionCache?.installed)return;
+    const upstream=window.fetch.bind(window);
+    const cache=new Map(),refreshing=new Set();
+    let generation=0;
+    const refreshAfterMs=12000,maxEntries=140;
+    const readOps={
+      "ma-crm-api":new Set(["bootstrap","list-repairs","list-sales","repair"]),
+      "ma-crm-phase1-api":new Set(["detail"]),
+      "ma-crm-inventory-api":new Set(["bootstrap","list-products","movements","repair-options"]),
+      "ma-crm-finance-api":new Set(["bootstrap","summary","transactions","debts","repair-profit","reports","unassigned-sales"]),
+      "ma-crm-final-api":new Set(["bootstrap","repair-tools","compensation","payroll"])
+    };
+    function slugFrom(url){const m=String(url||"").match(/\/functions\/v1\/([^/?#]+)/);return m?.[1]||"";}
+    function stable(value){
+      if(Array.isArray(value))return value.map(stable);
+      if(value&&typeof value==="object")return Object.keys(value).sort().reduce((o,k)=>(o[k]=stable(value[k]),o),{});
+      return value;
+    }
+    function authIdentity(init){
+      try{const h=new Headers(init?.headers||{});return`${h.get("authorization")||""}|${h.get("x-crm-session")||""}`;}catch(_){return"";}
+    }
+    function keyFor(url,init,body,slug){return`${slug}|${authIdentity(init)}|${JSON.stringify(stable(body))}`;}
+    function replay(entry){return new Response(entry.text,{status:entry.status,statusText:entry.statusText,headers:entry.headers});}
+    async function remember(key,slug,op,response,expectedGeneration){
+      if(!response.ok||generation!==expectedGeneration)return;
+      const clone=response.clone(),text=await clone.text();
+      if(generation!==expectedGeneration)return;
+      cache.set(key,{slug,op,text,status:clone.status,statusText:clone.statusText,headers:[...clone.headers.entries()],at:Date.now()});
+      while(cache.size>maxEntries)cache.delete(cache.keys().next().value);
+    }
+    function invalidate(slugs){
+      generation++;
+      const wanted=new Set(slugs);
+      for(const [key,entry] of cache)if(wanted.has(entry.slug))cache.delete(key);
+    }
+    function invalidateAfterWrite(slug,op){
+      if(slug==="ma-crm-finance-api")return invalidate(["ma-crm-finance-api"]);
+      if(slug==="ma-crm-inventory-api")return invalidate(["ma-crm-inventory-api","ma-crm-phase1-api","ma-crm-api","ma-crm-finance-api"]);
+      if(slug==="ma-crm-phase1-api")return invalidate(["ma-crm-phase1-api","ma-crm-api","ma-crm-final-api","ma-crm-finance-api"]);
+      if(slug==="ma-crm-final-api")return invalidate(["ma-crm-final-api","ma-crm-api","ma-crm-phase1-api","ma-crm-finance-api"]);
+      if(slug==="ma-crm-api"){
+        if(op==="login")return invalidate(Object.keys(readOps));
+        if(op==="create-sale")return invalidate(["ma-crm-api","ma-crm-finance-api"]);
+        return invalidate(["ma-crm-api","ma-crm-phase1-api","ma-crm-final-api","ma-crm-finance-api"]);
+      }
+    }
+    window.fetch=async function(input,init={}){
+      const url=typeof input==="string"?input:input?.url||"",slug=slugFrom(url),method=String(init?.method||"GET").toUpperCase();
+      if(method!=="POST"||!readOps[slug]||!init?.body)return upstream(input,init);
+      let body=null;try{body=JSON.parse(String(init.body));}catch(_){return upstream(input,init);}
+      const op=String(body?.op||""),isRead=readOps[slug].has(op);
+      if(!isRead){
+        const response=await upstream(input,init);
+        if(response.ok)invalidateAfterWrite(slug,op);
+        return response;
+      }
+      const key=keyFor(url,init,body,slug),hit=cache.get(key);
+      if(hit){
+        if(Date.now()-hit.at>=refreshAfterMs&&!refreshing.has(key)&&navigator.onLine!==false){
+          refreshing.add(key);const expectedGeneration=generation,bgInit={...init,signal:undefined,cache:"no-store"};
+          upstream(input,bgInit).then(response=>remember(key,slug,op,response,expectedGeneration)).catch(()=>{}).finally(()=>refreshing.delete(key));
+        }
+        return replay(hit);
+      }
+      const expectedGeneration=generation,response=await upstream(input,init);
+      await remember(key,slug,op,response,expectedGeneration);
+      return response;
+    };
+    function clear(){generation++;cache.clear();}
+    document.addEventListener("click",event=>{if(event.target.closest?.("#refreshDashboard,#financeRefresh,#inventoryRefresh,[data-crm-force-refresh]"))clear();},true);
+    window.__maCrmSessionCache={installed:true,clear,stats:()=>({entries:cache.size,generation})};
+  }
+  installSessionFetchCache();
+
   const nativeFetch=window.fetch.bind(window);
   let currentRepairId="";
   let renderSeq=0;
