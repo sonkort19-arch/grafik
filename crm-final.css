@@ -5,14 +5,14 @@
 @media(max-width:760px){
   html,body{min-height:100dvh;-webkit-text-size-adjust:100%}
   input,select,textarea,.phase-add-form input,.phase-add-form select,.inventory-repair-grid input,.inventory-repair-grid select,.inv-form input,.inv-form select,.inv-form textarea,.fin-form-grid input,.fin-form-grid select,.fin-form-grid textarea,.fin-assign-row select,.final-dialog input,.payroll-controls input{font-size:16px!important}
-  .drawer{top:0;bottom:auto;height:100dvh;max-height:100dvh;min-height:0;overflow:hidden}
+  .drawer{top:0;bottom:auto;height:var(--crm-visual-height,100dvh);max-height:var(--crm-visual-height,100dvh);min-height:0;overflow:hidden}
   .drawer-head{padding-top:calc(15px + env(safe-area-inset-top));padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right));flex:0 0 auto;background:#fff;z-index:2}
   .drawer-head .icon-button{flex:0 0 auto;align-self:center}
-  .drawer-body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scroll-padding-bottom:110px;min-height:0}
+  .drawer-body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scroll-padding-bottom:calc(110px + var(--crm-keyboard-offset,0px));min-height:0}
   .drawer-footer{position:sticky;bottom:0;z-index:5;flex:0 0 auto;padding:10px max(14px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));box-shadow:0 -1px 0 var(--line),0 -10px 24px rgba(15,23,42,.05)}
   .drawer-footer .btn{min-height:46px;font-size:15px}
   #newRepairDrawer:not(.hidden) #repairPhone,#saleOverlay:not(.hidden) #salePhone{animation:crm-ios-delay-autofocus .14s step-end 1}
-  .order-modal,.dialog-card,.inv-dialog,.fin-dialog,.final-dialog{max-height:100dvh}
+  .order-modal,.dialog-card,.inv-dialog,.fin-dialog,.final-dialog{max-height:var(--crm-visual-height,100dvh)}
   .order-modal-body,.dialog-card,.inv-dialog,.fin-dialog,.final-dialog{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
   .order-modal-head{padding-top:calc(13px + env(safe-area-inset-top));padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
   .toast{bottom:calc(82px + env(safe-area-inset-bottom));max-width:calc(100vw - 24px);text-align:center}
