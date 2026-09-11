@@ -29,6 +29,10 @@ assert(cashflowMigration.includes('grant execute on function public.ma_crm_creat
 assert(cashflowMigration.includes('Для этой точки не настроена касса выбранного типа'),'cashflows must fail rather than remain unassigned');
 assert(/font-size:16px!important/.test(finalCss),'mobile CRM controls must stay at least 16px to avoid iOS auto zoom');
 assert(!finalCss.includes('scroll-padding-bottom:calc(110px + var(--crm-keyboard-offset'),'keyboard height must not be double-counted in drawer scrolling');
+assert(finalCss.includes('height:var(--crm-visual-height,100dvh)'),'order modal must follow the iPhone visual viewport while keyboard is open');
+assert(finalCss.includes('overflow-x:hidden'),'mobile CRM dialogs must block horizontal scrolling');
+assert(finalCss.includes('overscroll-behavior-x:none'),'order modal must not horizontally overscroll on iPhone');
+assert(finalCss.includes('.order-layout,.order-main,.order-side,.detail-panel,.edit-grid'),'order detail children must be allowed to shrink to the mobile viewport');
 assert(baseApi.includes('select("status,ready_at,issued_at")'),'status changes must read lifecycle timestamps');
 assert(baseApi.includes('patch.ready_at=null;patch.issued_at=null'),'reopening a repair must clear stale ready/issued timestamps');
 assert(finalApi.includes('if(new Date(until)<new Date())throw new Error("Срок гарантии закончился")'),'expired warranty must be blocked for every role');
