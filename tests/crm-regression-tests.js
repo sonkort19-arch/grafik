@@ -5,18 +5,23 @@ const read=p=>fs.readFileSync(p,'utf8');
 const finalJs=read('crm-final.js');
 const finalCss=read('crm-final.css');
 const phaseApi=read('supabase/functions/ma-crm-phase1-api/index.ts');
-const migration=read('supabase/migrations/20260911163000_add_ma_crm_atomic_repair_create.sql');
+const repairMigration=read('supabase/migrations/20260911163000_add_ma_crm_atomic_repair_create.sql');
+const cashflowMigration=read('supabase/migrations/20260911165500_harden_ma_crm_atomic_cashflows.sql');
 
 assert(finalJs.includes('create-repair-bundle'),'new repair must use atomic bundle API');
+assert(finalJs.includes('create-sale-bundle'),'new sale must use atomic bundle API');
+assert(finalJs.includes('createSaleAtomic'),'sale interception must be atomic');
 assert(!finalJs.includes('location.reload()'),'CRM actions must not force a full page reload');
 assert(!finalJs.includes('block:"center"'),'mobile focus must not force fields to screen center');
 assert(finalJs.includes('block:"nearest"'),'mobile focus correction should use nearest scrolling');
-assert(finalJs.includes('assign-sale-default'),'manager sales must receive a default cashbox');
 assert(phaseApi.includes('cashbox_id:cashboxId'),'repair payments must be assigned to a matching cashbox');
 assert(phaseApi.includes('createRepairBundle'),'phase API must expose atomic repair creation');
-assert(phaseApi.includes('assignSaleDefault'),'phase API must assign manager sales to cashboxes');
-assert(migration.includes('revoke all on function public.ma_crm_create_repair_bundle'),'atomic RPC must not be public');
-assert(migration.includes('grant execute on function public.ma_crm_create_repair_bundle')&&migration.includes('to service_role'),'atomic RPC must be service-role only');
+assert(phaseApi.includes('createSaleBundle'),'phase API must expose atomic sale creation');
+assert(repairMigration.includes('revoke all on function public.ma_crm_create_repair_bundle'),'repair RPC must not be public');
+assert(cashflowMigration.includes('grant execute on function public.ma_crm_create_repair_bundle')&&cashflowMigration.includes('to service_role'),'repair RPC must stay service-role only');
+assert(cashflowMigration.includes('revoke all on function public.ma_crm_create_sale_bundle'),'sale RPC must not be public');
+assert(cashflowMigration.includes('grant execute on function public.ma_crm_create_sale_bundle')&&cashflowMigration.includes('to service_role'),'sale RPC must be service-role only');
+assert(cashflowMigration.includes('Для этой точки не настроена касса выбранного типа'),'cashflows must fail rather than remain unassigned');
 assert(/font-size:16px!important/.test(finalCss),'mobile CRM controls must stay at least 16px to avoid iOS auto zoom');
 assert(!finalCss.includes('scroll-padding-bottom:calc(110px + var(--crm-keyboard-offset'),'keyboard height must not be double-counted in drawer scrolling');
 
