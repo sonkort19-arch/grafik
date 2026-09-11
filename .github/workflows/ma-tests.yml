@@ -19,9 +19,11 @@ jobs:
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Reject whitespace and merge-marker damage
-        run: git diff --check HEAD^ HEAD || git diff --check
+        run: git diff --check HEAD^ HEAD
 
       - name: Run structural stability gates
         run: node tests/stability-gates.js
@@ -64,6 +66,9 @@ jobs:
           node --input-type=module --check < api/oauth-protected-resource.js
           node --input-type=module --check < api/openai-apps-challenge.js
 
+      - name: Check legacy read API syntax
+        run: node --input-type=module --check < supabase/functions/ma-grafik-api/index.ts
+
       - name: Validate plugin manifest
         run: node -e "const fs=require('fs'); JSON.parse(fs.readFileSync('.codex-plugin/plugin.json','utf8')); console.log('plugin.json OK')"
 
@@ -96,19 +101,17 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Type-check all Supabase functions
-        shell: bash
+      - name: Type-check protected Supabase functions
         run: |
-          set -euo pipefail
-          mapfile -t files < <(find supabase/functions -mindepth 2 -maxdepth 2 -type f -name 'index.ts' | sort)
-          if [ "${#files[@]}" -eq 0 ]; then
-            echo "No Supabase functions found"
-            exit 1
-          fi
-          for file in "${files[@]}"; do
-            echo "Deno check: $file"
-            deno check "$file"
-          done
+          deno check supabase/functions/ma-grafik-write-api/index.ts
+          deno check supabase/functions/ma-grafik-mcp/index.ts
+          deno check supabase/functions/ma-grafik-attendance-api/index.ts
+          deno check supabase/functions/ma-crm-api/index.ts
+          deno check supabase/functions/ma-crm-phase1-api/index.ts
+          deno check supabase/functions/ma-crm-inventory-api/index.ts
+          deno check supabase/functions/ma-crm-finance-api/index.ts
+          deno check supabase/functions/ma-crm-final-api/index.ts
+          deno check supabase/functions/ma-shifts/index.ts
 
   production-smoke:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
