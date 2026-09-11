@@ -4,7 +4,9 @@ const assert=require('assert');
 const read=p=>fs.readFileSync(p,'utf8');
 const finalJs=read('crm-final.js');
 const finalCss=read('crm-final.css');
+const baseApi=read('supabase/functions/ma-crm-api/index.ts');
 const phaseApi=read('supabase/functions/ma-crm-phase1-api/index.ts');
+const finalApi=read('supabase/functions/ma-crm-final-api/index.ts');
 const repairMigration=read('supabase/migrations/20260911163000_add_ma_crm_atomic_repair_create.sql');
 const cashflowMigration=read('supabase/migrations/20260911165500_harden_ma_crm_atomic_cashflows.sql');
 
@@ -24,5 +26,9 @@ assert(cashflowMigration.includes('grant execute on function public.ma_crm_creat
 assert(cashflowMigration.includes('Для этой точки не настроена касса выбранного типа'),'cashflows must fail rather than remain unassigned');
 assert(/font-size:16px!important/.test(finalCss),'mobile CRM controls must stay at least 16px to avoid iOS auto zoom');
 assert(!finalCss.includes('scroll-padding-bottom:calc(110px + var(--crm-keyboard-offset'),'keyboard height must not be double-counted in drawer scrolling');
+assert(baseApi.includes('select("status,ready_at,issued_at")'),'status changes must read lifecycle timestamps');
+assert(baseApi.includes('patch.ready_at=null;patch.issued_at=null'),'reopening a repair must clear stale ready/issued timestamps');
+assert(finalApi.includes('if(new Date(until)<new Date())throw new Error("Срок гарантии закончился")'),'expired warranty must be blocked for every role');
+assert(finalApi.includes('T00:00:00+03:00'),'payroll month boundaries must use Moscow local midnight');
 
 console.log('CRM regression checks: OK');
