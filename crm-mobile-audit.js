@@ -1,7 +1,7 @@
 (()=>{
   "use strict";
 
-  const MOBILE_QUERY="(max-width: 760px)";
+  const MOBILE_QUERY="(max-width: 760px), (orientation: landscape) and (max-width: 960px) and (max-height: 500px)";
   const root=document.documentElement;
   const mobile=()=>window.matchMedia(MOBILE_QUERY).matches;
 
