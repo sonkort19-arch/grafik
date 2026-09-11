@@ -1,0 +1,376 @@
+/* MA CRM — этап 7 редизайна.
+   Только визуальный слой. Логика, DOM-id, Supabase и данные не меняются. */
+
+:root{
+  --bg:#F6F7F9;
+  --surface:#FFFFFF;
+  --surface2:#F8FAFC;
+  --text:#18202B;
+  --muted:#667085;
+  --line:#E3E7ED;
+  --line2:#EDF0F4;
+  --nav:#FFFFFF;
+  --nav2:#F8FAFC;
+  --blue:#246BFD;
+  --blue2:#EEF4FF;
+  --green:#21A66B;
+  --green2:#EAF8F1;
+  --amber:#CC8915;
+  --amber2:#FFF5E5;
+  --red:#CF4E4E;
+  --red2:#FDEEEE;
+  --purple:#7A53C8;
+  --purple2:#F4EFFF;
+  --shadow:0 1px 2px rgba(16,24,40,.04),0 4px 14px rgba(16,24,40,.04);
+  --radius:14px;
+}
+
+html,body{background:var(--bg);color:var(--text)}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+/* Общая оболочка — визуально совпадает с MA График */
+.sidebar{
+  width:244px;
+  background:var(--surface);
+  color:var(--text);
+  border-right:1px solid var(--line);
+  box-shadow:none;
+}
+.sidebar-brand{
+  height:64px;
+  padding:0 16px;
+  border-bottom:1px solid var(--line);
+}
+.brand-mark{
+  width:36px;height:36px;
+  border-radius:10px;
+  background:var(--blue);
+  color:#fff;
+  box-shadow:none;
+}
+.sidebar-brand b{font-size:16px;color:var(--text);font-weight:800;letter-spacing:-.02em}
+.sidebar-brand span{font-size:11px;color:#98A2B3}
+.sidebar-nav{padding:14px 12px;gap:4px}
+.nav-caption{margin:18px 10px 6px;color:#98A2B3;font-size:9px;letter-spacing:.11em}
+.nav-item{
+  height:44px;
+  padding:0 11px;
+  color:var(--muted);
+  border-radius:10px;
+  font-size:13.5px;
+  font-weight:650;
+}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--blue2);color:var(--blue);font-weight:750}
+.nav-icon{font-size:17px;color:currentColor}
+.nav-item i{background:#F2F4F7;color:#667085}
+.nav-item.active i{background:#DCE7FF;color:var(--blue)}
+.sidebar-bottom{padding:10px 12px;border-top:1px solid var(--line)}
+.back-to-grafik,.sidebar-user{color:var(--text);border-radius:10px}
+.back-to-grafik:hover{background:var(--surface2)}
+.back-to-grafik>span:first-child{background:var(--blue2);color:var(--blue)}
+.back-to-grafik small,.sidebar-user small{color:#98A2B3}
+.sidebar-user{background:var(--surface2);border:1px solid var(--line)}
+.user-avatar{background:var(--blue2);color:var(--blue)}
+
+.crm-workspace{margin-left:244px}
+.topbar{
+  height:64px;
+  padding:0 24px;
+  background:rgba(255,255,255,.97);
+  border-bottom:1px solid var(--line);
+  box-shadow:none;
+  backdrop-filter:saturate(140%) blur(14px);
+  -webkit-backdrop-filter:saturate(140%) blur(14px);
+}
+.topbar h1{font-size:18px;color:var(--text);font-weight:800}
+.topbar p{font-size:12px;color:var(--muted)}
+.online-state{color:var(--muted);font-size:12px}
+.online-state i{box-shadow:none}
+.workspace-content{max-width:1440px;padding:24px 28px 40px}
+.offline-banner{margin:12px 24px 0;border-radius:10px}
+
+/* Контролы */
+.btn,.icon-button,.filter-button,.status-filters button,
+.search-box input,input,select,textarea{
+  border-radius:10px;
+}
+.btn{min-height:40px;padding:8px 14px;font-size:12.5px;font-weight:750}
+.btn-primary{background:var(--blue);border-color:var(--blue)}
+.btn-primary:hover{background:#1D5DEB;border-color:#1D5DEB}
+.btn-secondary{background:#fff;border-color:var(--line);color:var(--text)}
+.btn-secondary:hover{background:var(--surface2);border-color:#D0D5DD}
+.icon-button{border-color:var(--line);color:var(--text)}
+.search-box input,input,select,textarea{min-height:42px;border-color:var(--line);font-size:13px}
+.search-box input:focus,input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(36,107,253,.10)}
+label>span{font-size:11.5px;color:var(--muted)}
+
+/* Обзор */
+.dashboard-hero{margin-bottom:18px;align-items:flex-end}
+.eyebrow,.drawer-kicker{color:#98A2B3;font-size:10px}
+.dashboard-hero h2{font-size:28px;color:var(--text);font-weight:800;letter-spacing:-.035em}
+.dashboard-hero p{font-size:13px;color:var(--muted)}
+.metric-grid{gap:14px;margin-bottom:16px}
+.metric-card{
+  min-height:124px;
+  padding:18px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--surface);
+  box-shadow:var(--shadow);
+}
+.metric-card>span{font-size:12px;color:var(--muted);font-weight:650}
+.metric-card>b{margin:17px 0 6px;font-size:30px;color:var(--text);font-weight:800}
+.metric-card>small{font-size:11px;color:#98A2B3}
+.dashboard-grid{gap:16px}
+.panel,.table-card{
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--surface);
+  box-shadow:var(--shadow);
+}
+.panel{padding:18px}
+.panel-head{padding-bottom:14px}
+.panel-head h3{font-size:15px;color:var(--text)}
+.panel-head p{font-size:11.5px;color:var(--muted)}
+.text-button{font-size:12px}
+.status-overview{gap:10px}
+.status-tile{padding:12px;border-color:var(--line);background:var(--surface2);border-radius:10px}
+.status-tile span{font-size:11px;color:var(--muted)}
+.status-tile b{font-size:22px;color:var(--text)}
+.compact-order{padding:12px 0}
+.compact-order b{font-size:12px}
+.compact-order span{font-size:11px}
+
+/* Заказы / клиенты / продажи */
+.section-toolbar{gap:10px;margin-bottom:12px}
+.status-filters{gap:7px;margin-bottom:12px}
+.status-filters button{padding:8px 11px;border-color:var(--line);font-size:11px;color:var(--muted)}
+.status-filters button.active{background:var(--blue2);border-color:#DCE7FF;color:var(--blue)}
+.table-headline{min-height:54px;padding:0 16px}
+.table-headline b{font-size:14px;color:var(--text)}
+.table-headline span,.table-hint{font-size:11px;color:#98A2B3}
+.data-table th{background:var(--surface2);color:var(--muted);font-size:10px;padding:10px 12px}
+.data-table td{font-size:12px;padding:12px;border-bottom-color:var(--line2)}
+.data-table tbody tr[data-repair-id]:hover{background:#FAFCFF}
+.client-cell b,.device-cell b{font-size:12px}
+.client-cell small,.device-cell small,.muted-cell{font-size:10.5px;color:#98A2B3}
+.status-badge{padding:6px 8px;border-radius:999px;font-size:10px}
+.mobile-row-card{background:#fff}
+
+/* Отчёты */
+.report-summary{gap:14px;margin-bottom:16px}
+.report-card{padding:18px;border-color:var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.report-card span{font-size:11.5px;color:var(--muted)}
+.report-card b{font-size:26px;color:var(--text)}
+.report-card small{font-size:10.5px;color:#98A2B3}
+.report-note{font-size:11.5px;color:var(--muted);border-color:var(--line);border-radius:10px}
+.person-avatar{background:var(--blue2);color:var(--blue)}
+.bar-fill{background:var(--blue)}
+
+/* Склад */
+.inventory-stage{gap:16px}
+.inventory-head h2{font-size:26px;color:var(--text);letter-spacing:-.03em}
+.inventory-head p{font-size:13px;color:var(--muted)}
+.inventory-metrics{gap:12px}
+.inventory-metric{
+  border-color:var(--line);
+  border-radius:14px;
+  padding:16px;
+  box-shadow:var(--shadow);
+}
+.inventory-metric span{font-size:12px;color:var(--muted)}
+.inventory-metric b{font-size:26px;color:var(--text)}
+.inventory-metric small{color:#98A2B3}
+.inventory-toolbar{gap:10px}
+.inventory-grid{gap:16px}
+.inventory-table-wrap{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:auto}
+.inventory-table th{padding:11px 12px;background:var(--surface2);color:var(--muted);font-size:11px}
+.inventory-table td{padding:12px;font-size:12px}
+.inventory-product-name b{font-size:13px}
+.inventory-product-name small{font-size:11px;color:#98A2B3}
+.inventory-category,.inventory-stock-pill{font-size:11px}
+.inventory-history{border-color:var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.inventory-history-head{padding:16px}
+.inventory-history-head h3{font-size:15px}
+.inventory-history-head p{color:var(--muted)}
+.inventory-move p{color:var(--muted)}
+.inventory-move small{color:#98A2B3}
+.inventory-row-actions button{border-color:var(--line);border-radius:9px;color:var(--text)}
+.inventory-row-actions button:hover{background:var(--surface2)}
+
+/* Финансы */
+.finance-stage{gap:16px}
+.finance-head h2{font-size:26px!important;color:var(--text)!important;letter-spacing:-.03em}
+.finance-head p,.finance-section-head p,.finance-report-card p{color:var(--muted)}
+.finance-period{padding:14px 16px;border-color:var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.finance-period label{color:var(--muted)}
+.finance-period input{height:42px;border-color:var(--line);border-radius:10px}
+.finance-metrics{gap:12px}
+.finance-metric{padding:16px;border-color:var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.finance-metric span{color:var(--muted)}
+.finance-metric b{font-size:23px;color:var(--text)}
+.finance-metric small{color:#98A2B3}
+.finance-tabs{padding:4px;background:#EEF1F5;border-radius:11px}
+.finance-tabs button{padding:9px 13px;border-radius:9px;color:var(--muted)}
+.finance-tabs button.active{color:var(--blue);box-shadow:none}
+.finance-tab-panel{border-color:var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+.cashbox-grid{gap:12px}
+.cashbox-card{border-color:var(--line);border-radius:12px;background:var(--surface2)}
+.cashbox-card h3,.cashbox-card>b{color:var(--text)}
+.cashbox-card small{color:#98A2B3}
+.cashbox-kind{background:var(--blue2);color:var(--blue)}
+.finance-table-wrap{border-color:var(--line);border-radius:12px}
+.finance-table th{background:var(--surface2);color:var(--muted);font-size:10.5px}
+.finance-table td{color:var(--text);font-size:12px}
+.finance-report-card{border-color:var(--line);border-radius:12px}
+.finance-report-card h3{color:var(--text)}
+.finance-report-row small{color:var(--muted)}
+
+/* Модули внутри карточки заказа */
+.phase-title-row h3,.final-title-row h3,.payroll-head h3{color:var(--text)}
+.phase-title-row p,.final-title-row p,.payroll-head p,.final-help{color:var(--muted)}
+.phase-inline-facts>span,.phase-money-grid>span,.phase-line,.final-file,
+.finance-report-card,.payroll-table-wrap{border-color:var(--line);background:#fff;border-radius:10px}
+.phase-inline-facts>span,.phase-money-grid>span{background:var(--surface2)}
+.phase-inline-facts small,.phase-money-grid small,.phase-line small{color:var(--muted)}
+.final-action-btn,.final-file-actions a,.final-file-actions button{border-color:var(--line);border-radius:9px;color:var(--text)}
+.final-action-btn.primary{background:var(--blue);border-color:var(--blue)}
+.payroll-table th{background:var(--surface2);color:var(--muted)}
+
+/* Drawer, карточка заказа, модалки */
+.overlay,.drawer-backdrop,.inv-overlay,.fin-overlay,.final-modal{background:rgba(16,24,40,.46)}
+.drawer{box-shadow:-18px 0 52px rgba(16,24,40,.14)}
+.drawer-head,.drawer-footer,.order-modal-head{border-color:var(--line)}
+.drawer-head h2,.order-modal-head h2,.dialog-head h2{font-size:20px;color:var(--text)}
+.form-section{border-color:var(--line2)}
+.form-section h3{font-size:13px;color:var(--text)}
+.order-modal,.dialog-card,.inv-dialog,.fin-dialog,.final-dialog{
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:0 18px 48px rgba(16,24,40,.14);
+}
+.detail-panel{border-color:var(--line);border-radius:12px}
+.detail-panel h3{font-size:12px}
+.detail-item span{font-size:10.5px;color:#98A2B3}
+.detail-item b{font-size:12px}
+.status-stepper button{border-color:var(--line);border-radius:9px;font-size:10px}
+.status-stepper button.current{background:var(--blue);border-color:var(--blue)}
+.history-mini-row{background:var(--surface2);border-radius:9px}
+.login-logo>span{background:var(--blue)}
+.login-card{border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 48px rgba(16,24,40,.14)}
+.toast{background:#18202B;border-radius:10px}
+
+@media(max-width:1180px){
+  .sidebar{width:224px}
+  .crm-workspace{margin-left:224px}
+  .workspace-content{padding-left:22px;padding-right:22px}
+}
+
+@media(max-width:760px){
+  body{padding-bottom:calc(74px + env(safe-area-inset-bottom));background:var(--bg)}
+  .crm-workspace{margin-left:0}
+  .workspace-content{padding:14px 12px 24px}
+
+  .sidebar{
+    width:min(86vw,320px);
+    padding-top:env(safe-area-inset-top);
+    background:#fff;
+    box-shadow:16px 0 40px rgba(16,24,40,.12);
+  }
+  .sidebar-brand{height:64px}
+  .sidebar-nav{padding:12px}
+  .nav-item{height:46px;font-size:14px}
+  .sidebar-bottom{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+  .sidebar-backdrop{background:rgba(16,24,40,.34)}
+
+  .topbar{
+    min-height:64px;
+    height:auto;
+    padding:calc(8px + env(safe-area-inset-top)) 12px 8px;
+  }
+  .topbar-left{gap:9px;min-width:0}
+  .topbar h1{font-size:18px}
+  .topbar-actions{gap:6px}
+  .mobile-menu{width:40px;height:40px}
+  .offline-banner{margin:8px 12px 0}
+
+  .dashboard-hero{margin:2px 0 12px;align-items:center}
+  .dashboard-hero h2{font-size:23px}
+  .dashboard-hero p{font-size:12px}
+  .metric-grid,.report-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .metric-card,.report-card{min-height:108px;padding:14px;box-shadow:none}
+  .metric-card>b{font-size:25px;margin-top:14px}
+  .metric-card>small{font-size:10.5px}
+  .dashboard-grid,.reports-grid{gap:10px}
+  .panel,.table-card{box-shadow:none}
+  .panel{padding:14px}
+  .status-overview{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+
+  .section-toolbar{grid-template-columns:1fr auto;gap:8px}
+  .section-toolbar .search-box{grid-column:1/-1}
+  .status-filters{margin-left:-12px;margin-right:-12px;padding-left:12px;padding-right:12px}
+  .status-filters button{min-height:38px;font-size:11px}
+  .table-headline{min-height:48px;padding:0 12px}
+  .mobile-card-list{gap:0}
+  .mobile-row-card{padding:13px 12px}
+  .mobile-row-card h3{font-size:14px}
+  .mobile-row-card p{font-size:11px}
+  .mobile-row-meta{font-size:11px}
+
+  .inventory-stage,.finance-stage{gap:12px}
+  .inventory-head,.finance-head{gap:12px}
+  .inventory-head h2,.finance-head h2{font-size:23px!important}
+  .inventory-head p,.finance-head p{font-size:12px}
+  .inventory-metrics,.finance-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .inventory-metric,.finance-metric{padding:14px;box-shadow:none}
+  .inventory-metric b{font-size:22px}
+  .finance-metric b{font-size:19px}
+  .inventory-grid{gap:10px}
+  .inventory-table-wrap,.finance-table-wrap,.payroll-table-wrap{max-width:100%;overflow:auto;-webkit-overflow-scrolling:touch}
+  .inventory-table{min-width:760px}
+  .finance-table{min-width:700px}
+  .finance-tab-panel{padding:12px;box-shadow:none}
+  .finance-tabs{margin:0 -2px;overflow-x:auto;scrollbar-width:none}
+  .finance-tabs::-webkit-scrollbar{display:none}
+  .finance-tabs button{min-height:40px}
+
+  .mobile-bottom-nav{
+    min-height:64px;
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.98);
+    border-top:1px solid var(--line);
+    box-shadow:0 -6px 24px rgba(16,24,40,.05);
+    backdrop-filter:saturate(140%) blur(14px);
+    -webkit-backdrop-filter:saturate(140%) blur(14px);
+  }
+  .mobile-bottom-nav button{min-height:50px;border-radius:10px;color:var(--muted)}
+  .mobile-bottom-nav button>span{font-size:19px}
+  .mobile-bottom-nav button>small{font-size:9.5px;font-weight:650}
+  .mobile-bottom-nav button.active{background:var(--blue2);color:var(--blue)}
+  .mobile-bottom-nav .mobile-create>span{width:32px;height:32px;border-radius:10px;background:var(--blue)}
+
+  .drawer-head h2,.order-modal-head h2,.dialog-head h2{font-size:20px}
+  .order-modal,.dialog-card,.inv-dialog,.fin-dialog,.final-dialog{border-radius:18px 18px 0 0;border-bottom:0}
+  .detail-panel{padding:12px}
+
+  input,select,textarea,.phase-add-form input,.phase-add-form select,
+  .inventory-repair-grid input,.inventory-repair-grid select,
+  .inv-form input,.inv-form select,.inv-form textarea,
+  .fin-form-grid input,.fin-form-grid select,.fin-form-grid textarea,
+  .fin-assign-row select,.final-dialog input,.payroll-controls input{font-size:16px!important}
+}
+
+@media(max-width:420px){
+  .workspace-content{padding-left:10px;padding-right:10px}
+  .metric-grid,.report-summary{gap:8px}
+  .metric-card,.report-card{padding:12px}
+  .metric-card>b{font-size:23px}
+  .inventory-metrics,.finance-metrics{grid-template-columns:1fr 1fr}
+  .inventory-metric,.finance-metric{padding:12px}
+  .status-overview{grid-template-columns:1fr 1fr}
+}
+
+@media(max-width:360px){
+  .metric-grid,.report-summary,.inventory-metrics,.finance-metrics{grid-template-columns:1fr}
+}
