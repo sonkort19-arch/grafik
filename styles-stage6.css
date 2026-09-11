@@ -1,0 +1,972 @@
+/* MA График — этап 6: основные рабочие модули.
+   Только визуальное представление: График, Календарь, История, KPI и Отчёт владельца.
+   Бизнес-логика, DOM-id, данные, Supabase, PIN и расчёт графика не меняются. */
+
+:root{
+  --ma-success-soft:#EAF8F1;
+  --ma-warning-soft:#FFF5E5;
+  --ma-danger-soft:#FDEEEE;
+  --ma-purple:#7A53C8;
+}
+
+/* ---------- ГРАФИК ---------- */
+#schedulePage{
+  width:100%;
+  max-width:1180px;
+  margin:0 auto;
+}
+#schedulePage .schedule-month-title{
+  margin:2px 0 18px;
+  text-align:left;
+}
+#schedulePage .schedule-month-title h1{
+  margin:0 0 5px;
+  color:var(--ma-text);
+  font-size:30px;
+  line-height:1.15;
+  font-weight:800;
+  letter-spacing:-.035em;
+}
+#schedulePage .schedule-month-title p{
+  margin:0;
+  color:var(--ma-text-secondary);
+  font-size:13px;
+  line-height:1.45;
+}
+
+#scheduleControls{
+  margin-top:8px;
+  display:grid;
+  grid-template-columns:minmax(250px,360px) auto minmax(280px,1fr);
+  align-items:center;
+  gap:10px;
+}
+#scheduleControls .simple-monthnav{
+  margin:0;
+  display:grid;
+  grid-template-columns:42px minmax(160px,1fr) 42px;
+  gap:6px;
+}
+#scheduleControls .navbtn,
+#scheduleControls .monthselect,
+#scheduleControls .today-month-btn,
+#scheduleControls .filters select,
+#scheduleControls .schedule-add-employee{
+  min-height:40px;
+  border:1px solid var(--ma-border);
+  border-radius:10px;
+  box-shadow:none;
+}
+#scheduleControls .navbtn{
+  background:var(--ma-surface);
+  color:var(--ma-text-secondary);
+  font-size:20px;
+}
+#scheduleControls .monthselect{
+  background:var(--ma-surface);
+  color:var(--ma-text);
+  text-align:center;
+  font-size:13px;
+  font-weight:750;
+}
+#scheduleControls .today-month-btn{
+  width:auto;
+  margin:0;
+  padding:0 14px;
+  color:var(--ma-primary);
+  background:var(--ma-primary-soft);
+  border-color:#DCE7FF;
+}
+#scheduleControls .simple-schedule-filters{
+  margin:0;
+  display:grid;
+  grid-template-columns:minmax(150px,1fr) auto!important;
+  justify-content:end;
+  gap:8px;
+}
+#scheduleControls .filters select{
+  background:var(--ma-surface);
+  color:var(--ma-text);
+}
+#scheduleControls .schedule-add-employee{
+  padding:0 13px;
+  white-space:nowrap;
+}
+
+#schedulePage .schedule-admin-tools{
+  margin:0 0 14px;
+}
+#schedulePage .schedule-problem-card{
+  min-height:52px;
+  padding:11px 13px!important;
+  border:1px solid #F1DFBD!important;
+  border-radius:12px!important;
+  background:#FFF9F0!important;
+  box-shadow:none!important;
+}
+#schedulePage .schedule-problem-card.ok{
+  border-color:#CAEADB!important;
+  background:#F2FBF7!important;
+}
+#schedulePage .schedule-problem-card b{
+  color:var(--ma-text);
+  font-size:13px!important;
+  font-weight:750;
+}
+#schedulePage .schedule-problem-card span{
+  color:var(--ma-text-secondary);
+  font-size:11px!important;
+}
+#schedulePage .schedule-problem-details{
+  margin-top:8px;
+  padding:10px;
+  border:1px solid var(--ma-border);
+  border-radius:12px;
+  background:var(--ma-surface);
+}
+#schedulePage .schedule-problem-row{
+  border-color:var(--ma-border);
+  background:var(--ma-surface-soft);
+}
+
+#schedulePage .unified-schedule-card,
+#schedulePage .service-card,
+#schedulePage .service-point-schedule{
+  margin:0 0 14px;
+  overflow:hidden;
+  border:1px solid var(--ma-border);
+  border-radius:var(--ma-radius-large);
+  background:var(--ma-surface);
+  box-shadow:var(--ma-shadow-card)!important;
+}
+#schedulePage .unified-schedule-head,
+#schedulePage .service-head{
+  min-height:56px;
+  padding:14px 16px;
+  border-bottom:1px solid var(--ma-border);
+  background:var(--ma-surface);
+}
+#schedulePage .unified-schedule-head h2,
+#schedulePage .service-head h2{
+  margin:0;
+  color:var(--ma-text);
+  font-size:18px;
+  font-weight:780;
+  letter-spacing:-.02em;
+}
+#schedulePage .unified-schedule-legend,
+#schedulePage .calendar-legend{
+  gap:6px;
+}
+#schedulePage .unified-legend-item,
+#schedulePage .calendar-legend-item{
+  border-color:var(--ma-border);
+  background:var(--ma-surface-soft);
+  color:var(--ma-text-secondary);
+}
+#schedulePage .unified-schedule-scroll{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+#schedulePage .unified-schedule-table,
+#schedulePage .schedule{
+  width:100%;
+  border:0;
+  border-radius:0;
+  background:var(--ma-surface);
+}
+#schedulePage .unified-schedule-table th,
+#schedulePage .schedule th{
+  padding:10px 12px;
+  border-color:var(--ma-border);
+  background:var(--ma-surface-soft);
+  color:var(--ma-text-secondary);
+  font-size:12px;
+  font-weight:700;
+}
+#schedulePage .unified-schedule-table td,
+#schedulePage .schedule td{
+  padding:11px 12px;
+  border-color:#EEF1F5;
+  color:var(--ma-text);
+  font-size:13px;
+}
+#schedulePage .unified-schedule-table tbody tr:hover,
+#schedulePage .schedule tbody tr:hover{
+  background:#FBFCFE;
+}
+#schedulePage .unified-schedule-table tr.today,
+#schedulePage .schedule tr.today{
+  background:#F7FAFF;
+}
+#schedulePage .unified-schedule-table tr.today td:first-child,
+#schedulePage .schedule tr.today td:first-child{
+  box-shadow:inset 3px 0 0 var(--ma-primary);
+}
+#schedulePage .highlight{
+  background:#FFF9F0!important;
+}
+
+#schedulePage .schedule-workload-card{
+  margin:14px 0;
+  padding:0;
+  overflow:hidden;
+  border:1px solid var(--ma-border);
+  border-radius:var(--ma-radius-card);
+  background:var(--ma-surface);
+  box-shadow:none!important;
+}
+#schedulePage .schedule-workload-card>summary{
+  min-height:52px;
+  margin:0!important;
+  padding:13px 15px;
+  align-items:center;
+  border:0;
+  background:var(--ma-surface);
+}
+#schedulePage .schedule-workload-head h3{
+  color:var(--ma-text);
+  font-size:15px;
+  font-weight:750;
+}
+#schedulePage .schedule-workload-head span{
+  color:var(--ma-text-secondary);
+  font-size:12px;
+}
+#schedulePage .schedule-workload-scroll{
+  padding:0 14px 14px;
+}
+#schedulePage #monthActions{
+  margin:14px 0 0;
+}
+#schedulePage #monthActions button{
+  min-height:42px;
+  border-color:var(--ma-border);
+  color:var(--ma-text);
+  background:var(--ma-surface);
+}
+
+/* ---------- КАЛЕНДАРЬ ---------- */
+#desktopCalendarPage,
+#employeeCalendarPage{
+  max-width:1180px;
+  margin:0 auto;
+}
+#desktopCalendarPage>.section,
+#employeeCalendarPage>.section{
+  margin:0;
+  padding:22px;
+  border:1px solid var(--ma-border);
+  border-radius:var(--ma-radius-large);
+  background:var(--ma-surface);
+  box-shadow:var(--ma-shadow-card)!important;
+}
+#desktopCalendarPage .employee-calendar-head,
+#employeeCalendarPage .employee-calendar-head{
+  margin-bottom:16px;
+}
+#desktopCalendarPage .employee-calendar-head h2,
+#employeeCalendarPage .employee-calendar-head h2{
+  margin:0;
+  color:var(--ma-text);
+  font-size:28px;
+  line-height:1.15;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+#desktopCalendarPage .employee-calendar-nav,
+#employeeCalendarPage .employee-calendar-nav{
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) 42px;
+  align-items:center;
+  gap:8px;
+  margin:0 0 14px;
+}
+#desktopCalendarPage .employee-calendar-nav button,
+#employeeCalendarPage .employee-calendar-nav button{
+  width:42px;
+  min-height:42px;
+  border:1px solid var(--ma-border);
+  border-radius:10px;
+  background:var(--ma-surface);
+  color:var(--ma-text-secondary);
+  font-size:20px;
+}
+#desktopCalendarPage .employee-calendar-label,
+#employeeCalendarPage .employee-calendar-label{
+  color:var(--ma-text);
+  text-align:center;
+  font-size:15px;
+  font-weight:750;
+}
+#desktopCalendarPage .calendar-legend,
+#employeeCalendarPage .calendar-legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:0 0 14px;
+}
+#desktopCalendarPage .calendar-legend-item,
+#employeeCalendarPage .calendar-legend-item{
+  padding:6px 9px;
+  border:1px solid var(--ma-border);
+  border-radius:999px;
+  background:var(--ma-surface-soft);
+  color:var(--ma-text-secondary);
+  font-size:11px;
+  font-weight:650;
+}
+#desktopCalendarPage .employee-calendar-week,
+#employeeCalendarPage .employee-calendar-week{
+  gap:6px;
+  margin-bottom:6px;
+}
+#desktopCalendarPage .employee-calendar-week div,
+#employeeCalendarPage .employee-calendar-week div{
+  padding:5px 0;
+  color:var(--ma-text-tertiary);
+  font-size:10px;
+  font-weight:750;
+  letter-spacing:.03em;
+}
+#desktopCalendarPage .desktop-calendar-grid{
+  gap:6px;
+}
+#desktopCalendarPage .desktop-cal-cell{
+  min-height:118px;
+  padding:9px;
+  border:1px solid var(--ma-border);
+  border-radius:11px;
+  background:var(--ma-surface);
+  box-shadow:none;
+}
+#desktopCalendarPage .desktop-cal-cell:hover{
+  border-color:var(--ma-border-strong);
+  background:#FBFCFE;
+}
+#desktopCalendarPage .desktop-cal-cell.today{
+  outline:2px solid var(--ma-primary);
+  outline-offset:-2px;
+}
+#desktopCalendarPage .desktop-cal-cell.selected{
+  border-color:#BFD2FF;
+  background:#F7FAFF;
+  box-shadow:0 0 0 2px rgba(36,107,253,.10);
+}
+#desktopCalendarPage .desktop-cal-day{
+  margin-bottom:7px;
+  color:var(--ma-text);
+  font-size:14px;
+  font-weight:800;
+}
+#desktopCalendarPage .desktop-cal-services{
+  display:grid;
+  gap:5px;
+}
+#desktopCalendarPage .desktop-service-chip{
+  padding:6px 7px;
+  border:1px solid transparent;
+  border-radius:8px;
+  font-size:11px;
+}
+#desktopCalendarPage .desktop-service-chip.service-s1{
+  border-color:#CFE7DD;
+  background:#F2F8F5;
+  color:#286348;
+}
+#desktopCalendarPage .desktop-service-chip.service-s2{
+  border-color:#DED5F3;
+  background:#F7F4FC;
+  color:#65469E;
+}
+#desktopCalendarPage .desktop-calendar-detail,
+#employeeCalendarPage .employee-calendar-detail{
+  margin-top:14px;
+  padding:14px;
+  border:1px solid var(--ma-border);
+  border-radius:12px;
+  background:var(--ma-surface-soft);
+  color:var(--ma-text);
+}
+
+/* ---------- ИСТОРИЯ ---------- */
+#historyPage{
+  max-width:1180px;
+  margin:0 auto;
+}
+#historyPage>.section{
+  margin:0;
+  padding:22px;
+  border:1px solid var(--ma-border);
+  border-radius:var(--ma-radius-large);
+  background:var(--ma-surface);
+  box-shadow:var(--ma-shadow-card)!important;
+}
+#historyPage .history-page-head{
+  margin:0 0 18px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--ma-border);
+}
+#historyPage .history-page-head h2{
+  margin:0;
+  color:var(--ma-text);
+  font-size:28px;
+  line-height:1.15;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+#historyPage .history-page-sub{
+  margin-top:5px;
+  color:var(--ma-text-secondary);
+  font-size:13px;
+}
+#historyPage .history-quick{
+  gap:6px;
+  padding:0 0 12px;
+}
+#historyPage .history-quick button{
+  min-height:38px;
+  padding:0 12px;
+  border:1px solid var(--ma-border);
+  border-radius:10px;
+  background:var(--ma-surface);
+  color:var(--ma-text-secondary);
+  font-size:12px;
+  font-weight:700;
+}
+#historyPage .history-quick button.active{
+  border-color:#DCE7FF;
+  background:var(--ma-primary-soft);
+  color:var(--ma-primary);
+}
+#historyPage .history-custom-range,
+#historyPage .history-filters-clean{
+  gap:8px;
+}
+#historyPage .history-custom-range input,
+#historyPage .history-custom-range button,
+#historyPage .history-filters-clean select{
+  min-height:42px!important;
+  border:1px solid var(--ma-border);
+  border-radius:10px;
+  background:var(--ma-surface);
+  color:var(--ma-text);
+}
+#historyPage .history-legend{
+  margin:12px 0;
+}
+#historyPage .history-legend span{
+  border-color:var(--ma-border);
+  background:var(--ma-surface-soft);
+  color:var(--ma-text-secondary);
+}
+#historyPage .history-dot.service-s1{background:var(--ma-primary)}
+#historyPage .history-dot.service-s2{background:var(--ma-purple)}
+#historyPage .history-stats-grid{
+  gap:10px;
+}
+#historyPage .history-stat{
+  min-height:82px;
+  padding:12px;
+  border:1px solid var(--ma-border);
+  border-radius:12px;
+  background:var(--ma-surface-soft);
+  box-shadow:none;
+}
+#historyPage .history-stat b{
+  color:var(--ma-text);
+  font-size:24px;
+  line-height:1.1;
+}
+#historyPage .history-list{
+  gap:9px;
+}
+#historyPage .history-item{
+  border:1px solid var(--ma-border);
+  border-left:1px solid var(--ma-border)!important;
+  border-radius:12px;
+  background:var(--ma-surface);
+  box-shadow:none;
+}
+#historyPage .history-item.service-s1{box-shadow:inset 3px 0 0 var(--ma-primary)}
+#historyPage .history-item.service-s2{box-shadow:inset 3px 0 0 var(--ma-purple)}
+#historyPage .history-item[open]{
+  box-shadow:inset 3px 0 0 var(--ma-primary),0 4px 14px rgba(16,24,40,.04);
+}
+#historyPage .history-item.service-s2[open]{
+  box-shadow:inset 3px 0 0 var(--ma-purple),0 4px 14px rgba(16,24,40,.04);
+}
+#historyPage .history-summary{
+  padding:13px 14px;
+}
+#historyPage .history-summary-service{
+  color:var(--ma-text)!important;
+  font-size:13px;
+  font-weight:780;
+}
+#historyPage .history-summary-date,
+#historyPage .history-summary-line{
+  color:var(--ma-text-secondary);
+}
+#historyPage .history-summary-status{
+  border-radius:999px;
+  font-size:11px;
+  font-weight:750;
+}
+#historyPage .history-summary-status.ok{background:var(--ma-success-soft);color:#18704A}
+#historyPage .history-summary-status.warn{background:var(--ma-warning-soft);color:#8B5D0B}
+#historyPage .history-summary-status.bad{background:var(--ma-danger-soft);color:#A33C3C}
+#historyPage .history-details{
+  border-top:1px solid var(--ma-border);
+  background:var(--ma-surface-soft);
+}
+#historyPage .history-detail-card{
+  border-color:var(--ma-border);
+  border-radius:10px;
+  background:var(--ma-surface);
+}
+
+/* ---------- KPI ---------- */
+#kpiPage{
+  max-width:1180px;
+  margin:0 auto;
+}
+#kpiPage .kpi-shell{
+  max-width:none;
+  margin:0;
+  padding:22px;
+  border:1px solid var(--ma-border);
+  border-radius:var(--ma-radius-large);
+  background:var(--ma-surface);
+  box-shadow:var(--ma-shadow-card)!important;
+}
+#kpiPage .kpi-head{
+  margin:0 0 18px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--ma-border);
+}
+#kpiPage .kpi-head h2{
+  margin:0;
+  color:var(--ma-text);
+  font-size:28px;
+  line-height:1.15;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+#kpiPage .kpi-toolbar{
+  margin:0 0 14px;
+  gap:8px;
+}
+#kpiPage .kpi-toolbar label{
+  color:var(--ma-text-secondary);
+  font-size:12px;
+}
+#kpiPage .kpi-toolbar input,
+#kpiPage .kpi-toolbar button{
+  min-height:42px;
+  border-radius:10px;
+}
+#kpiPage .kpi-toolbar input{
+  border-color:var(--ma-border);
+  background:var(--ma-surface);
+}
+#kpiPage .kpi-notice{
+  margin-bottom:14px;
+  padding:12px 14px;
+  border:1px solid var(--ma-border);
+  border-radius:12px;
+  background:var(--ma-surface-soft);
+  color:var(--ma-text-secondary);
+}
+#kpiPage .kpi-summary{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin-bottom:16px;
+}
+#kpiPage .kpi-summary-card{
+  min-height:108px;
+  padding:15px;
+  border:1px solid var(--ma-border);
+  border-radius:12px;
+  background:var(--ma-surface-soft);
+  box-shadow:none;
+}
+#kpiPage .kpi-summary-card span{
+  color:var(--ma-text-secondary);
+  font-size:12px;
+}
+#kpiPage .kpi-summary-card b{
+  color:var(--ma-text);
+  font-size:30px;
+  line-height:1;
+  font-weight:800;
+}
+#kpiPage .kpi-summary-card.good b{color:var(--ma-success)}
+#kpiPage .kpi-summary-card.bad b{color:var(--ma-danger)}
+#kpiPage .kpi-list{
+  gap:9px;
+}
+#kpiPage .kpi-person{
+  border:1px solid var(--ma-border);
+  border-radius:12px;
+  background:var(--ma-surface);
+  box-shadow:none;
+}
+#kpiPage .kpi-person summary{
+  min-height:64px;
+  padding:13px 14px;
+}
+#kpiPage .kpi-person-main>b{
+  color:var(--ma-text);
+  font-size:15px;
+  font-weight:780;
+}
+#kpiPage .kpi-person-main>span{
+  color:var(--ma-text-secondary);
+}
+#kpiPage .kpi-score>b{
+  font-size:24px;
+}
+#kpiPage .kpi-score.excellent b,
+#kpiPage .kpi-score.excellent span{color:var(--ma-success)}
+#kpiPage .kpi-score.normal b,
+#kpiPage .kpi-score.normal span{color:var(--ma-primary)}
+#kpiPage .kpi-score.attention b,
+#kpiPage .kpi-score.attention span{color:var(--ma-warning)}
+#kpiPage .kpi-score.problem b,
+#kpiPage .kpi-score.problem span{color:var(--ma-danger)}
+#kpiPage .kpi-person-body{
+  border-top:1px solid var(--ma-border);
+  background:var(--ma-surface-soft);
+}
+#kpiPage .kpi-metrics>div,
+#kpiPage .kpi-issue{
+  border-color:var(--ma-border);
+  border-radius:10px;
+  background:var(--ma-surface);
+}
+
+/* ---------- ОТЧЁТ ВЛАДЕЛЬЦА ---------- */
+#ownerReportModal{
+  background:rgba(15,23,42,.42);
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+}
+#ownerReportModal .owner-report-sheet{
+  width:min(100%,820px);
+  max-height:min(90vh,880px);
+  padding:22px;
+  border:1px solid var(--ma-border);
+  border-radius:20px;
+  background:var(--ma-surface);
+  box-shadow:0 18px 48px rgba(16,24,40,.14);
+}
+#ownerReportModal .owner-report-head{
+  margin-bottom:4px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--ma-border);
+}
+#ownerReportModal .owner-report-head h2{
+  color:var(--ma-text);
+  font-size:24px;
+  font-weight:800;
+  letter-spacing:-.025em;
+}
+#ownerReportModal .owner-report-period{
+  color:var(--ma-text-secondary);
+  font-size:12px;
+}
+#ownerReportModal .owner-report-summary{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin:16px 0 12px;
+}
+#ownerReportModal .owner-report-stat{
+  min-height:92px;
+  padding:13px;
+  border:1px solid var(--ma-border);
+  border-radius:12px;
+  background:var(--ma-surface-soft);
+}
+#ownerReportModal .owner-report-stat span{
+  color:var(--ma-text-secondary);
+  font-size:11px;
+}
+#ownerReportModal .owner-report-stat b{
+  color:var(--ma-text);
+  font-size:25px;
+  font-weight:800;
+}
+#ownerReportModal .owner-report-stat.warn{
+  border-color:#F1DFBD;
+  background:#FFF9F0;
+}
+#ownerReportModal .owner-report-stat.warn b{color:#8B5D0B}
+#ownerReportModal .owner-report-stat.bad{
+  border-color:#F1D0D0;
+  background:#FFF6F6;
+}
+#ownerReportModal .owner-report-stat.bad b{color:#A33C3C}
+#ownerReportModal .owner-report-best{
+  margin-bottom:16px;
+  padding:12px 14px;
+  border:1px solid #CAEADB;
+  border-radius:12px;
+  background:#F2FBF7;
+}
+#ownerReportModal .owner-report-best span{color:#4F7A68}
+#ownerReportModal .owner-report-best b{color:#176C48}
+#ownerReportModal .owner-report-title{
+  margin:18px 0 9px!important;
+  color:var(--ma-text)!important;
+  font-size:14px!important;
+  font-weight:780;
+}
+#ownerReportModal .owner-report-people,
+#ownerReportModal .owner-report-attention{
+  gap:8px;
+}
+#ownerReportModal .owner-report-person{
+  min-height:58px;
+  padding:11px 13px;
+  border:1px solid var(--ma-border);
+  border-radius:11px;
+  background:var(--ma-surface);
+}
+#ownerReportModal .owner-report-person.good{border-left:3px solid var(--ma-success)}
+#ownerReportModal .owner-report-person.attention{border-left:3px solid var(--ma-warning)}
+#ownerReportModal .owner-report-person.problem{border-left:3px solid var(--ma-danger)}
+#ownerReportModal .owner-report-alert{
+  padding:11px 13px;
+  border:1px solid #F1D0D0;
+  border-radius:11px;
+  background:#FFF6F6;
+}
+#ownerReportModal .owner-report-ok{
+  padding:11px 13px;
+  border:1px solid #CAEADB;
+  border-radius:11px;
+  background:#F2FBF7;
+  color:#176C48;
+}
+#ownerReportModal .owner-report-note,
+#ownerReportModal .owner-report-empty{
+  border-color:var(--ma-border);
+  border-radius:11px;
+  background:var(--ma-surface-soft);
+  color:var(--ma-text-secondary);
+}
+#ownerReportModal .owner-report-actions{
+  gap:8px;
+  margin-top:18px;
+}
+#ownerReportModal .owner-report-actions button{
+  min-height:42px;
+  border-radius:10px;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:1100px){
+  #scheduleControls{
+    grid-template-columns:minmax(220px,1fr) auto;
+  }
+  #scheduleControls .simple-schedule-filters{
+    grid-column:1/-1;
+  }
+}
+
+@media(max-width:899px){
+  #schedulePage .schedule-month-title h1,
+  #desktopCalendarPage .employee-calendar-head h2,
+  #employeeCalendarPage .employee-calendar-head h2,
+  #historyPage .history-page-head h2,
+  #kpiPage .kpi-head h2{
+    font-size:24px;
+  }
+
+  #scheduleControls{
+    margin-top:7px;
+    grid-template-columns:1fr auto;
+    gap:7px;
+  }
+  #scheduleControls .simple-monthnav{
+    grid-template-columns:40px minmax(120px,1fr) 40px;
+  }
+  #scheduleControls .today-month-btn{
+    padding:0 11px;
+  }
+  #scheduleControls .simple-schedule-filters{
+    grid-column:1/-1;
+  }
+
+  #desktopCalendarPage>.section,
+  #employeeCalendarPage>.section,
+  #historyPage>.section,
+  #kpiPage .kpi-shell{
+    padding:16px;
+    border-radius:15px;
+  }
+
+  #desktopCalendarPage .desktop-calendar-wrap{
+    overflow:visible;
+  }
+  #desktopCalendarPage .desktop-calendar-grid{
+    min-width:0!important;
+    grid-template-columns:repeat(7,minmax(0,1fr));
+    gap:4px;
+  }
+  #desktopCalendarPage .employee-calendar-week{
+    min-width:0!important;
+    gap:4px;
+  }
+  #desktopCalendarPage .desktop-cal-cell{
+    min-width:0;
+    min-height:68px;
+    padding:5px 4px;
+    border-radius:8px;
+  }
+  #desktopCalendarPage .desktop-cal-day{
+    margin-bottom:5px;
+    font-size:12px;
+  }
+  #desktopCalendarPage .desktop-cal-services{
+    gap:3px;
+  }
+  #desktopCalendarPage .desktop-service-chip{
+    min-height:7px;
+    height:7px;
+    padding:0;
+    border-radius:999px;
+  }
+  #desktopCalendarPage .desktop-service-chip strong,
+  #desktopCalendarPage .desktop-service-chip small{
+    display:none!important;
+  }
+
+  #historyPage .history-stats-grid,
+  #kpiPage .kpi-summary,
+  #ownerReportModal .owner-report-summary{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+@media(max-width:650px){
+  #scheduleControls{
+    grid-template-columns:1fr;
+  }
+  #scheduleControls .today-month-btn{
+    width:100%;
+  }
+  #scheduleControls .simple-schedule-filters{
+    grid-column:auto;
+    grid-template-columns:minmax(0,1fr) auto!important;
+  }
+  #schedulePage .unified-schedule-card{
+    border:0;
+    overflow:visible;
+    background:transparent;
+    box-shadow:none!important;
+  }
+  #schedulePage .unified-schedule-head{
+    margin-bottom:8px;
+    padding:11px 12px;
+    border:1px solid var(--ma-border);
+    border-radius:12px;
+  }
+  #schedulePage .unified-schedule-scroll{
+    overflow:visible;
+  }
+  #schedulePage .unified-schedule-table,
+  #schedulePage .unified-schedule-table tbody{
+    display:block;
+    background:transparent;
+  }
+  #schedulePage .unified-schedule-table thead{
+    display:none;
+  }
+  #schedulePage .unified-schedule-table tbody{
+    display:grid!important;
+    gap:8px;
+  }
+  #schedulePage .unified-schedule-table tr{
+    overflow:hidden;
+    border:1px solid var(--ma-border)!important;
+    border-radius:12px;
+    background:var(--ma-surface);
+    box-shadow:none;
+  }
+
+  #historyPage .history-page-head,
+  #kpiPage .kpi-head{
+    display:block;
+  }
+  #historyPage .history-page-head>.secondary,
+  #kpiPage .kpi-head>.secondary{
+    width:100%;
+    margin-top:10px;
+    min-height:44px;
+  }
+  #historyPage .history-quick{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:7px;
+  }
+  #historyPage .history-quick button{
+    min-height:44px;
+    white-space:normal;
+  }
+  #historyPage .history-details-grid{
+    grid-template-columns:1fr;
+  }
+  #kpiPage .kpi-person summary{
+    padding:12px;
+  }
+  #kpiPage .kpi-metrics{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  #ownerReportModal{
+    align-items:flex-end;
+    padding:8px;
+  }
+  #ownerReportModal .owner-report-sheet{
+    width:100%;
+    max-height:92dvh;
+    padding:18px 16px calc(16px + env(safe-area-inset-bottom));
+    border-radius:20px 20px 14px 14px;
+  }
+  #ownerReportModal .owner-report-actions{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(max-width:390px){
+  #desktopCalendarPage>.section,
+  #employeeCalendarPage>.section,
+  #historyPage>.section,
+  #kpiPage .kpi-shell{
+    padding:14px;
+  }
+  #historyPage .history-stats-grid,
+  #kpiPage .kpi-summary,
+  #ownerReportModal .owner-report-summary{
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+  }
+  #kpiPage .kpi-summary-card,
+  #ownerReportModal .owner-report-stat{
+    min-height:90px;
+    padding:12px;
+  }
+  #kpiPage .kpi-summary-card b,
+  #ownerReportModal .owner-report-stat b{
+    font-size:24px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  #schedulePage *,#desktopCalendarPage *,#employeeCalendarPage *,#historyPage *,#kpiPage *,#ownerReportModal *{
+    transition:none!important;
+    animation:none!important;
+  }
+}
