@@ -31,50 +31,95 @@
     }
     function keyFor(url,init,body,slug){return`${slug}|${authIdentity(init)}|${JSON.stringify(stable(body))}`;}
     function replay(entry){return new Response(entry.text,{status:entry.status,statusText:entry.statusText,headers:entry.headers});}
-    async function remember(key,slug,op,response,expectedGeneration){
+    async function remember(key,slug,op,body,response,expectedGeneration){
       if(!response.ok||generation!==expectedGeneration)return;
       const clone=response.clone(),text=await clone.text();
       if(generation!==expectedGeneration)return;
-      cache.set(key,{slug,op,text,status:clone.status,statusText:clone.statusText,headers:[...clone.headers.entries()],at:Date.now()});
+      cache.set(key,{slug,op,body:stable(body),text,status:clone.status,statusText:clone.statusText,headers:[...clone.headers.entries()],at:Date.now()});
       while(cache.size>maxEntries)cache.delete(cache.keys().next().value);
     }
-    function invalidate(slugs){
-      generation++;
-      const wanted=new Set(slugs);
-      for(const [key,entry] of cache)if(wanted.has(entry.slug))cache.delete(key);
+    function parseEntry(entry){try{return JSON.parse(entry.text);}catch(_){return null;}}
+    function saveEntry(entry,data){entry.text=JSON.stringify(data);entry.at=Date.now();}
+    function dropWhere(test){for(const [key,entry] of cache)if(test(entry,key))cache.delete(key);}
+    function invalidate(slugs){generation++;const wanted=new Set(slugs);dropWhere(entry=>wanted.has(entry.slug));}
+    function normalizedPhone(customer){return String(customer?.phone_normalized||customer?.phone||"").replace(/\D/g,"");}
+    function repairMatches(r,body={}){
+      const status=String(body.status||""),service=String(body.service||""),q=String(body.q||"").trim().toLowerCase();
+      if(status&&r.status!==status)return false;if(service&&r.service!==service)return false;if(!q)return true;
+      const digits=q.replace(/\D/g,"");const hay=[r.order_no,r.device,r.model,r.imei,r.issue,r.manager,r.master,r.customer?.name,r.customer?.phone].join(" ").toLowerCase();
+      return hay.includes(q)||!!(digits&&normalizedPhone(r.customer).includes(digits));
     }
-    function invalidateAfterWrite(slug,op){
-      if(slug==="ma-crm-finance-api")return invalidate(["ma-crm-finance-api"]);
-      if(slug==="ma-crm-inventory-api")return invalidate(["ma-crm-inventory-api","ma-crm-phase1-api","ma-crm-api","ma-crm-finance-api"]);
-      if(slug==="ma-crm-phase1-api")return invalidate(["ma-crm-phase1-api","ma-crm-api","ma-crm-final-api","ma-crm-finance-api"]);
-      if(slug==="ma-crm-final-api")return invalidate(["ma-crm-final-api","ma-crm-api","ma-crm-phase1-api","ma-crm-finance-api"]);
-      if(slug==="ma-crm-api"){
-        if(op==="login")return invalidate(Object.keys(readOps));
-        if(op==="create-sale")return invalidate(["ma-crm-api","ma-crm-finance-api"]);
-        return invalidate(["ma-crm-api","ma-crm-phase1-api","ma-crm-final-api","ma-crm-finance-api"]);
+    function saleMatches(s,body={}){
+      const q=String(body.q||"").trim().toLowerCase();if(!q)return true;const digits=q.replace(/\D/g,"");const hay=[s.sale_no,s.device,s.model,s.imei,s.manager,s.customer?.name,s.customer?.phone].join(" ").toLowerCase();
+      return hay.includes(q)||!!(digits&&normalizedPhone(s.customer).includes(digits));
+    }
+    function patchRepair(repair){
+      if(!repair?.id)return;
+      for(const entry of cache.values()){
+        if(entry.slug!=="ma-crm-api"||entry.op!=="list-repairs")continue;
+        const data=parseEntry(entry);if(!data?.repairs)continue;
+        const rows=(data.repairs||[]).filter(x=>String(x.id)!==String(repair.id));
+        if(repairMatches(repair,entry.body))rows.unshift(repair);
+        rows.sort((a,b)=>new Date(b.updated_at||b.accepted_at||0)-new Date(a.updated_at||a.accepted_at||0));data.repairs=rows.slice(0,150);saveEntry(entry,data);
       }
+      dropWhere(entry=>entry.slug==="ma-crm-api"&&entry.op==="repair"&&String(entry.body?.id||"")===String(repair.id));
+    }
+    function patchRepairFields(id,patch){
+      if(!id)return;
+      for(const entry of cache.values()){
+        if(entry.slug!=="ma-crm-api"||entry.op!=="list-repairs")continue;
+        const data=parseEntry(entry);if(!data?.repairs)continue;let changed=false;
+        data.repairs=(data.repairs||[]).map(r=>{if(String(r.id)!==String(id))return r;changed=true;return {...r,...patch,updated_at:patch.updated_at||r.updated_at};});if(changed)saveEntry(entry,data);
+      }
+      dropWhere(entry=>entry.slug==="ma-crm-api"&&entry.op==="repair"&&String(entry.body?.id||"")===String(id));
+    }
+    function patchSale(sale){
+      if(!sale?.id)return;
+      for(const entry of cache.values()){
+        if(entry.slug!=="ma-crm-api"||entry.op!=="list-sales")continue;
+        const data=parseEntry(entry);if(!data?.sales)continue;
+        const rows=(data.sales||[]).filter(x=>String(x.id)!==String(sale.id));if(saleMatches(sale,entry.body))rows.unshift(sale);
+        rows.sort((a,b)=>new Date(b.sold_at||b.created_at||0)-new Date(a.sold_at||a.created_at||0));data.sales=rows.slice(0,150);saveEntry(entry,data);
+      }
+    }
+    async function applyWriteResult(slug,op,body,response){
+      if(!response.ok)return;generation++;
+      const data=await response.clone().json().catch(()=>null);
+      if(slug==="ma-crm-api"){
+        if(op==="login"){cache.clear();return;}
+        if(["create-repair","update-repair","set-status"].includes(op)&&data?.repair)patchRepair(data.repair);
+        if(op==="create-sale"&&data?.sale)patchSale(data.sale);
+        dropWhere(entry=>["ma-crm-phase1-api","ma-crm-final-api","ma-crm-finance-api"].includes(entry.slug));
+        return;
+      }
+      if(slug==="ma-crm-phase1-api"){
+        if(["upsert-item","delete-item"].includes(op)&&body?.repairId&&data?.finalPrice!==undefined)patchRepairFields(body.repairId,{final_price:data.finalPrice});
+        dropWhere(entry=>["ma-crm-phase1-api","ma-crm-final-api","ma-crm-finance-api"].includes(entry.slug));return;
+      }
+      if(slug==="ma-crm-inventory-api"){
+        dropWhere(entry=>["ma-crm-inventory-api","ma-crm-phase1-api","ma-crm-final-api","ma-crm-finance-api"].includes(entry.slug));return;
+      }
+      if(slug==="ma-crm-final-api"){
+        if(op==="create-warranty"&&data?.repair)patchRepair(data.repair);
+        dropWhere(entry=>["ma-crm-final-api","ma-crm-phase1-api","ma-crm-finance-api"].includes(entry.slug));return;
+      }
+      if(slug==="ma-crm-finance-api")dropWhere(entry=>entry.slug==="ma-crm-finance-api");
     }
     window.fetch=async function(input,init={}){
       const url=typeof input==="string"?input:input?.url||"",slug=slugFrom(url),method=String(init?.method||"GET").toUpperCase();
       if(method!=="POST"||!readOps[slug]||!init?.body)return upstream(input,init);
       let body=null;try{body=JSON.parse(String(init.body));}catch(_){return upstream(input,init);}
       const op=String(body?.op||""),isRead=readOps[slug].has(op);
-      if(!isRead){
-        const response=await upstream(input,init);
-        if(response.ok)invalidateAfterWrite(slug,op);
-        return response;
-      }
+      if(!isRead){const response=await upstream(input,init);await applyWriteResult(slug,op,body,response);return response;}
       const key=keyFor(url,init,body,slug),hit=cache.get(key);
       if(hit){
         if(Date.now()-hit.at>=refreshAfterMs&&!refreshing.has(key)&&navigator.onLine!==false){
           refreshing.add(key);const expectedGeneration=generation,bgInit={...init,signal:undefined,cache:"no-store"};
-          upstream(input,bgInit).then(response=>remember(key,slug,op,response,expectedGeneration)).catch(()=>{}).finally(()=>refreshing.delete(key));
+          upstream(input,bgInit).then(response=>remember(key,slug,op,body,response,expectedGeneration)).catch(()=>{}).finally(()=>refreshing.delete(key));
         }
         return replay(hit);
       }
-      const expectedGeneration=generation,response=await upstream(input,init);
-      await remember(key,slug,op,response,expectedGeneration);
-      return response;
+      const expectedGeneration=generation,response=await upstream(input,init);await remember(key,slug,op,body,response,expectedGeneration);return response;
     };
     function clear(){generation++;cache.clear();}
     document.addEventListener("click",event=>{if(event.target.closest?.("#refreshDashboard,#financeRefresh,#inventoryRefresh,[data-crm-force-refresh]"))clear();},true);
