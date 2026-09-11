@@ -318,3 +318,362 @@ body{
 @media print{
   body{padding-left:0!important}
 }
+
+/* MA График — этап 4: экран владельца «Сегодня».
+   Только представление существующих данных смен и предупреждений. */
+body:not(.service-device-mode) #adminTodayPage{
+  max-width:1180px;
+  margin:0 auto;
+  display:grid;
+  gap:18px;
+}
+body:not(.service-device-mode) #adminTodayPage::before{
+  content:"Сегодня";
+  display:block;
+  margin:2px 0 -2px;
+  color:var(--ma-text);
+  font-size:30px;
+  line-height:1.15;
+  font-weight:800;
+  letter-spacing:-.035em;
+}
+
+body:not(.service-device-mode) #adminTodayPage .admin-attention{
+  margin:0;
+  padding:18px 20px;
+  border:1px solid var(--ma-border);
+  border-radius:var(--ma-radius-large);
+  background:var(--ma-surface);
+  box-shadow:var(--ma-shadow-card);
+}
+body:not(.service-device-mode) #adminTodayPage .admin-attention h2{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin:0 0 12px;
+  color:var(--ma-text);
+  font-size:16px;
+  line-height:1.25;
+  font-weight:750;
+}
+body:not(.service-device-mode) #adminTodayPage .admin-attention h2::before{
+  content:"!";
+  width:24px;
+  height:24px;
+  flex:0 0 24px;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+  background:var(--ma-warning-soft,#FFF5E5);
+  color:var(--ma-warning);
+  font-size:13px;
+  font-weight:850;
+}
+body:not(.service-device-mode) #adminTodayPage .attention-list{
+  display:grid;
+  gap:8px;
+}
+body:not(.service-device-mode) #adminTodayPage .attention-item{
+  position:relative;
+  min-height:44px;
+  padding:12px 14px 12px 17px;
+  display:flex;
+  align-items:center;
+  border:1px solid var(--ma-border);
+  border-radius:12px;
+  background:var(--ma-surface-soft);
+  color:var(--ma-text);
+  font-size:13px;
+  line-height:1.45;
+  font-weight:650;
+}
+body:not(.service-device-mode) #adminTodayPage .attention-item::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:8px;
+  bottom:8px;
+  width:3px;
+  border-radius:0 3px 3px 0;
+  background:var(--ma-border-strong);
+}
+body:not(.service-device-mode) #adminTodayPage .attention-item.warn{
+  background:#FFF9F0;
+  border-color:#F1DFBD;
+  color:#7A5215;
+}
+body:not(.service-device-mode) #adminTodayPage .attention-item.warn::before{background:var(--ma-warning)}
+body:not(.service-device-mode) #adminTodayPage .attention-item.bad{
+  background:#FFF6F6;
+  border-color:#F1D0D0;
+  color:#8C3232;
+}
+body:not(.service-device-mode) #adminTodayPage .attention-item.bad::before{background:var(--ma-danger)}
+body:not(.service-device-mode) #adminTodayPage .attention-item.ok{
+  background:#F2FBF7;
+  border-color:#CAEADB;
+  color:#176C48;
+}
+body:not(.service-device-mode) #adminTodayPage .attention-item.ok::before{background:var(--ma-success)}
+
+body:not(.service-device-mode) #adminTodayPage .today-board{
+  margin:0;
+  padding:22px;
+  border:1px solid var(--ma-border);
+  border-radius:var(--ma-radius-large);
+  background:var(--ma-surface);
+  box-shadow:var(--ma-shadow-card);
+}
+body:not(.service-device-mode) #adminTodayPage .today-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  margin:0 0 18px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--ma-border);
+}
+body:not(.service-device-mode) #adminTodayPage .today-head h2{
+  margin:0;
+  color:var(--ma-text);
+  font-size:20px;
+  line-height:1.25;
+  font-weight:750;
+  letter-spacing:-.02em;
+}
+body:not(.service-device-mode) #adminTodayPage .today-date{
+  margin-top:5px;
+  color:var(--ma-text-secondary);
+  font-size:13px;
+  line-height:1.35;
+}
+body:not(.service-device-mode) #adminTodayPage .today-head-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+}
+body:not(.service-device-mode) #adminTodayPage .today-head-actions .secondary{
+  min-height:40px;
+  padding:0 13px;
+  border:1px solid var(--ma-border);
+  border-radius:10px;
+  background:var(--ma-surface);
+  color:var(--ma-text);
+  font-size:12.5px;
+  font-weight:700;
+  box-shadow:none;
+}
+body:not(.service-device-mode) #adminTodayPage #openKpiFromToday{
+  background:var(--ma-primary-soft);
+  border-color:#DCE7FF;
+  color:var(--ma-primary);
+}
+body:not(.service-device-mode) #adminTodayPage #quickReplaceBtn{
+  background:var(--ma-primary);
+  border-color:var(--ma-primary);
+  color:#fff;
+}
+body:not(.service-device-mode) #adminTodayPage #quickReplaceBtn:hover{
+  background:var(--ma-primary-hover);
+  border-color:var(--ma-primary-hover);
+}
+
+body:not(.service-device-mode) #adminTodayPage .shift-cards{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-card{
+  position:relative;
+  min-width:0;
+  padding:18px;
+  overflow:hidden;
+  border:1px solid var(--ma-border);
+  border-radius:var(--ma-radius-card);
+  background:var(--ma-surface);
+  box-shadow:none;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-card::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  height:3px;
+  background:var(--ma-primary);
+}
+body:not(.service-device-mode) #adminTodayPage .shift-card.service-s2::after{
+  background:#7A53C8;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-card h3{
+  margin:0 0 10px;
+  color:var(--ma-text);
+  font-size:18px;
+  line-height:1.2;
+  font-weight:780;
+  letter-spacing:-.02em;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-status{
+  min-height:28px;
+  margin:0 0 13px;
+  padding:5px 9px;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  border-radius:999px;
+  font-size:11.5px;
+  line-height:1.2;
+  font-weight:750;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-status .dot{
+  width:7px;
+  height:7px;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-status.wait,
+body:not(.service-device-mode) #adminTodayPage .shift-status.closed{
+  background:#F2F4F7;
+  color:#475467;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-status.open{
+  background:#EAF8F1;
+  color:#18704A;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-status.late{
+  background:#FFF5E5;
+  color:#8B5D0B;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-status.missing{
+  background:#FDEEEE;
+  color:#A33C3C;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-pair{
+  min-height:82px;
+  margin:0 0 12px;
+  padding:12px 13px;
+  border:1px solid #EDF0F4;
+  border-radius:11px;
+  background:var(--ma-surface-soft);
+  color:var(--ma-text-secondary);
+  font-size:13px;
+  line-height:1.55;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-pair strong{
+  color:var(--ma-text);
+  font-weight:750;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-meta{
+  min-height:38px;
+  color:var(--ma-text-secondary);
+  font-size:12px;
+  line-height:1.5;
+}
+body:not(.service-device-mode) #adminTodayPage .mismatch{
+  color:#A86D08;
+  font-weight:750;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-device-note{
+  margin:10px 0 0;
+  padding:9px 10px;
+  border-radius:9px;
+  background:#FFF9F0;
+  color:#8B5D0B;
+  font-size:12px;
+  line-height:1.4;
+  font-weight:650;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-action{
+  width:100%;
+  min-height:44px;
+  margin-top:14px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:750;
+  box-shadow:none;
+}
+body:not(.service-device-mode) #adminTodayPage .shift-action.secondary{
+  border-color:var(--ma-border);
+  color:var(--ma-text);
+}
+body:not(.service-device-mode) #adminTodayPage .shift-action[disabled]{
+  opacity:.55;
+}
+body:not(.service-device-mode) #adminTodayPage .annul-shift-btn{
+  width:100%;
+  min-height:38px;
+  margin-top:8px;
+  padding:0 10px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:var(--ma-danger);
+  font-size:12px;
+  font-weight:700;
+}
+body:not(.service-device-mode) #adminTodayPage .annul-shift-btn:hover{
+  background:#FFF6F6;
+}
+
+@media(min-width:1180px){
+  body:not(.service-device-mode) #adminTodayPage .today-board{padding:24px}
+  body:not(.service-device-mode) #adminTodayPage .shift-card{padding:20px}
+}
+
+@media(max-width:720px){
+  body:not(.service-device-mode) #adminTodayPage{
+    gap:14px;
+  }
+  body:not(.service-device-mode) #adminTodayPage::before{
+    margin-top:0;
+    font-size:24px;
+  }
+  body:not(.service-device-mode) #adminTodayPage .admin-attention,
+  body:not(.service-device-mode) #adminTodayPage .today-board{
+    padding:15px;
+    border-radius:15px;
+  }
+  body:not(.service-device-mode) #adminTodayPage .today-head{
+    display:block;
+    margin-bottom:14px;
+    padding-bottom:14px;
+  }
+  body:not(.service-device-mode) #adminTodayPage .today-head h2{
+    font-size:18px;
+  }
+  body:not(.service-device-mode) #adminTodayPage .today-head-actions{
+    width:100%;
+    margin-top:12px;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+  body:not(.service-device-mode) #adminTodayPage .today-head-actions .secondary{
+    width:100%;
+    min-height:44px;
+    padding:8px 9px;
+    white-space:normal;
+  }
+  body:not(.service-device-mode) #adminTodayPage #quickReplaceBtn{
+    grid-column:1/-1;
+  }
+  body:not(.service-device-mode) #adminTodayPage .shift-cards{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  body:not(.service-device-mode) #adminTodayPage .shift-card{
+    padding:15px;
+  }
+  body:not(.service-device-mode) #adminTodayPage .shift-pair{
+    min-height:0;
+  }
+}
+
+@media(max-width:390px){
+  body:not(.service-device-mode) #adminTodayPage .today-head-actions{
+    grid-template-columns:1fr;
+  }
+  body:not(.service-device-mode) #adminTodayPage #quickReplaceBtn{
+    grid-column:auto;
+  }
+}
