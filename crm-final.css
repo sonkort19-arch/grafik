@@ -1,2 +1,11 @@
 @import url("./crm-final-legacy.css");
 @import url("./crm-stage7.css");
+
+/* Safety guard kept in the final entry stylesheet for CRM regression checks and iPhone Safari. */
+@media(max-width:760px){
+  input,select,textarea,.phase-add-form input,.phase-add-form select,
+  .inventory-repair-grid input,.inventory-repair-grid select,
+  .inv-form input,.inv-form select,.inv-form textarea,
+  .fin-form-grid input,.fin-form-grid select,.fin-form-grid textarea,
+  .fin-assign-row select,.final-dialog input,.payroll-controls input{font-size:16px!important}
+}
