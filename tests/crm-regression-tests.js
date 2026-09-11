@@ -4,6 +4,9 @@ const assert=require('assert');
 const read=p=>fs.readFileSync(p,'utf8');
 const finalJs=read('crm-final.js');
 const finalCss=read('crm-final.css');
+const crmHtml=read('crm.html');
+const crmJs=read('crm.js');
+const locationJs=read('crm-location.js');
 const baseApi=read('supabase/functions/ma-crm-api/index.ts');
 const phaseApi=read('supabase/functions/ma-crm-phase1-api/index.ts');
 const finalApi=read('supabase/functions/ma-crm-final-api/index.ts');
@@ -30,5 +33,36 @@ assert(baseApi.includes('select("status,ready_at,issued_at")'),'status changes m
 assert(baseApi.includes('patch.ready_at=null;patch.issued_at=null'),'reopening a repair must clear stale ready/issued timestamps');
 assert(finalApi.includes('if(new Date(until)<new Date())throw new Error("Срок гарантии закончился")'),'expired warranty must be blocked for every role');
 assert(finalApi.includes('T00:00:00+03:00'),'payroll month boundaries must use Moscow local midnight');
+
+// Global service switcher safety and behavior.
+const phasePos=crmHtml.indexOf('crm-phase1.js');
+const inventoryPos=crmHtml.indexOf('crm-inventory.js');
+const financePos=crmHtml.indexOf('crm-finance.js');
+const finalPos=crmHtml.indexOf('crm-final.js');
+const corePos=crmHtml.indexOf('crm.js?v=20260910-v2');
+const locationPos=crmHtml.indexOf('crm-location.js?v=20260911-safe1');
+assert(phasePos>=0&&phasePos<inventoryPos&&inventoryPos<financePos&&financePos<finalPos&&finalPos<corePos,'existing CRM script order must stay unchanged');
+assert(locationPos>corePos,'location switcher must load after the stable CRM core');
+assert(crmJs.includes('bind();bootstrap();'),'stable CRM bootstrap must remain in the core and not depend on location switcher');
+assert(locationJs.includes('main&&!main.classList.contains("hidden")'),'location switcher must wait until CRM main is visible');
+assert(locationJs.includes('ma_crm_current_service_v1'),'location selection must use the dedicated localStorage key');
+assert(locationJs.includes('getCurrentService')&&locationJs.includes('setCurrentService'),'location switcher must expose one currentService state');
+assert(locationJs.includes('repairServiceFilter'),'orders must synchronize with the global service');
+assert(locationJs.includes('repairService')&&locationJs.includes('saleService'),'new repairs and sales must inherit the global service');
+assert(locationJs.includes('inventoryService'),'inventory must synchronize with the global service');
+assert(locationJs.includes('financeCashboxes')&&locationJs.includes('financeTxBody')&&locationJs.includes('financeServiceReport'),'finance must be filtered by the global service');
+assert(locationJs.includes('renderDashboardFromSnapshot')&&locationJs.includes('renderReportsFromSnapshot'),'dashboard and reports must honor the global service');
+assert(!locationJs.includes('clientTableBody')&&!locationJs.includes('clientMobileList'),'clients must remain global across locations');
+assert(!locationJs.includes('document.write'),'location switcher must never rewrite the document during startup');
+assert(!locationJs.includes('location.reload'),'location changes must not reload the CRM');
+assert(!/window\.fetch\s*=/.test(locationJs),'location switcher must not intercept the CRM fetch chain');
+assert(!locationJs.includes('__maCrmSessionCache'),'location changes must not clear the session cache');
+assert(locationJs.includes('console.warn("MA CRM location switcher"')&&locationJs.includes('currentService=""'),'location switcher errors must fail open to All locations');
+assert(!locationJs.includes('crmMain")?.classList.add("hidden"'),'location switcher must never hide the already-running CRM');
+assert(locationJs.includes('font-size:16px'),'mobile location control must avoid iPhone input zoom');
+assert(locationJs.includes('Все точки'),'switcher must provide the All locations option');
+assert(locationJs.includes('const setHtml=(el,html)=>{if(el&&el.innerHTML!==html)'),'location observer renders must be idempotent and avoid mutation loops');
+const applyLocationBody=locationJs.slice(locationJs.indexOf('function applyLocation(){'),locationJs.indexOf('function scheduleApply(){'));
+assert(!applyLocationBody.includes('defaultCreationForms()'),'background location rerenders must not overwrite a manually changed repair or sale location');
 
 console.log('CRM regression checks: OK');
