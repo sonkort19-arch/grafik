@@ -17,13 +17,13 @@
   document.addEventListener("click",event=>{const node=event.target.closest?.("[data-repair-id],[data-recent-repair]");if(!node)return;const id=String(node.dataset.repairId||node.dataset.recentRepair||"");if(!id)return;state.currentRepairId=id;prefetchRepairTools(id);fastPreview(node,id);},true);
   function localInputIso(value){if(!value)return null;const d=new Date(value);return Number.isNaN(d.getTime())?null:d.toISOString();}
   async function createRepairAtomic(init,body){const payload={...body,op:"create-repair-bundle",dueAt:localInputIso($("repairDueAt")?.value||""),warrantyDays:$("repairWarrantyDays")?.value||14,warrantyNote:$("repairWarrantyNote")?.value||"",initialPayment:$("repairInitialPayment")?.value||0,initialPaymentMethod:$("repairInitialPaymentMethod")?.value||"cash"};const response=await chainedFetch(PHASE_API,{...init,method:"POST",body:JSON.stringify(payload),cache:"no-store"});if(response.ok)window.__maCrmSessionCache?.clear?.();return response;}
-  async function assignManagerSale(response){if(!response.ok||readJson(ADMIN_SESSION_KEY)?.access_token)return;try{const data=await response.clone().json(),id=data?.sale?.id;if(!id)return;await api(PHASE_API,"assign-sale-default",{id,method:$("salePaymentMethod")?.value||"cash"});}catch(e){console.warn("crm default sale cashbox",e);setTimeout(()=>toast("Продажа сохранена, но касса не назначена"),80);}}
+  async function createSaleAtomic(init,body){const payload={...body,op:"create-sale-bundle",paymentMethod:$("salePaymentMethod")?.value||"cash",cashboxId:$("saleCashbox")?.value||null};const response=await chainedFetch(PHASE_API,{...init,method:"POST",body:JSON.stringify(payload),cache:"no-store"});if(response.ok)window.__maCrmSessionCache?.clear?.();return response;}
   window.fetch=async function(input,init={}){const url=typeof input==="string"?input:input?.url||"";let body=null;try{if(init?.body)body=JSON.parse(String(init.body));}catch(_){ }
     if(url.startsWith(BASE_API)&&body?.op==="list-sales"&&role()==="master")return new Response(JSON.stringify({ok:true,sales:[]}),{status:200,headers:{"Content-Type":"application/json"}});
     if(url.startsWith(BASE_API)&&body?.op==="create-repair")return createRepairAtomic(init,body);
+    if(url.startsWith(BASE_API)&&body?.op==="create-sale")return createSaleAtomic(init,body);
     const repairId=url.startsWith(BASE_API)&&body?.op==="repair"&&body?.id?String(body.id):"";if(repairId){state.currentRepairId=repairId;prefetchRepairTools(repairId);}
     const response=await chainedFetch(input,init);
-    if(url.startsWith(BASE_API)&&body?.op==="create-sale")await assignManagerSale(response);
     if(url.startsWith(BASE_API)&&body?.op==="bootstrap"&&response.ok){try{const d=await response.clone().json();state.actor=d?.actor||null;setTimeout(applyRoleUi,0);}catch(_){ }}
     if(repairId&&response.ok)setTimeout(()=>renderRepairTools(repairId),0);
     return response;
