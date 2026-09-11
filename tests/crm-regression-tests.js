@@ -61,5 +61,8 @@ assert(locationJs.includes('console.warn("MA CRM location switcher"')&&locationJ
 assert(!locationJs.includes('crmMain")?.classList.add("hidden"'),'location switcher must never hide the already-running CRM');
 assert(locationJs.includes('font-size:16px'),'mobile location control must avoid iPhone input zoom');
 assert(locationJs.includes('Все точки'),'switcher must provide the All locations option');
+assert(locationJs.includes('const setHtml=(el,html)=>{if(el&&el.innerHTML!==html)'),'location observer renders must be idempotent and avoid mutation loops');
+const applyLocationBody=locationJs.slice(locationJs.indexOf('function applyLocation(){'),locationJs.indexOf('function scheduleApply(){'));
+assert(!applyLocationBody.includes('defaultCreationForms()'),'background location rerenders must not overwrite a manually changed repair or sale location');
 
 console.log('CRM regression checks: OK');
