@@ -1,0 +1,1748 @@
+
+:root{
+  --bg:#f4f7fb; --card:#fff; --text:#162033; --muted:#64748b;
+  --blue:#0f5bd7; --blue2:#eaf2ff; --line:#dbe5f2; --danger:#c62828;
+  --shadow:0 8px 28px rgba(28,64,120,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+body{min-height:100vh;padding-bottom:92px}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:980px;margin:0 auto}
+.topbar{
+  position:sticky;top:0;z-index:30;background:rgba(244,247,251,.96);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);padding:calc(8px + env(safe-area-inset-top)) 14px 8px
+}
+.brandrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{font-size:19px;font-weight:800;color:var(--blue)}
+.badge{font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--line);padding:7px 10px;border-radius:999px}
+.monthnav{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;margin-top:10px}
+.navbtn,.primary,.secondary,.danger{
+  border:1px solid var(--line);background:#fff;color:var(--text);border-radius:12px;min-height:44px;padding:10px 14px;font-weight:700
+}
+.navbtn{font-size:24px;padding:0}
+.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.secondary{background:#fff}
+.danger{color:var(--danger)}
+.monthselect{width:100%;min-height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 12px;font-weight:700;color:var(--text)}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.filters select{width:100%;min-height:42px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 10px;color:var(--text)}
+.page{padding:14px;padding-top:12px}
+.month-title{text-align:center;margin:8px 0 14px}
+.month-title h1{font-size:28px;color:var(--blue);margin:0 0 4px}
+.month-title p{margin:0;color:var(--muted);font-size:14px}
+.service-card{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:20px;padding:14px;margin-bottom:14px}
+.service-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.service-head h2{margin:0;color:var(--blue);font-size:24px}
+.service-head .small{font-size:12px;color:var(--muted)}
+.half{margin-top:12px}
+.half h3{margin:0 0 8px;font-size:15px;color:var(--blue)}
+.schedule{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.schedule th,.schedule td{padding:9px 9px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+.schedule th{background:var(--blue2);text-align:left;font-size:12px;color:#31435d}
+.schedule tr:last-child td{border-bottom:0}
+.schedule .date{width:34%;white-space:nowrap;color:#334155}
+.schedule .pair{font-weight:650}
+.highlight{background:#fff7d6!important}
+.today td:first-child{box-shadow:inset 3px 0 0 var(--blue)}
+.actions{display:grid;grid-template-columns:1fr;gap:8px;margin:14px 0}
+.actions button{font-size:13px;padding:10px 8px}
+.section{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.section h2{margin:0 0 12px;color:var(--blue);font-size:22px}
+.section h3{margin:18px 0 8px;font-size:15px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.field label{font-size:12px;color:var(--muted);font-weight:700}
+.field input,.field select{width:100%;min-height:44px;border:1px solid var(--line);border-radius:12px;padding:0 12px;background:#fff;color:var(--text)}
+.notice{font-size:12px;line-height:1.45;color:var(--muted);background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px}
+.settings-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.bottom{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom))
+}
+.bottom-inner{max-width:980px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tab{border:0;background:transparent;border-radius:12px;padding:10px;font-weight:800;color:var(--muted)}
+.tab.active{background:var(--blue2);color:var(--blue)}
+.hidden{display:none!important}
+.toast{
+ position:fixed;left:50%;bottom:100px;transform:translateX(-50%);z-index:100;background:#172033;color:white;
+ padding:10px 14px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.2s
+}
+.toast.show{opacity:1}
+.modal{position:fixed;inset:0;z-index:90;background:rgba(10,20,35,.45);display:flex;align-items:flex-end;justify-content:center;padding:12px}
+.sheet{width:min(100%,720px);max-height:88vh;overflow:auto;background:#fff;border-radius:22px 22px 16px 16px;padding:16px}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sheet h2{margin:0;color:var(--blue)}
+.close{border:0;background:#eef3f8;border-radius:10px;width:40px;height:40px;font-size:20px}
+@media(min-width:760px){
+ .page{padding:14px 16px}
+ .halves{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+ .half{margin-top:0}
+ .service-card{padding:18px}
+ .schedule th,.schedule td{font-size:14px}
+ .schedule th{font-size:13px}
+ .month-title h1{font-size:34px}
+ .today-board{padding:18px}
+ .shift-card{padding:16px}
+}
+@media(max-width:520px){
+ .actions{grid-template-columns:1fr}
+ .grid2{grid-template-columns:1fr}
+ .filters{grid-template-columns:1fr}
+ .schedule th,.schedule td{padding:8px 7px}
+}
+@media print{
+ .topbar,.bottom,.actions,.filters{display:none!important}
+ body{padding:0;background:#fff}
+ .page{padding:0}
+ .service-card{box-shadow:none;break-inside:avoid}
+}
+
+.online{color:#0b7a3e!important}.offline{color:#b42318!important}.syncing{color:#8a5a00!important}
+.filters{grid-template-columns:1fr 1fr 46px!important}
+.iconbtn{border:1px solid var(--line);background:#fff;border-radius:12px;min-height:42px;font-size:20px;font-weight:800;color:var(--blue)}
+.authbtn{border:1px solid var(--line);background:#fff;border-radius:999px;min-height:34px;padding:0 11px;font-size:12px;font-weight:800;color:var(--blue)}
+.cloud-warning{background:#fff4e5;border:1px solid #ffd7a1;color:#754400;border-radius:14px;padding:11px 12px;font-size:12px;line-height:1.45;margin-bottom:12px}
+.cloud-ok{background:#edf9f1;border:1px solid #bfe7cb;color:#14532d;border-radius:14px;padding:11px 12px;font-size:12px;line-height:1.45;margin-bottom:12px}
+.login-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.login-error{color:var(--danger);font-size:12px;margin-top:8px;min-height:18px}
+@media(max-width:520px){.filters{grid-template-columns:1fr 1fr 46px!important}}
+
+/* --- Смена открыта / история --- */
+.today-board{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin:0 0 14px;box-shadow:var(--shadow)}
+.today-board h2{margin:0;color:var(--blue);font-size:21px}.today-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.today-date{font-size:12px;color:var(--muted);margin-top:4px}.shift-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.shift-card{border:1px solid var(--line);border-radius:15px;padding:15px;background:#fff;box-shadow:0 3px 12px rgba(28,64,120,.04)}.shift-card h3{margin:0 0 8px;color:#24324a;font-size:20px}
+.shift-status{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:800;margin-bottom:8px}
+.shift-status.wait{background:#f1f5f9;color:#475569}.shift-status.open{background:#e8f7ee;color:#13713e}.shift-status.late{background:#fff3d6;color:#8a5a00}
+.shift-status.closed{background:#eef2f7;color:#475569}.shift-status.missing{background:#fdecec;color:#a61b1b}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor}.shift-pair{font-size:13px;line-height:1.5;margin-bottom:7px}.shift-meta{font-size:12px;color:var(--muted);line-height:1.45;min-height:28px}
+.shift-action{width:100%;min-height:42px;margin-top:8px;border-radius:11px}.shift-action[disabled]{opacity:.5;cursor:not-allowed}.mismatch{color:#b45309;font-weight:800}
+.history-list{display:grid;gap:10px}.history-item{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}.history-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.history-service{font-weight:850;color:var(--blue)}.history-date{font-size:12px;color:var(--muted)}.history-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.history-cell{background:#f8fafc;border-radius:11px;padding:9px;font-size:12px;line-height:1.45}
+.history-cell b{display:block;color:#334155;margin-bottom:3px}.tag{display:inline-block;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:800;margin-left:5px}.tag.late{background:#fff3d6;color:#8a5a00}.tag.bad{background:#fdecec;color:#a61b1b}.tag.ok{background:#e8f7ee;color:#13713e}
+.history-empty{text-align:center;color:var(--muted);padding:30px 12px}.pin-grid{display:grid;grid-template-columns:1fr 120px;gap:8px;align-items:end}.pin-grid+.pin-grid{margin-top:8px}
+.push-box{border:1px solid var(--line);border-radius:14px;padding:11px;background:#fbfdff}.push-state{font-size:12px;color:var(--muted);line-height:1.45;margin:7px 0 10px}
+.bottom-inner{grid-template-columns:repeat(3,1fr)!important}.edit-shift-btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 9px;font-weight:700;font-size:11px;color:var(--blue)}
+#historyPage .section{box-shadow:none}.modal-note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:8px}.readonly{background:#f8fafc!important;color:#64748b!important}
+@media(max-width:600px){.shift-cards{grid-template-columns:1fr}.history-grid{grid-template-columns:1fr}.pin-grid{grid-template-columns:1fr 110px}}
+
+.today-month-btn{width:100%;margin-top:8px;min-height:42px}
+.outside-plan{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow);text-align:center}
+.outside-plan h3{margin:0 0 8px;color:var(--blue);font-size:20px}
+.outside-plan p{margin:6px 0;color:var(--muted);line-height:1.5}
+.outside-plan .current-badge{display:inline-block;margin-bottom:8px;padding:6px 10px;border-radius:999px;background:#eaf2ff;color:#0f5bd7;font-size:12px;font-weight:800}
+.navbtn:disabled,.secondary:disabled{opacity:.45;cursor:not-allowed}
+
+.badge{min-width:108px;text-align:center;white-space:nowrap}
+
+.device-box{border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px;background:#fff}
+.device-state{margin-top:10px;padding:11px 12px;border-radius:12px;background:#f7f9fc;color:#53627a;line-height:1.4}
+.device-state.ok{background:#ecfdf3;color:#166534}
+.device-state.bad{background:#fff7ed;color:#9a3412}
+.device-list{display:grid;gap:8px;margin-top:10px}
+.device-item{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.device-item small{display:block;color:var(--muted);margin-top:3px}
+.device-revoke{border:1px solid #fecaca;background:#fff;color:#b42318;border-radius:10px;padding:8px 10px;font-weight:800;white-space:nowrap}
+.shift-device-note{margin-top:8px;color:#8a5a00;font-size:13px;font-weight:700}
+
+.employee-hero{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.employee-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.employee-hero h2{margin:0;color:var(--blue);font-size:23px}
+.employee-main-status{margin-top:14px;border-radius:16px;padding:15px;background:#f7f9fc}
+.employee-main-status.work{background:#ecfdf3;color:#166534}
+.employee-main-status.off{background:#f7f9fc;color:#475569}
+.employee-main-status.unknown{background:#fff7ed;color:#9a3412}
+.employee-main-status b{display:block;font-size:18px;margin-bottom:5px}
+.employee-main-status span{font-size:13px;line-height:1.45}
+.employee-next{margin-top:10px;border:1px solid var(--line);border-radius:14px;padding:12px}
+.employee-next small{display:block;color:var(--muted);margin-bottom:4px}
+.employee-next b{font-size:15px}
+.employee-my-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.employee-my-head h2{margin:0;color:var(--blue)}
+.employee-shift-list{display:grid;gap:9px}
+.employee-shift-item{background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px;display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:center}
+.employee-shift-date{text-align:center;border-right:1px solid var(--line);padding-right:9px}
+.employee-shift-date b{display:block;font-size:18px;color:#24344d}
+.employee-shift-date span{font-size:11px;color:var(--muted)}
+.employee-shift-info b{display:block;margin-bottom:3px}
+.employee-shift-info span{font-size:12px;color:var(--muted);line-height:1.4}
+.employee-picker-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.employee-picker-btn{min-height:50px;border:1px solid var(--line);background:#fff;border-radius:13px;font-weight:800;color:#24344d}
+.employee-picker-btn:active{transform:scale(.99)}
+.employee-mode-note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:10px}
+.employee-phone-mode #schedulePage .today-board{display:none}
+.employee-phone-mode #monthActions,.employee-phone-mode #monthPhotoNotice{display:none!important}
+.employee-phone-mode .shift-action,.employee-phone-mode .shift-device-note{display:none!important}
+.employee-phone-mode .bottom-inner{grid-template-columns:repeat(3,1fr)!important}
+@media(max-width:760px){
+  .employee-phone-mode #scheduleControls{padding-top:2px}
+  .employee-phone-mode .filters #employeeFilter{display:none}
+  .employee-phone-mode .filters{grid-template-columns:1fr}
+  .employee-phone-mode .filters #refreshBtn{justify-self:end}
+}
+
+/* Телефон: убираем случайное увеличение при тапах, но не запрещаем pinch-zoom */
+html{touch-action:manipulation}
+button,a,input,select,textarea,label{touch-action:manipulation}
+@media(max-width:760px){
+  input,select,textarea,button{font-size:16px!important}
+  body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+}
+
+/* Админ: отдельный экран "Сегодня" */
+.admin-attention{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.admin-attention h2{margin:0 0 10px;color:var(--blue);font-size:20px}
+.attention-list{display:grid;gap:8px}
+.attention-item{border-radius:13px;padding:11px 12px;font-size:13px;line-height:1.4;font-weight:700}
+.attention-item.ok{background:#ecfdf3;color:#166534}
+.attention-item.warn{background:#fff7ed;color:#9a3412}
+.attention-item.bad{background:#fef2f2;color:#991b1b}
+.annul-shift-btn{width:100%;margin-top:8px;border:1px solid #fecaca;background:#fff;color:#b42318;border-radius:12px;min-height:40px;padding:8px 10px;font-weight:800}
+
+/* Календарь: цвета точек */
+.calendar-legend{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 10px}
+.calendar-legend-item{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 9px;font-size:11px;font-weight:800;background:#fff}
+.calendar-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.calendar-dot.service-s1{background:#22c55e}
+.calendar-dot.service-s2{background:#3b82f6}
+
+/* Сотрудник: личный календарь */
+.employee-calendar-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.employee-calendar-head h2{margin:0;color:var(--blue)}
+.employee-calendar-nav{display:grid;grid-template-columns:42px 1fr 42px;gap:7px;align-items:center;margin-bottom:10px}
+.employee-calendar-nav button{min-height:42px;border:1px solid var(--line);background:#fff;border-radius:11px;font-size:20px;font-weight:800}
+.employee-calendar-label{text-align:center;font-weight:850;color:#24344d}
+.employee-calendar-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+.employee-calendar-week div{text-align:center;font-size:10px;font-weight:800;color:var(--muted);padding:4px 0}
+.employee-calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.employee-cal-cell{position:relative;min-height:66px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px 4px;text-align:left}
+.employee-cal-cell.blank{border-color:transparent;background:transparent}
+.employee-cal-cell.work.service-s1{background:#ecfdf3;border-color:#86efac}
+.employee-cal-cell.work.service-s2{background:#eff6ff;border-color:#93c5fd}
+.employee-cal-cell.off{background:#f8fafc}
+.employee-cal-cell.out{background:#fff7ed;border-color:#fed7aa}
+.employee-cal-cell.today{outline:2px solid var(--blue);outline-offset:-2px}
+.employee-cal-cell b{display:block;font-size:14px;color:#24344d}
+.employee-cal-cell span{display:block;margin-top:7px;font-size:8px;line-height:1.15;color:#64748b;overflow:hidden}
+.employee-cal-cell.work.service-s1 span{color:#166534;font-weight:800}
+.employee-cal-cell.work.service-s2 span{color:#1d4ed8;font-weight:800}
+.employee-cal-cell.out span{color:#9a3412}
+.employee-calendar-detail{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+.employee-calendar-detail.service-s1{background:#ecfdf3;border-color:#86efac}
+.employee-calendar-detail.service-s2{background:#eff6ff;border-color:#93c5fd}
+.employee-calendar-detail b{display:block;margin-bottom:5px;font-size:16px}
+.employee-calendar-detail span{font-size:13px;color:var(--muted);line-height:1.45}
+.employee-calendar-detail.service-s1 span{color:#166534}
+.employee-calendar-detail.service-s2 span{color:#1d4ed8}
+
+/* Компьютер: календарь общего графика */
+.desktop-calendar-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.desktop-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:6px;min-width:820px}
+.desktop-cal-cell{min-height:118px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:8px;text-align:left;vertical-align:top}
+.desktop-cal-cell.blank{background:transparent;border-color:transparent}
+.desktop-cal-cell.today{outline:2px solid var(--blue);outline-offset:-2px}
+.desktop-cal-cell.selected{box-shadow:0 0 0 2px rgba(15,91,215,.18)}
+.desktop-cal-day{font-size:15px;font-weight:900;color:#24344d;margin-bottom:7px}
+.desktop-cal-services{display:grid;gap:5px}
+.desktop-service-chip{display:block;border-radius:9px;padding:6px 7px;border:1px solid transparent}
+.desktop-service-chip.service-s1{background:#ecfdf3;border-color:#86efac;color:#166534}
+.desktop-service-chip.service-s2{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.desktop-service-chip strong{display:block;font-size:10px;line-height:1.15}
+.desktop-service-chip small{display:block;margin-top:3px;font-size:9px;line-height:1.2;font-weight:700}
+.desktop-calendar-detail{margin-top:12px;display:grid;gap:8px}
+.desktop-calendar-detail-card{border:1px solid var(--line);border-radius:13px;padding:11px 12px;background:#fff}
+.desktop-calendar-detail-card.service-s1{background:#ecfdf3;border-color:#86efac;color:#166534}
+.desktop-calendar-detail-card.service-s2{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.desktop-calendar-detail-card b{display:block;font-size:14px;margin-bottom:4px}
+.desktop-calendar-detail-card span{font-size:12px;line-height:1.45;font-weight:700}
+.bottom-inner.admin-five{grid-template-columns:repeat(5,1fr)!important}
+@media(max-width:760px){
+  .desktop-calendar-grid{min-width:760px}
+}
+
+/* Навигация: 4 вкладки для рабочего/админ режима, 3 для телефона сотрудника */
+.bottom-inner.employee-three{grid-template-columns:repeat(3,1fr)!important}
+@media(max-width:420px){
+  .employee-cal-cell{min-height:60px;padding:5px 3px}
+  .employee-cal-cell span{font-size:7.5px}
+}
+
+.employee-own-shift-status{display:block;margin-top:9px;padding-top:9px;border-top:1px solid rgba(0,0,0,.08);font-weight:800;font-size:13px}
+
+/* Финальная доводка админского режима */
+.connection-banner{display:none;margin:10px 14px 0;padding:10px 12px;border-radius:12px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;font-size:13px;font-weight:800}
+.connection-banner.show{display:block}
+
+.history-quick{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+.history-quick::-webkit-scrollbar{display:none}
+.history-quick button{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 11px;font-weight:800;color:#42526a}
+.history-quick button.active{background:#eaf2ff;color:#0f5bd7;border-color:#bfdbfe}
+
+.history-stats{margin-top:12px;margin-bottom:12px}
+.history-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.history-stat{border:1px solid var(--line);border-radius:13px;padding:10px;background:#fff;text-align:center}
+.history-stat b{display:block;font-size:20px;color:#24344d}
+.history-stat span{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+.discipline-title{font-weight:850;color:#24344d;margin:13px 0 7px}
+.discipline-list{display:grid;gap:7px}
+.discipline-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:9px 10px;background:#fff}
+.discipline-row b{font-size:13px}
+.discipline-row span{font-size:11px;color:var(--muted);text-align:right}
+.history-source{margin-top:5px;font-size:11px;color:#64748b}
+.history-status-line{margin-bottom:8px;font-size:12px;font-weight:800}
+.history-status-line.ok{color:#166534}
+.history-status-line.warn{color:#9a3412}
+.history-status-line.bad{color:#991b1b}
+
+/* История 2.0 — компактный контроль дисциплины */
+.history-page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.history-page-head h2{margin:0;color:#24344d}
+.history-page-sub{margin-top:4px;font-size:12px;color:var(--muted)}
+.history-legend{display:flex;flex-wrap:wrap;gap:7px;margin:2px 0 10px}
+.history-legend span{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:11px;color:#42526a}
+.history-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.history-dot.service-s1{background:#22c55e}
+.history-dot.service-s2{background:#3b82f6}
+
+.history-list{display:grid;gap:8px}
+.history-item{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;padding:0}
+.history-item.service-s1{border-left:5px solid #22c55e}
+.history-item.service-s2{border-left:5px solid #3b82f6}
+.history-item[open]{box-shadow:0 7px 20px rgba(28,64,120,.07)}
+.history-summary{list-style:none;cursor:pointer;padding:11px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.history-summary::-webkit-details-marker{display:none}
+.history-summary-main{min-width:0}
+.history-summary-top{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:4px}
+.history-summary-service{font-size:13px;font-weight:900}
+.history-item.service-s1 .history-summary-service{color:#166534}
+.history-item.service-s2 .history-summary-service{color:#1d4ed8}
+.history-summary-date{font-size:11px;color:var(--muted)}
+.history-summary-line{font-size:12px;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-summary-status{text-align:right;font-size:11px;font-weight:900;padding:6px 8px;border-radius:999px;white-space:nowrap}
+.history-summary-status.ok{background:#ecfdf3;color:#166534}
+.history-summary-status.warn{background:#fff7ed;color:#9a3412}
+.history-summary-status.bad{background:#fef2f2;color:#991b1b}
+.history-summary-status.voided{background:#f3f4f6;color:#4b5563}
+.history-details{border-top:1px solid var(--line);padding:11px 12px;background:#fbfdff}
+.history-details-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.history-detail-card{border:1px solid var(--line);border-radius:11px;background:#fff;padding:9px 10px;font-size:12px;line-height:1.45}
+.history-detail-card b{display:block;margin-bottom:4px;color:#334155}
+.history-detail-meta{margin-top:5px;font-size:11px;color:#64748b}
+.history-detail-actions{display:flex;justify-content:flex-end;margin-top:9px}
+.history-detail-actions button{min-height:38px;padding:8px 11px}
+.history-mismatch{margin-top:6px;padding:6px 8px;border-radius:8px;background:#fff7ed;color:#9a3412;font-size:11px;font-weight:800}
+
+.history-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.history-stat.alert b{color:#b42318}
+.history-stat.good b{color:#166534}
+
+.discipline-title{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:900;color:#24344d;margin:14px 0 7px}
+.discipline-title span{font-size:11px;color:var(--muted);font-weight:700}
+.discipline-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.discipline-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.discipline-table th,.discipline-table td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:center;font-size:11px}
+.discipline-table th{background:#f8fafc;color:#64748b}
+.discipline-table th:first-child,.discipline-table td:first-child{text-align:left}
+.discipline-table tr:last-child td{border-bottom:0}
+.discipline-table td:first-child{font-weight:850;color:#24344d}
+.discipline-bad{color:#b42318;font-weight:900}
+.discipline-good{color:#166534;font-weight:900}
+
+.history-loading-note{font-size:11px;color:var(--muted);text-align:center;margin-top:8px}
+
+/* Настройки 2.0 */
+.settings-main-section{box-shadow:none;border:1px solid var(--line)}
+.settings-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.settings-title-row h2{margin:0;color:#24344d}
+.settings-subtitle{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.35}
+
+.system-health-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.system-health-row{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:#fff;border-radius:13px;padding:10px 11px;min-height:62px}
+.system-health-row div{min-width:0}
+.system-health-row b{display:block;font-size:13px;color:#24344d}
+.system-health-row small{display:block;font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.system-health-icon{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:0;flex:0 0 24px;background:#e2e8f0}
+.system-health-icon::after{content:"";width:9px;height:9px;border-radius:50%;background:#94a3b8}
+.system-health-icon.ok{background:#dcfce7}
+.system-health-icon.ok::after{background:#22c55e}
+.system-health-icon.warn{background:#ffedd5}
+.system-health-icon.warn::after{background:#f97316}
+.system-health-icon.bad{background:#fee2e2}
+.system-health-icon.bad::after{background:#ef4444}
+
+.settings-account-row{margin-top:10px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.settings-account-status{font-size:12px;color:#475569;border:1px solid var(--line);background:#f8fafc;border-radius:11px;padding:9px 10px}
+.settings-account-status b{color:#24344d}
+.compact-settings-btn{min-height:40px;padding:8px 12px}
+
+.settings-inline-details{margin-top:10px;border-top:1px solid var(--line);padding-top:9px}
+.settings-inline-details>summary{cursor:pointer;font-size:12px;font-weight:850;color:#334155}
+.settings-inline-details>summary::marker{color:#94a3b8}
+
+.current-schedule-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.current-schedule-card{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+.current-schedule-card.service-s1{background:#ecfdf3;border-color:#86efac}
+.current-schedule-card.service-s2{background:#eff6ff;border-color:#93c5fd}
+.current-schedule-card h3{margin:0 0 7px;font-size:15px}
+.current-schedule-card.service-s1 h3{color:#166534}
+.current-schedule-card.service-s2 h3{color:#1d4ed8}
+.current-schedule-row{font-size:12px;line-height:1.5;color:#475569;margin-top:4px}
+.current-schedule-row b{color:#24344d}
+
+.settings-device-box{margin-top:0}
+.device-tech-note{margin-top:10px}
+.settings-extra>summary{font-size:16px;font-weight:900;color:#24344d}
+.nested-settings-details{border:1px solid var(--line);border-radius:13px;padding:11px 12px;background:#fff}
+.nested-settings-details>summary{cursor:pointer;font-weight:850;color:#334155}
+.nested-settings-details.danger-zone>summary{color:#b42318}
+
+#settingsPage .advanced-block h3{margin-top:0}
+#settingsPage .install-app-card{box-shadow:none}
+#settingsPage .cloud-ok,#settingsPage .cloud-warning{margin:0}
+
+@media(max-width:620px){
+  .system-health-grid,.current-schedule-summary{grid-template-columns:1fr}
+  .settings-account-row{grid-template-columns:1fr}
+
+  .history-stats-grid{grid-template-columns:repeat(2,1fr)}
+  .history-details-grid{grid-template-columns:1fr}
+  .history-summary{grid-template-columns:1fr}
+  .history-summary-status{justify-self:start}
+}
+
+/* Рабочий компьютер точки: только самое нужное */
+.service-device-mode .today-board{max-width:720px;margin-left:auto;margin-right:auto}
+.service-device-mode .shift-cards{grid-template-columns:1fr!important}
+.service-device-mode #saveBadge{display:none!important}
+.service-device-mode #scheduleControls .filters{display:none!important}
+.service-device-mode #monthActions,
+.service-device-mode #monthPhotoNotice{display:none!important}
+.service-device-mode .bottom-inner{grid-template-columns:repeat(3,1fr)!important}
+.service-device-mode .bottom-inner .tab.hidden{display:none!important}
+.service-device-mode .shift-card h3{font-size:22px}
+.service-device-mode .shift-card{padding:18px}
+.service-device-mode .shift-status{font-size:15px}
+.service-device-mode .shift-pair{font-size:15px;line-height:1.5}
+.service-device-mode .shift-action{min-height:54px;font-size:17px;font-weight:900}
+.service-device-mode .admin-attention{margin-bottom:12px}
+.service-device-mode #scheduleControls .monthnav{margin-top:0}
+.service-device-mode #scheduleControls .today-month-btn{display:none}
+@media(max-width:760px){
+  .service-device-mode .bottom-inner{grid-template-columns:repeat(3,1fr)!important}
+}
+
+/* Рабочий компьютер: упрощённый график своей точки */
+.service-point-schedule{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;box-shadow:var(--shadow)}
+.service-point-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.service-point-head h2{margin:0;color:var(--blue);font-size:21px}
+.service-point-head span{font-size:12px;color:var(--muted)}
+.service-quick-nav{display:grid;grid-template-columns:auto auto 1fr;gap:7px;margin-bottom:10px}
+.service-quick-nav button,.service-quick-nav input{min-height:42px;border:1px solid var(--line);background:#fff;border-radius:11px;padding:8px 10px;font-size:14px}
+.service-quick-nav button{font-weight:850;color:#24344d}
+.service-quick-nav input{width:100%;color:#24344d}
+.service-schedule-scroll{max-height:62vh;overflow:auto;border:1px solid var(--line);border-radius:14px;scroll-behavior:smooth}
+.service-day-row{width:100%;display:grid;grid-template-columns:78px 1fr;gap:10px;align-items:center;border:0;border-bottom:1px solid var(--line);background:#fff;padding:12px;text-align:left}
+.service-day-row:last-child{border-bottom:0}
+.service-day-row:hover{background:#f8fafc}
+.service-day-row.today{background:#eaf2ff}
+.service-day-row.today .service-day-date b{color:var(--blue)}
+.service-day-date{border-right:1px solid var(--line);padding-right:10px}
+.service-day-date b{display:block;font-size:18px;color:#24344d}
+.service-day-date span{display:block;margin-top:2px;font-size:11px;color:var(--muted);text-transform:uppercase}
+.service-day-pair b{display:block;font-size:15px;color:#24344d}
+.service-day-pair span{display:block;margin-top:3px;font-size:12px;color:var(--muted)}
+.service-today-tag{display:inline-block;margin-left:6px;padding:3px 6px;border-radius:999px;background:#0f5bd7;color:#fff;font-size:9px;font-weight:900;vertical-align:2px}
+.service-day-detail{display:grid;gap:9px;margin-top:12px}
+.service-day-detail-row{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.service-day-detail-row small{display:block;color:var(--muted);margin-bottom:4px}
+.service-day-detail-row b{font-size:15px;color:#24344d}
+.service-day-status{border-radius:12px;padding:11px 12px;font-weight:850}
+.service-day-status.ok{background:#ecfdf3;color:#166534}
+.service-day-status.warn{background:#fff7ed;color:#9a3412}
+.service-day-status.bad{background:#fef2f2;color:#991b1b}
+.service-device-mode #monthSubtitle:empty{display:none}
+@media(max-width:620px){
+  .service-quick-nav{grid-template-columns:1fr 1fr}
+  .service-quick-nav input{grid-column:1/-1}
+  .service-day-row{grid-template-columns:68px 1fr}
+}
+
+/* Бесконечный график */
+.monthnav{grid-template-columns:44px minmax(120px,1fr) 110px 44px}
+.yearselect{width:100%;min-height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:0 10px;font-weight:800;color:var(--text)}
+.infinite-note{margin-top:9px;padding:10px 12px;border-radius:12px;background:#ecfdf3;color:#166534;font-size:12px;line-height:1.45}
+@media(max-width:760px){
+  .monthnav{grid-template-columns:42px 1fr 92px 42px}
+}
+
+.service-day-row.selected{outline:2px solid #0f5bd7;outline-offset:-2px;background:#f2f7ff}
+.service-quick-nav button.active{background:#0f5bd7;color:#fff;border-color:#0f5bd7}
+
+/* Финальная чистка интерфейса */
+.employee-identity-bar{display:none;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px 12px;margin-bottom:12px;box-shadow:var(--shadow)}
+.employee-identity-bar b{color:#24344d}
+.employee-identity-bar span{display:block;font-size:11px;color:var(--muted);margin-bottom:2px}
+.employee-phone-mode .employee-identity-bar{display:flex}
+.employee-identity-change{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;font-weight:800;color:var(--blue)}
+.admin-attention.hidden-clean{display:none!important}
+.history-custom-wrap{margin-bottom:10px}
+.history-custom-toggle{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 11px;font-weight:800;color:#42526a;white-space:nowrap}
+.history-custom-range{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-top:8px}
+.history-filters-clean{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.advanced-settings{border:1px solid var(--line);border-radius:16px;background:#fff;margin-top:12px;overflow:hidden}
+.advanced-settings>summary{cursor:pointer;list-style:none;padding:14px 15px;font-weight:900;color:#24344d}
+.advanced-settings>summary::-webkit-details-marker{display:none}
+.advanced-settings[open]>summary{border-bottom:1px solid var(--line)}
+.advanced-inner{padding:14px}
+.advanced-block{border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px;background:#f8fafc}
+.advanced-block:last-child{margin-bottom:0}
+.advanced-block h3{margin:0 0 8px;color:#24344d}
+.danger-zone{border-color:#fecaca;background:#fff7f7}
+.danger-zone h3{color:#991b1b}
+.help-details{border:1px solid var(--line);border-radius:12px;background:#fff;margin-top:10px}
+.help-details summary{cursor:pointer;padding:10px 12px;font-weight:800;color:#0f5bd7}
+.help-details div{padding:0 12px 12px;font-size:12px;line-height:1.5;color:var(--muted)}
+.schedule-save-bar{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
+.device-security-note{margin-top:8px;padding:9px 10px;border-radius:11px;background:#ecfdf3;color:#166534;font-size:12px;line-height:1.45}
+@media(max-width:700px){
+  .history-custom-range,.history-filters-clean{grid-template-columns:1fr}
+}
+
+/* Напоминания сотруднику */
+.employee-reminder-card{border:1px solid var(--line);border-radius:16px;padding:13px;background:#fff;margin-bottom:12px}
+.employee-reminder-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.employee-reminder-head b{display:block;color:#24344d;font-size:15px}
+.employee-reminder-state{font-size:12px;color:var(--muted);line-height:1.45;margin-top:5px}
+.employee-reminder-times{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.employee-reminder-times span{border:1px solid var(--line);background:#f8fafc;border-radius:999px;padding:6px 8px;font-size:11px;font-weight:800;color:#42526a}
+.employee-reminder-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}
+.employee-reminder-actions button:only-child{grid-column:1/-1}
+.employee-reminder-ok{color:#166534!important}
+.employee-reminder-warn{color:#9a6700!important}
+.employee-reminder-bad{color:#b42318!important}
+@media(max-width:520px){.employee-reminder-actions{grid-template-columns:1fr}}
+
+/* MA Смена — маленькое окно при запуске Windows */
+.startup-shift-window{display:none;min-height:100vh;padding:18px;align-items:flex-start;justify-content:center;background:#f4f7fb}
+.startup-shift-card{width:min(100%,440px);background:#fff;border:1px solid #dbe5f2;border-radius:22px;padding:18px;box-shadow:0 14px 42px rgba(28,64,120,.13);margin-top:10px}
+.startup-shift-logo{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.startup-shift-logo b{font-size:19px;color:#0f5bd7}
+.startup-shift-logo span{font-size:11px;color:#64748b;border:1px solid #dbe5f2;border-radius:999px;padding:6px 8px}
+.startup-shift-date{font-size:12px;color:#64748b;margin-bottom:4px}
+.startup-shift-service{font-size:28px;font-weight:900;color:#162033;margin:0 0 10px}
+.startup-shift-people{display:grid;gap:7px;background:#f8fafc;border:1px solid #e4ebf4;border-radius:14px;padding:12px;margin-bottom:12px}
+.startup-shift-person{display:flex;justify-content:space-between;gap:10px;font-size:13px}
+.startup-shift-person span{color:#64748b}
+.startup-shift-person b{color:#24344d;text-align:right}
+.startup-shift-status{border-radius:14px;padding:11px 12px;font-size:13px;line-height:1.45;font-weight:800;margin-bottom:12px}
+.startup-shift-status.ok{background:#ecfdf3;color:#166534}
+.startup-shift-status.warn{background:#fff8e7;color:#8a5b00}
+.startup-shift-status.bad{background:#fff1f2;color:#b42318}
+.startup-shift-status.info{background:#eef5ff;color:#0f5bd7}
+.startup-shift-form{display:grid;gap:10px}
+.startup-shift-form label{font-size:12px;color:#64748b;font-weight:800}
+.startup-shift-form select,.startup-shift-form input{width:100%;height:46px;border:1px solid #dbe5f2;border-radius:12px;background:#fff;padding:0 12px;font-size:16px;color:#162033}
+.startup-shift-mainbtn{width:100%;min-height:52px;border:0;border-radius:14px;background:#0f5bd7;color:#fff;font-size:16px;font-weight:900;padding:12px}
+.startup-shift-mainbtn.close-action{background:#24344d}
+.startup-shift-mainbtn:disabled{opacity:.55;cursor:not-allowed}
+.startup-shift-close{width:100%;min-height:42px;border:1px solid #dbe5f2;border-radius:12px;background:#fff;color:#42526a;font-weight:800;margin-top:8px}
+.startup-shift-error{min-height:18px;color:#b42318;font-size:12px;font-weight:700;margin-top:8px}
+.startup-shift-loading{text-align:center;padding:28px 8px;color:#64748b;font-weight:800}
+.startup-shift-done{text-align:center;padding:10px 0}
+.startup-shift-done .big-check{font-size:42px;margin-bottom:6px}
+.startup-shift-done b{display:block;font-size:18px;color:#166534;margin-bottom:5px}
+.startup-shift-done span{font-size:12px;color:#64748b}
+body.startup-shift-mode{min-height:100vh;padding:0;background:#f4f7fb;overflow:auto}
+body.startup-shift-mode>.app,
+body.startup-shift-mode>.bottom,
+body.startup-shift-mode>.employee-identity-bar{display:none!important}
+body.startup-shift-mode #startupShiftWindow{display:flex!important}
+body.startup-shift-mode .toast{z-index:300}
+
+/* Установка приложений */
+.install-app-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.install-app-card{border:1px solid var(--line);border-radius:15px;padding:12px;background:#f8fafc}
+.install-app-card b{display:block;color:#24344d;margin-bottom:5px}
+.install-app-card p{margin:0 0 10px;color:var(--muted);font-size:12px;line-height:1.45}
+.install-app-card button{width:100%}
+.install-app-state{margin-top:10px;font-size:12px;line-height:1.45;color:var(--muted)}
+.install-app-state.ok{color:#166534}
+.install-app-state.warn{color:#9a6700}
+@media(max-width:620px){.install-app-grid{grid-template-columns:1fr}}
+
+/* Стабильный запуск приложения: не показываем неправильный режим на долю секунды */
+.app-boot-screen{
+  position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;
+  background:var(--bg);padding:24px
+}
+.app-booting .app,
+.app-booting .bottom,
+.app-booting .employee-identity-bar{visibility:hidden}
+.app-booting .app-boot-screen{display:flex}
+.app-boot-card{
+  width:min(100%,360px);background:#fff;border:1px solid var(--line);border-radius:20px;
+  padding:22px;text-align:center;box-shadow:var(--shadow)
+}
+.app-boot-logo{
+  width:54px;height:54px;margin:0 auto 12px;border-radius:15px;background:var(--blue);
+  color:#fff;font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center
+}
+.app-boot-title{font-size:18px;font-weight:900;color:#24344d}
+.app-boot-text{margin-top:5px;font-size:12px;color:var(--muted)}
+
+
+.quick-replace-btn{min-height:38px;padding:8px 12px;white-space:nowrap}
+.quick-replace-sheet{width:min(100%,520px)}
+.quick-replace-summary{
+  margin:14px 0 12px;padding:13px 14px;border:1px solid var(--line);border-radius:14px;
+  background:#f8fafc;font-size:13px;line-height:1.5;color:#42526a
+}
+.quick-replace-summary.service-s1{background:#ecfdf3;border-color:#86efac;color:#166534}
+.quick-replace-summary.service-s2{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.quick-replace-summary .replace-place{font-size:12px;font-weight:850}
+.quick-replace-summary .replace-date{font-weight:700;opacity:.8}
+.quick-replace-summary .replace-person{margin-top:8px;font-size:16px;font-weight:900;color:#24344d}
+.quick-replace-summary .replace-role{font-size:11px;font-weight:800;opacity:.75;margin-top:2px}
+.quick-replace-existing{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#fff7ed;color:#9a3412;font-size:12px;font-weight:750;line-height:1.45}
+.quick-replace-context{margin-top:2px}
+.quick-replace-main-field{margin-top:12px}
+.quick-replace-main-field label{display:block;margin-bottom:7px;font-size:14px;font-weight:900;color:#24344d}
+.quick-replace-main-field select{width:100%;min-height:52px;border:2px solid #cbd5e1;border-radius:13px;background:#fff;padding:0 12px;font-size:16px;font-weight:800;color:#24344d}
+.quick-replace-main-field select:focus{outline:none;border-color:var(--blue)}
+.quick-replace-reason{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.quick-replace-reason>summary{cursor:pointer;font-size:12px;font-weight:800;color:#64748b}
+.quick-replace-reason .field{margin-top:9px;margin-bottom:0}
+.quick-replace-actions{display:grid;grid-template-columns:auto 1fr;gap:8px;margin-top:14px}
+.quick-replace-actions #saveQuickReplace{grid-column:2;grid-row:1;min-height:48px}
+.quick-replace-actions #cancelQuickReplace{grid-column:1;grid-row:1;min-height:48px}
+.quick-replace-actions #removeQuickReplace{grid-column:1 / -1;grid-row:2;min-height:42px;color:#b42318;border-color:#fecaca}
+@media(max-width:560px){
+  .today-head{align-items:center}
+  .quick-replace-btn{font-size:12px;padding:7px 9px}
+  .quick-replace-actions{grid-template-columns:1fr 1.4fr}
+}
+
+
+/* Телефон — фиксированная геометрия без бокового «резинового» растягивания */
+html,body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+  overscroll-behavior-x:none;
+}
+body{min-height:100dvh}
+.app{width:100%;max-width:980px;min-width:0;overflow-x:hidden}
+
+@supports (overflow:clip){
+  html,body,.app{overflow-x:clip}
+}
+
+@media(max-width:760px){
+  html,body{
+    width:100%;
+    max-width:100%;
+    overscroll-behavior:none;
+    touch-action:pan-y pinch-zoom;
+    -webkit-text-size-adjust:100%;
+    text-size-adjust:100%;
+  }
+
+  body{
+    margin:0;
+    padding-bottom:calc(76px + env(safe-area-inset-bottom));
+  }
+
+  .app,
+  .topbar,
+  .page,
+  .section,
+  .today-board,
+  .service-card,
+  .employee-hero,
+  .employee-calendar-detail,
+  .service-point-schedule,
+  .connection-banner{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+
+  .topbar{padding-left:10px;padding-right:10px}
+  .page{padding:10px}
+
+  .brandrow,
+  .monthnav,
+  .filters,
+  .grid2,
+  .shift-cards,
+  .history-grid,
+  .history-filters-clean,
+  .history-custom-range,
+  .settings-actions,
+  .login-actions,
+  .employee-picker-grid,
+  .employee-calendar-nav,
+  .employee-calendar-week,
+  .employee-calendar-grid{
+    min-width:0;
+    max-width:100%;
+  }
+
+  .brandrow>*,
+  .monthnav>*,
+  .filters>*,
+  .grid2>*,
+  .shift-cards>*,
+  .history-grid>*,
+  .history-filters-clean>*,
+  .history-custom-range>*,
+  .settings-actions>*,
+  .login-actions>*,
+  .employee-picker-grid>*{
+    min-width:0;
+    max-width:100%;
+  }
+
+  button,input,select,textarea{
+    max-width:100%;
+    min-width:0;
+  }
+
+  img,svg,canvas{max-width:100%;height:auto}
+
+  .schedule{
+    width:100%;
+    max-width:100%;
+    table-layout:fixed;
+  }
+  .schedule th,.schedule td{
+    overflow-wrap:anywhere;
+    word-break:normal;
+  }
+
+  .bottom{
+    width:100%;
+    max-width:100%;
+    padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+  }
+  .bottom-inner{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    gap:4px;
+  }
+  .tab{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    padding:10px 4px;
+  }
+
+  .modal{
+    width:100%;
+    max-width:100%;
+    padding:8px;
+    overflow-x:hidden;
+  }
+  .sheet{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+
+  .history-quick,
+  .service-schedule-scroll{
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .employee-phone-mode .employee-hero,
+  .employee-phone-mode .section{
+    margin-left:0;
+    margin-right:0;
+  }
+}
+
+
+.bottom-inner.admin-four{grid-template-columns:repeat(4,1fr)!important}
+@media(max-width:620px){.bottom-inner.admin-four .tab{font-size:11px;padding-left:4px;padding-right:4px}}
+@media(max-width:760px){
+  }
+
+/* Управление сотрудниками прямо из графика */
+.schedule-admin-tools{margin:0 0 12px}
+.schedule-admin-line{display:flex;gap:10px;align-items:stretch}
+.schedule-problem-summary{flex:1;min-width:0}
+.schedule-problem-card{border:1px solid #f1d79e;background:#fffaf0;border-radius:14px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.schedule-problem-card.ok{border-color:#cfe8d7;background:#f4fbf6}
+.schedule-problem-card b{display:block;font-size:13px}
+.schedule-problem-card span{display:block;margin-top:2px;font-size:11px;color:var(--muted)}
+.schedule-problem-toggle{flex:0 0 auto;padding:7px 10px!important;font-size:11px!important}
+.schedule-add-employee{flex:0 0 auto;white-space:nowrap}
+.schedule-problem-details{margin-top:8px;border:1px solid var(--line);background:#fff;border-radius:14px;overflow:hidden}
+.schedule-problem-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border-bottom:1px solid var(--line)}
+.schedule-problem-row:last-child{border-bottom:0}
+.schedule-problem-row b{font-size:12px}
+.schedule-problem-row span{display:block;margin-top:2px;font-size:11px;color:var(--muted)}
+.schedule-problem-fix{padding:7px 10px!important;font-size:11px!important;white-space:nowrap}
+
+/* Нагрузка сотрудников за выбранный месяц */
+.schedule-workload-card{
+  margin:10px 0 14px;background:#fff;border:1px solid var(--line);
+  border-radius:16px;padding:12px;box-shadow:var(--shadow)
+}
+.schedule-workload-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:9px}
+.schedule-workload-head h3{margin:0;color:var(--blue);font-size:17px}
+.schedule-workload-head span{font-size:11px;color:var(--muted);text-align:right}
+.schedule-workload-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.workload-table{width:100%;min-width:500px;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.workload-table th,.workload-table td{padding:9px 10px;border-bottom:1px solid var(--line);font-size:12px;text-align:center}
+.workload-table th{background:var(--blue2);color:#31435d;font-size:11px}
+.workload-table th:first-child,.workload-table td:first-child{text-align:left}
+.workload-table tr:last-child td{border-bottom:0}
+.workload-table .employee-name{font-weight:800;color:#24324a}
+.workload-table .employee-role{display:block;margin-top:2px;font-size:10px;font-weight:600;color:var(--muted)}
+.workload-table .total-shifts{font-weight:900;color:var(--blue);font-size:14px}
+@media(max-width:520px){
+  .schedule-workload-card{padding:10px}
+  .schedule-workload-head{align-items:flex-start;flex-direction:column}
+  .schedule-workload-head span{text-align:left}
+}
+
+.schedule tbody tr.manageable{cursor:pointer}
+.schedule tbody tr.manageable:hover td{background:#f4f8ff}
+.schedule tbody tr.has-problem td{background:#fff8dc}
+.schedule tbody tr.has-problem.manageable:hover td{background:#fff2bd}
+.schedule-manage-body{display:grid;gap:10px;margin-top:14px}
+.schedule-manage-role{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}
+.schedule-manage-role.problem{border-color:#f1d79e;background:#fffaf0}
+.schedule-manage-role small{display:block;color:var(--muted);font-size:11px}
+.schedule-manage-role b{display:block;margin-top:2px;font-size:16px}
+.schedule-manage-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.schedule-manage-actions button{padding:8px 10px;font-size:11px;min-height:auto}
+.schedule-manage-conflict{display:grid;gap:7px;margin-top:10px}
+.schedule-manage-conflict-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 9px;border:1px solid var(--line);border-radius:10px;background:#fff}
+@media(max-width:760px){
+  .schedule-admin-line{display:grid;grid-template-columns:1fr}
+  .schedule-add-employee{width:100%}
+  .schedule-problem-row{align-items:flex-start}
+}
+/* График 3.0 — один день, сразу две точки */
+.schedule-month-title{display:none}
+.simple-monthnav{grid-template-columns:44px minmax(0,1fr) 44px!important}
+.simple-monthnav .monthselect{text-align:center;font-weight:850}
+.simple-schedule-filters{grid-template-columns:minmax(0,1fr) auto!important}
+.simple-schedule-filters .schedule-add-employee{white-space:nowrap}
+#refreshBtn{display:none!important}
+
+.unified-schedule-card{
+  background:#fff;border:1px solid var(--line);border-radius:18px;
+  overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px
+}
+.unified-schedule-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 12px;border-bottom:1px solid var(--line);background:#fff
+}
+.unified-schedule-legend{display:flex;flex-wrap:wrap;gap:7px}
+.unified-legend-item{
+  display:inline-flex;align-items:center;gap:6px;border-radius:999px;
+  padding:6px 9px;font-size:11px;font-weight:850;border:1px solid var(--line)
+}
+.unified-legend-item.service-s1{background:#ecfdf3;border-color:#86efac;color:#166534}
+.unified-legend-item.service-s2{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.unified-schedule-hint{font-size:11px;color:var(--muted);text-align:right}
+.unified-schedule-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.unified-schedule-table{
+  width:100%;border-collapse:separate;border-spacing:0;background:#fff
+}
+.unified-schedule-table th,.unified-schedule-table td{
+  border-bottom:1px solid var(--line);padding:0;vertical-align:stretch
+}
+.unified-schedule-table th{
+  padding:9px 10px;font-size:11px;text-align:left;color:#52627a;background:#f8fafc
+}
+.unified-schedule-table th.service-s1{background:#ecfdf3;color:#166534}
+.unified-schedule-table th.service-s2{background:#eff6ff;color:#1d4ed8}
+.unified-schedule-table tr:last-child td{border-bottom:0}
+.unified-date-cell{
+  width:92px;padding:10px!important;background:#fff;color:#334155;
+  font-size:12px;font-weight:850;white-space:nowrap
+}
+.unified-date-cell small{display:block;margin-top:3px;font-size:10px;color:#7b8799;font-weight:700}
+.unified-schedule-row.weekend .unified-date-cell{background:#f8fafc}
+.unified-schedule-row.today .unified-date-cell{box-shadow:inset 4px 0 0 var(--blue)}
+.unified-schedule-row.today{outline:2px solid rgba(15,91,215,.22);outline-offset:-2px}
+
+.unified-shift-cell{
+  width:100%;min-height:58px;border:0;border-radius:0;padding:9px 10px;
+  text-align:left;display:block;background:#fff;color:#24344d
+}
+.unified-shift-cell.service-s1{background:#f0fdf4}
+.unified-shift-cell.service-s2{background:#eff6ff}
+.unified-shift-cell.manageable{cursor:pointer}
+.unified-shift-cell.manageable:hover{filter:brightness(.975)}
+.unified-shift-cell.has-problem{box-shadow:inset 0 0 0 2px #f59e0b}
+.unified-shift-cell.highlight{box-shadow:inset 0 0 0 3px #facc15!important}
+.unified-pair{font-size:12px;font-weight:850;line-height:1.3}
+.unified-pair span{font-weight:700;color:#64748b}
+.unified-shift-cell.service-s1 .unified-pair span{color:#287044}
+.unified-shift-cell.service-s2 .unified-pair span{color:#3d65a5}
+.unified-service-name{display:none;font-size:10px;font-weight:900;margin-bottom:4px}
+.unified-shift-cell.service-s1 .unified-service-name{color:#166534}
+.unified-shift-cell.service-s2 .unified-service-name{color:#1d4ed8}
+.schedule-change-tag{
+  display:inline-block;margin-left:6px;padding:2px 5px;border-radius:999px;
+  background:#fff7ed;color:#9a3412;font-size:8px;font-weight:900;vertical-align:1px
+}
+
+.schedule-admin-tools{margin:0 0 10px}
+.schedule-problem-card{
+  padding:9px 11px!important;border-radius:12px!important
+}
+.schedule-problem-card b{font-size:12px!important}
+.schedule-problem-card span{font-size:10px!important}
+.schedule-workload-card{box-shadow:none!important;margin-top:12px!important}
+.schedule-workload-card>summary{cursor:pointer;list-style:none;margin-bottom:0!important}
+.schedule-workload-card>summary::-webkit-details-marker{display:none}
+.schedule-workload-card>summary:after{content:"›";font-size:22px;color:#94a3b8;transform:rotate(90deg)}
+.schedule-workload-card[open]>summary:after{transform:rotate(-90deg)}
+.schedule-workload-card[open] .schedule-workload-scroll{margin-top:10px}
+#monthActions{margin-top:10px}
+#monthActions button{width:100%}
+
+@media(max-width:650px){
+  .simple-schedule-filters{grid-template-columns:1fr auto!important}
+  .unified-schedule-head{align-items:flex-start;flex-direction:column}
+  .unified-schedule-hint{display:none}
+  .unified-schedule-scroll{overflow:visible}
+  .unified-schedule-table,.unified-schedule-table tbody{display:block}
+  .unified-schedule-table thead{display:none}
+  .unified-schedule-table tr{
+    display:grid;grid-template-columns:64px minmax(0,1fr);
+    border-bottom:1px solid var(--line)
+  }
+  .unified-schedule-table tr:last-child{border-bottom:0}
+  .unified-schedule-table td{border-bottom:0}
+  .unified-date-cell{
+    width:auto!important;grid-column:1;grid-row:1 / span 2;
+    display:flex;flex-direction:column;justify-content:center
+  }
+  .unified-shift-cell{min-height:54px}
+  .unified-service-name{display:block}
+}
+
+
+/* ============================================================
+   MA DESIGN SYSTEM — единый рабочий интерфейс
+   ============================================================ */
+:root{
+  --bg:#f6f7f9;
+  --card:#ffffff;
+  --text:#18212f;
+  --muted:#697586;
+  --line:#e2e7ee;
+  --blue:#1d4ed8;
+  --blue2:#eff4ff;
+  --danger:#c62828;
+  --shadow:none;
+
+  --s1:#16803d;
+  --s1-soft:#effaf3;
+  --s1-line:#b9e6c9;
+
+  --s2:#2563eb;
+  --s2-soft:#eff6ff;
+  --s2-line:#bfd7ff;
+
+  --warning:#a16207;
+  --warning-soft:#fff8e7;
+}
+
+/* База */
+html,body{background:var(--bg);color:var(--text)}
+body{padding-bottom:88px}
+.app{max-width:1180px}
+.page{padding:16px}
+.topbar{
+  background:#fff;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  border-bottom:1px solid var(--line);
+  box-shadow:none;
+}
+.brand{color:var(--text);font-weight:900;letter-spacing:-.2px}
+.badge{
+  background:#f8fafc;
+  border-color:var(--line);
+  color:#536174;
+  border-radius:9px;
+}
+.authbtn{
+  color:#243247;
+  border-color:var(--line);
+  background:#fff;
+  border-radius:10px;
+}
+.connection-banner{border-radius:0}
+
+/* Заголовки — нейтральные. Цвет сервиса используется только для сервиса. */
+.section h2,
+.section h3,
+.today-board h2,
+.employee-hero h2,
+.employee-my-head h2,
+.employee-calendar-head h2,
+.service-point-head h2,
+.sheet h2,
+.outside-plan h3{
+  color:var(--text)!important;
+}
+.month-title h1{color:var(--text)}
+
+/* Меньше карточек и меньше декоративности */
+.section,
+.today-board,
+.employee-hero,
+.service-point-schedule,
+.unified-schedule-card,
+.schedule-workload-card,
+.outside-plan{
+  border-color:var(--line);
+  border-radius:14px;
+  box-shadow:none!important;
+}
+.section{padding:16px;margin-bottom:12px}
+.today-board{padding:16px;margin-bottom:12px}
+.employee-hero{border-radius:14px}
+.device-box{border-radius:12px}
+.notice{border-radius:10px;background:#f8fafc}
+.push-box{border-radius:11px;background:#fbfcfd}
+
+/* Поля */
+.field input,.field select,
+.monthselect,.yearselect,.filters select{
+  border-radius:10px;
+  border-color:#d9e0e8;
+  min-height:44px;
+}
+.field input:focus,.field select:focus,
+.monthselect:focus,.filters select:focus{
+  outline:2px solid rgba(29,78,216,.16);
+  outline-offset:1px;
+  border-color:#9fb7eb;
+}
+
+/* Единая система кнопок */
+.navbtn,.primary,.secondary,.danger{
+  border-radius:10px;
+  min-height:44px;
+  font-weight:800;
+  box-shadow:none!important;
+}
+.primary{
+  background:#1e4fbf;
+  border-color:#1e4fbf;
+  color:#fff;
+}
+.primary:hover{background:#1947ad;border-color:#1947ad}
+.secondary{background:#fff;border-color:#d9e0e8;color:#243247}
+.danger{background:#fff;border-color:#f1c3c3;color:#b42318}
+.close{border-radius:9px;background:#f2f4f7;color:#344054}
+
+/* Сегодня: сервис сразу читается цветом */
+.shift-card{
+  box-shadow:none!important;
+  border-radius:13px;
+  padding:14px;
+}
+.shift-card.service-s1{
+  background:var(--s1-soft);
+  border-color:var(--s1-line);
+}
+.shift-card.service-s2{
+  background:var(--s2-soft);
+  border-color:var(--s2-line);
+}
+.shift-card.service-s1 h3{color:var(--s1)!important}
+.shift-card.service-s2 h3{color:var(--s2)!important}
+.shift-pair strong{font-weight:900}
+.shift-meta{color:#667085}
+.shift-status{border-radius:8px;padding:5px 8px}
+
+/* Мобильный экран сотрудника — тот же цвет сервиса */
+.employee-main-status{
+  border-radius:12px;
+  border:1px solid transparent;
+}
+.employee-main-status.work.service-s1{
+  background:var(--s1-soft);
+  border-color:var(--s1-line);
+  color:#166534;
+}
+.employee-main-status.work.service-s2{
+  background:var(--s2-soft);
+  border-color:var(--s2-line);
+  color:#1d4ed8;
+}
+.employee-shift-item{
+  box-shadow:none;
+  border-radius:12px;
+}
+.employee-shift-item.service-s1{
+  background:var(--s1-soft);
+  border-color:var(--s1-line);
+}
+.employee-shift-item.service-s2{
+  background:var(--s2-soft);
+  border-color:var(--s2-line);
+}
+.employee-shift-item.service-s1 .employee-shift-info>b{color:var(--s1)}
+.employee-shift-item.service-s2 .employee-shift-info>b{color:var(--s2)}
+
+/* Календарь / история / график — одна цветовая система */
+.calendar-dot.service-s1,.history-dot.service-s1{background:var(--s1)}
+.calendar-dot.service-s2,.history-dot.service-s2{background:var(--s2)}
+.unified-legend-item.service-s1{
+  background:var(--s1-soft);border-color:var(--s1-line);color:var(--s1)
+}
+.unified-legend-item.service-s2{
+  background:var(--s2-soft);border-color:var(--s2-line);color:var(--s2)
+}
+.unified-schedule-table th.service-s1{
+  background:var(--s1-soft);color:var(--s1)
+}
+.unified-schedule-table th.service-s2{
+  background:var(--s2-soft);color:var(--s2)
+}
+.unified-shift-cell.service-s1{background:var(--s1-soft)}
+.unified-shift-cell.service-s2{background:var(--s2-soft)}
+.current-schedule-card.service-s1{
+  background:var(--s1-soft);border-color:var(--s1-line)
+}
+.current-schedule-card.service-s2{
+  background:var(--s2-soft);border-color:var(--s2-line)
+}
+.current-schedule-card.service-s1 h3{color:var(--s1)!important}
+.current-schedule-card.service-s2 h3{color:var(--s2)!important}
+.desktop-service-chip.service-s1,
+.desktop-calendar-detail-card.service-s1,
+.employee-cal-cell.work.service-s1,
+.employee-calendar-detail.service-s1{
+  background:var(--s1-soft);border-color:var(--s1-line);color:#166534
+}
+.desktop-service-chip.service-s2,
+.desktop-calendar-detail-card.service-s2,
+.employee-cal-cell.work.service-s2,
+.employee-calendar-detail.service-s2{
+  background:var(--s2-soft);border-color:var(--s2-line);color:#1d4ed8
+}
+
+/* Статусы: красный только когда реально нужно вмешаться */
+.attention-item.bad,
+.shift-status.missing{
+  background:#fff1f2;
+  color:#b42318;
+}
+.attention-item.warn,
+.shift-status.late{
+  background:var(--warning-soft);
+  color:var(--warning);
+}
+.attention-item.ok,
+.shift-status.open{
+  background:#edf9f1;
+  color:#13713e;
+}
+
+/* Модальные окна */
+.modal{background:rgba(17,24,39,.46)}
+.sheet{
+  border-radius:18px 18px 14px 14px;
+  box-shadow:0 18px 50px rgba(15,23,42,.16);
+}
+@media(min-width:760px){
+  .modal{align-items:center}
+  .sheet{border-radius:16px}
+}
+
+/* Нижняя навигация — телефон */
+.desktop-nav-brand{display:none}
+.bottom{
+  background:#fff;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  border-top:1px solid var(--line);
+  box-shadow:0 -4px 18px rgba(15,23,42,.035);
+}
+.bottom-inner{gap:2px}
+.tab{
+  color:#7a8595;
+  border-radius:10px;
+  padding:7px 4px 6px;
+  min-height:54px;
+  font-size:11px;
+  font-weight:750;
+}
+.tab::before{
+  display:block;
+  height:22px;
+  margin-bottom:2px;
+  font-size:19px;
+  line-height:22px;
+  font-weight:500;
+  color:#8b95a5;
+}
+.tab[data-tab="adminToday"]::before,
+.tab[data-tab="employeeToday"]::before{content:"●"}
+.tab[data-tab="schedule"]::before,
+.tab[data-tab="employeeMy"]::before{content:"▦"}
+.tab[data-tab="desktopCalendar"]::before,
+.tab[data-tab="employeeCalendar"]::before{content:"□"}
+.tab[data-tab="history"]::before{content:"◷"}
+.tab[data-tab="wallets"]::before{content:"₽"}
+.tab[data-tab="settings"]::before{content:"⚙"}
+.tab.active{
+  background:#f1f3f6;
+  color:#172033;
+}
+.tab.active::before{color:#172033}
+
+/* Компьютер — обычное левое меню вместо нижней панели */
+@media(min-width:900px){
+  body:not(.startup-shift-mode){
+    padding-left:224px;
+    padding-bottom:0;
+  }
+  body:not(.startup-shift-mode) .app{
+    max-width:none;
+    margin:0;
+  }
+  body:not(.startup-shift-mode) .page{
+    max-width:1220px;
+    margin:0 auto;
+    padding:20px 24px 28px;
+  }
+  body:not(.startup-shift-mode) .topbar{
+    padding-left:24px;
+    padding-right:24px;
+  }
+  body:not(.startup-shift-mode) .topbar .brand{
+    display:none;
+  }
+  body:not(.startup-shift-mode) .topbar .brandrow{
+    justify-content:flex-end;
+  }
+  body:not(.startup-shift-mode) .bottom{
+    left:0;
+    right:auto;
+    top:0;
+    bottom:0;
+    width:224px;
+    padding:20px 12px;
+    border-top:0;
+    border-right:1px solid var(--line);
+    box-shadow:none;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+  }
+  body:not(.startup-shift-mode) .desktop-nav-brand{
+    display:block;
+    padding:4px 10px 20px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:12px;
+  }
+  body:not(.startup-shift-mode) .desktop-nav-brand b{
+    display:block;
+    color:#172033;
+    font-size:19px;
+    font-weight:900;
+  }
+  body:not(.startup-shift-mode) .desktop-nav-brand span{
+    display:block;
+    color:#7a8595;
+    font-size:11px;
+    margin-top:4px;
+  }
+  body:not(.startup-shift-mode) .bottom-inner,
+  body:not(.startup-shift-mode) .bottom-inner.admin-five,
+  body:not(.startup-shift-mode) .bottom-inner.admin-six,
+  body:not(.startup-shift-mode) .bottom-inner.employee-three,
+  body:not(.startup-shift-mode) .bottom-inner.admin-four,
+  body:not(.startup-shift-mode).service-device-mode .bottom-inner{
+    max-width:none;
+    width:100%;
+    margin:0;
+    display:flex!important;
+    flex-direction:column;
+    gap:4px;
+  }
+  body:not(.startup-shift-mode) .tab{
+    width:100%;
+    min-height:46px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:10px;
+    padding:10px 12px;
+    text-align:left;
+    font-size:13px;
+    border-radius:9px;
+  }
+  body:not(.startup-shift-mode) .tab::before{
+    display:inline-block;
+    width:22px;
+    height:auto;
+    margin:0;
+    text-align:center;
+    font-size:18px;
+    line-height:1;
+  }
+  body:not(.startup-shift-mode) .tab.active{
+    background:#f1f3f6;
+    color:#101828;
+  }
+  body:not(.startup-shift-mode) .today-board,
+  body:not(.startup-shift-mode) .section{
+    max-width:none;
+  }
+}
+
+
+
+/* Кошельки — изолированный модуль личного распределения денег */
+.bottom-inner.admin-six{grid-template-columns:repeat(6,1fr)!important}
+.wallets-shell{display:grid;gap:12px}
+.wallets-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.wallet-head-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.wallet-cloud-state{display:block;margin-top:5px;font-size:11px;font-weight:800;color:#64748b}
+.wallet-cloud-state.ok{color:#166534}.wallet-cloud-state.warn{color:#9a3412}.wallet-cloud-state.bad{color:#b42318}
+.wallets-head h2{margin:0;color:#172033;font-size:24px}
+.wallets-sub{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.4}
+.wallet-main-actions{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr);gap:8px}
+.wallet-readonly-note{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.45;font-weight:750}
+.wallet-main-actions button:disabled,.wallet-card-actions button:disabled{opacity:.48;cursor:not-allowed}
+.wallet-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.wallet-card{border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px;min-width:0}
+.wallet-card.insurance{border-color:#cfe8d7;background:#f8fcf9}
+.wallet-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.wallet-card h3{margin:0;color:#24344d;font-size:16px}
+.wallet-card-balance{margin-top:8px;color:#172033;font-size:22px;font-weight:900;letter-spacing:-.02em}
+.wallet-card-plan{margin-top:4px;color:var(--muted);font-size:11px}
+.wallet-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.wallet-card-actions button{min-height:36px;padding:7px 8px;border-radius:9px;font-size:11px}
+.wallet-history-list{display:grid;gap:7px}
+.wallet-history-item{border:1px solid var(--line);border-radius:11px;padding:9px 10px;background:#fff}
+.wallet-history-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.wallet-history-main{min-width:0}
+.wallet-history-main b{display:block;color:#24344d;font-size:12px}
+.wallet-history-main span{display:block;margin-top:3px;color:var(--muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wallet-history-amount{font-size:12px;font-weight:900;white-space:nowrap}
+.wallet-history-amount.in{color:#13713e}.wallet-history-amount.out{color:#b42318}.wallet-history-amount.neutral{color:#475569}
+.wallet-history-details{margin-top:7px;padding-top:7px;border-top:1px solid #edf0f4;display:grid;gap:4px}
+.wallet-history-detail-row{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#475569}
+.wallet-history-detail-row b{color:#24344d}
+.wallet-empty{text-align:center;color:var(--muted);font-size:12px;padding:18px 8px}
+.wallet-preview{display:grid;gap:6px;margin-top:10px}
+.wallet-preview-row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #edf0f4;padding:7px 0;font-size:13px}
+.wallet-preview-row:last-child{border-bottom:0}
+.wallet-preview-row b{white-space:nowrap}
+.wallet-preview-total{display:flex;justify-content:space-between;gap:12px;margin-top:8px;padding-top:9px;border-top:2px solid var(--line);font-weight:900}
+.wallet-preview-note{margin-top:10px;border-radius:11px;padding:9px 10px;font-size:12px;line-height:1.4;background:#f8fafc;color:#475569}
+.wallet-preview-note.warn{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}
+.wallet-preview-note.ok{background:#ecfdf3;color:#166534;border:1px solid #bbf7d0}
+.wallet-plan-list{display:grid;gap:8px;margin-top:12px}
+.wallet-plan-row{display:grid;grid-template-columns:minmax(0,1fr) 160px;gap:10px;align-items:center}
+.wallet-plan-row label{font-size:13px;font-weight:800;color:#334155}
+.wallet-plan-row input{width:100%;min-height:42px;border:1px solid var(--line);border-radius:10px;padding:0 10px;background:#fff}
+.wallet-plan-insurance{border:1px solid #cfe8d7;background:#f4fbf6;border-radius:11px;padding:10px 11px;color:#166534;font-size:12px;line-height:1.4}
+@media(max-width:900px){.wallet-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.wallets-head{align-items:stretch}.wallet-head-actions{justify-content:flex-start}.wallet-head-actions button{flex:1}}
+@media(max-width:620px){
+  .bottom-inner.admin-six .tab{font-size:9.5px;padding-left:2px;padding-right:2px}
+  .wallet-grid{grid-template-columns:1fr}
+  .wallet-main-actions{grid-template-columns:1fr}
+  .wallet-plan-row{grid-template-columns:1fr}
+}
+
+/* На телефоне чуть меньше визуального шума */
+@media(max-width:760px){
+  .page{padding:10px}
+  .section,.today-board,.employee-hero{padding:13px}
+  .section{margin-bottom:10px}
+  .topbar{padding-left:10px;padding-right:10px}
+  .brand{font-size:18px}
+  .badge{min-width:auto;padding:6px 8px;font-size:10px}
+  .authbtn{padding:0 9px;font-size:11px}
+}
+
+
+/* Рабочее устройство точки: тот же цвет сервиса, что и во всём приложении */
+.service-point-schedule.service-s1 .service-point-head h2{color:var(--s1)!important}
+.service-point-schedule.service-s2 .service-point-head h2{color:var(--s2)!important}
+.service-point-schedule.service-s1 .service-day-row.today{background:var(--s1-soft)}
+.service-point-schedule.service-s2 .service-day-row.today{background:var(--s2-soft)}
+.service-point-schedule.service-s1 .service-day-row.today .service-day-date b{color:var(--s1)}
+.service-point-schedule.service-s2 .service-day-row.today .service-day-date b{color:var(--s2)}
+
+
+
+/* =========================================================
+   MOBILE QA 2026-08 — безопасная доводка телефонной версии
+   Только интерфейс: бизнес-логика, данные и сервер не меняются.
+   ========================================================= */
+#bottomTabMore{display:none}
+.tab[data-tab="more"]::before{content:"⋯";font-size:24px;line-height:20px}
+.mobile-more-actions{display:grid;gap:9px;margin-top:14px}
+.mobile-more-action{width:100%;min-height:64px;display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:center;text-align:left;padding:10px 12px}
+.mobile-more-icon{width:38px;height:38px;border-radius:10px;background:#f1f3f6;display:grid;place-items:center;font-size:20px}
+.mobile-more-action b{display:block;color:#172033;font-size:15px}
+.mobile-more-action small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.mobile-settings-summary{list-style:none;cursor:pointer;padding:0}
+.mobile-settings-summary::-webkit-details-marker{display:none}
+.mobile-settings-summary::after{content:"›";margin-left:auto;font-size:24px;line-height:1;color:#94a3b8;transform:rotate(90deg);transition:transform .15s}
+.mobile-settings-fold[open]>.mobile-settings-summary::after{transform:rotate(-90deg)}
+
+@media(max-width:899px){
+  body:not(.employee-phone-mode):not(.service-device-mode) .bottom-inner.admin-six{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+  body:not(.employee-phone-mode):not(.service-device-mode) #bottomTab4,
+  body:not(.employee-phone-mode):not(.service-device-mode) #bottomTab5{display:none!important}
+  body:not(.employee-phone-mode):not(.service-device-mode) #bottomTabMore:not(.hidden){display:block!important}
+  .bottom .tab{font-size:11px!important;line-height:1.1!important;padding:7px 2px 6px!important;min-height:56px}
+  .bottom .tab::before{margin-bottom:3px}
+}
+@media(min-width:900px){#bottomTabMore{display:none!important}}
+
+@media(max-width:760px){
+  .authbtn{min-height:42px!important;padding:0 11px!important}
+  .close{width:44px;height:44px;min-width:44px}
+  .navbtn{min-height:44px}
+  .employee-calendar-nav button{min-height:44px}
+  .history-custom-range input,.history-custom-range button,.history-filters-clean select{min-height:44px!important;border:1px solid var(--line);border-radius:10px;background:#fff;padding:0 10px}
+  .schedule-manage-actions button{min-height:44px!important;padding:9px 11px!important}
+
+  .history-quick{display:grid;grid-template-columns:1fr 1fr;gap:7px;overflow:visible;padding:0 0 10px}
+  .history-quick button{width:100%;min-height:44px;font-size:13px!important;padding:8px 7px;white-space:normal}
+  .history-filters-clean{gap:7px}
+
+  #desktopCalendarPage .employee-calendar-week{min-width:0!important;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  #desktopCalendarPage .employee-calendar-week div{font-size:9px;padding:3px 0}
+  #desktopCalendarPage .desktop-calendar-wrap{overflow:visible}
+  #desktopCalendarPage .desktop-calendar-grid{min-width:0!important;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  #desktopCalendarPage .desktop-cal-cell{min-width:0;min-height:62px;padding:5px 3px;border-radius:9px}
+  #desktopCalendarPage .desktop-cal-day{font-size:13px;margin-bottom:6px}
+  #desktopCalendarPage .desktop-cal-services{gap:4px}
+  #desktopCalendarPage .desktop-service-chip{height:8px;min-height:8px;padding:0;border-radius:999px;border-width:1px}
+  #desktopCalendarPage .desktop-service-chip strong,#desktopCalendarPage .desktop-service-chip small{display:none!important}
+  #desktopCalendarPage .desktop-cal-cell.blank{min-height:62px}
+  #desktopCalendarPage .desktop-calendar-detail{margin-top:10px}
+  #desktopCalendarPage .calendar-legend{margin-bottom:8px}
+
+  .unified-schedule-card{border:0;background:transparent;overflow:visible;box-shadow:none}
+  .unified-schedule-head{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;padding:9px 10px}
+  .unified-schedule-table,.unified-schedule-table tbody{background:transparent}
+  .unified-schedule-table tbody{display:grid!important;gap:8px}
+  .unified-schedule-table tr{border:1px solid var(--line)!important;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 2px 8px rgba(15,23,42,.025)}
+  .unified-date-cell{border-right:1px solid var(--line);padding:9px 7px!important}
+  .unified-shift-cell{min-height:56px;padding:9px 10px}
+  .unified-service-name{font-size:9px;margin-bottom:3px}
+  .unified-pair{font-size:12px;line-height:1.35}
+
+  .wallets-head{flex-direction:column;align-items:stretch;gap:9px}
+  .wallet-head-actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .wallet-head-actions button{width:100%;min-height:44px;font-size:13px!important}
+  .wallet-main-actions button{min-height:48px;font-size:14px!important}
+  .wallet-card-actions button{min-height:44px!important;font-size:13px!important}
+  .wallet-card{padding:12px}
+  #walletPlanModal .login-actions{position:sticky;bottom:-16px;z-index:4;background:#fff;border-top:1px solid var(--line);padding:10px 0 calc(4px + env(safe-area-inset-bottom));margin-top:10px}
+  #walletPlanModal .sheet{padding-bottom:16px}
+
+  #settingsPage .mobile-settings-fold{padding:13px}
+  #settingsPage .mobile-settings-fold>.mobile-settings-summary{margin:0;display:flex;align-items:center;gap:8px}
+  #settingsPage .mobile-settings-fold:not([open])>.mobile-settings-summary{margin-bottom:0}
+  #settingsPage .mobile-settings-fold[open]>.mobile-settings-summary{margin-bottom:12px}
+  #settingsPage .mobile-settings-fold:not([open]){padding-top:12px;padding-bottom:12px}
+  #settingsPage .mobile-settings-fold:not([open]) .settings-subtitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+  #settingsPage .system-health-row{min-height:56px;padding:9px 10px}
+  #settingsPage .settings-main-section{border-radius:14px}
+}
+@media(max-width:390px){
+  .bottom .tab{font-size:10.5px!important}
+  .bottom{padding-left:5px;padding-right:5px}
+  #desktopCalendarPage .desktop-cal-cell{min-height:58px}
+  .wallet-card-balance{font-size:20px}
+}
+
+
+/* Кошельки 3.0 — месячные планы, динамические статьи и безопасные переводы */
+.wallet-month-nav{min-height:40px;padding:4px;font-size:22px}
+.wallet-protected{display:inline-flex;align-items:center;border-radius:999px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;padding:3px 6px;font-size:8px;font-weight:900;white-space:nowrap}
+.wallet-history-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}
+.wallet-history-filters select{width:100%;min-width:0}
+.wallet-large-sheet{max-width:720px}
+.wallet-manage-top{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.wallet-manage-section{display:grid;gap:8px;margin-top:12px}
+.wallet-manage-section h3{margin:0;color:#24344d;font-size:14px}
+.wallet-reset-box{margin-top:16px;border:1px solid #fecaca;border-radius:14px;background:#fff7f7;padding:12px}
+.wallet-reset-box b{display:block;color:#991b1b;font-size:14px;margin-bottom:4px}
+.wallet-reset-box span{display:block;color:#64748b;font-size:12px;line-height:1.45;margin-bottom:10px}
+.wallet-reset-box .danger{width:100%}
+.wallet-reset-box .danger:disabled{opacity:.45;cursor:not-allowed}
+.wallet-manage-row{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.wallet-manage-row.archived{background:#f8fafc}
+.wallet-manage-main{min-width:0}
+.wallet-manage-main b{display:block;color:#24344d;font-size:13px}
+.wallet-manage-main span{display:block;margin-top:3px;color:var(--muted);font-size:9px;line-height:1.35}
+.wallet-manage-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px}
+.wallet-manage-actions button{min-height:34px;padding:6px 8px;font-size:10px}
+.wallet-manage-archive{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.wallet-manage-archive>summary{cursor:pointer;font-size:12px;font-weight:850;color:#475569}
+.wallet-check{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px;background:#fff}
+.wallet-check input{width:18px;height:18px;margin-top:1px}
+.wallet-check b{display:block;color:#24344d;font-size:12px}
+.wallet-check small{display:block;color:var(--muted);font-size:10px;line-height:1.35;margin-top:2px}
+#walletCorrectionFields .wallet-plan-list{margin-top:0}
+@media(max-width:760px){
+  .wallet-main-actions button,.wallet-head-actions button,.wallet-month-nav{min-height:44px!important}
+  .wallet-history-filters{grid-template-columns:1fr}
+  .wallet-history-filters select{min-height:44px}
+  .wallet-manage-top{grid-template-columns:1fr}
+  .wallet-manage-row{grid-template-columns:1fr}
+  .wallet-manage-actions{justify-content:flex-start}
+  .wallet-manage-actions button{min-height:44px;font-size:11px}
+  #walletManageModal .sheet,#walletEditModal .sheet,#walletCorrectionModal .sheet,#walletTransferModal .sheet{max-height:calc(100dvh - 16px);overflow-y:auto}
+  #walletEditModal .login-actions,#walletCorrectionModal .login-actions,#walletTransferModal .login-actions{position:sticky;bottom:-16px;z-index:4;background:#fff;border-top:1px solid var(--line);padding:10px 0 calc(4px + env(safe-area-inset-bottom));margin-top:10px}
+}
+
+/* =========================================================
+   Кошельки 4.0 — быстрый ежедневный бюджет
+   Только UX: финансовая математика и схема данных не меняются.
+   ========================================================= */
+.wallets-shell{gap:10px}
+.wallets-head{align-items:center}
+.wallets-title-block{min-width:0}
+.wallets-sub{font-size:12px}
+.wallet-cloud-line{display:flex;align-items:center;gap:6px;margin-top:5px;min-height:28px}
+.wallet-cloud-line .wallet-cloud-state{display:inline;margin:0;min-width:0}
+.wallet-sync-icon{width:30px;height:30px;min-height:30px;padding:0;border-radius:9px;font-size:18px;line-height:1;flex:0 0 30px}
+.wallet-head-actions{flex-wrap:nowrap}
+.wallet-head-actions #walletPlanBtn{min-height:40px;padding:8px 12px}
+
+.wallet-overview-card{border:1px solid #cfe8d7;background:#f4fbf6;border-radius:16px;padding:15px}
+.wallet-overview-caption{display:block;color:#52705d;font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.02em}
+.wallet-overview-total{display:block;margin-top:4px;color:#14532d;font-size:30px;line-height:1.08;letter-spacing:-.025em}
+.wallet-overview-state{display:inline-flex;margin-top:8px;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:850;line-height:1.2}
+.wallet-overview-state.good{background:#dcfce7;color:#166534}
+.wallet-overview-state.warn{background:#ffedd5;color:#9a3412}
+.wallet-overview-state.neutral{background:#edf2f7;color:#475569}
+.wallet-overview-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:12px}
+.wallet-overview-grid>div{border:1px solid rgba(82,112,93,.16);background:rgba(255,255,255,.66);border-radius:10px;padding:8px;min-width:0}
+.wallet-overview-grid span{display:block;color:#64748b;font-size:9px}
+.wallet-overview-grid b{display:block;margin-top:3px;color:#24344d;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.wallet-filter{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none}
+.wallet-filter::-webkit-scrollbar{display:none}
+.wallet-filter button{border:1px solid var(--line);background:#fff;color:#64748b;border-radius:999px;min-height:34px;padding:6px 10px;font-size:11px;font-weight:850;white-space:nowrap}
+.wallet-filter button.active{background:#eaf2ff;border-color:#bfdbfe;color:#0f5bd7}
+
+.wallet-card{padding:12px;transition:border-color .15s,box-shadow .15s}
+.wallet-card-top{align-items:center}
+.wallet-card h3{font-size:15px;line-height:1.2}
+.wallet-card-balance{margin-top:6px;font-size:21px}
+.wallet-card-plan-main{margin-top:7px}
+.wallet-card-plan-line{display:flex;justify-content:space-between;gap:8px;color:#64748b;font-size:10px;line-height:1.3}
+.wallet-card-plan-line b{color:#334155;white-space:nowrap}
+.wallet-plan-progress{height:6px;background:#e7edf3;border-radius:99px;overflow:hidden;margin-top:6px}
+.wallet-plan-progress i{display:block;height:100%;background:#0f5bd7;border-radius:99px}
+.wallet-card.savings .wallet-plan-progress i{background:#22a35a}
+.wallet-card.insurance .wallet-card-plan{font-size:11px;color:#52705d}
+.wallet-card-actions{margin-top:9px}
+.wallet-protected{padding:2px 5px;font-size:8px}
+
+.wallet-history-menu{position:relative;margin-top:7px;padding-top:7px;border-top:1px solid #edf0f4}
+.wallet-history-menu>summary{cursor:pointer;list-style:none;margin-left:auto;width:34px;height:30px;border:1px solid var(--line);border-radius:8px;display:grid;place-items:center;font-size:18px;font-weight:900;color:#475569;background:#fff}
+.wallet-history-menu>summary::-webkit-details-marker{display:none}
+.wallet-history-menu-actions{display:flex;justify-content:flex-end;gap:5px;margin-top:6px;flex-wrap:wrap}
+.wallet-history-menu-actions button{min-height:34px;padding:6px 9px;font-size:10px}
+.wallet-history-sheet{max-height:calc(100dvh - 24px)}
+.wallet-history-full-list{margin-top:10px;padding-bottom:6px}
+
+.wallet-plan-sheet{position:relative}
+.wallet-plan-sticky{position:sticky;top:-16px;z-index:5;margin:10px -4px 0;padding:10px 12px;border:1px solid #bfdbfe;border-radius:12px;background:rgba(239,246,255,.97);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.wallet-plan-sticky span{font-size:11px;color:#475569;font-weight:800}
+.wallet-plan-sticky b{font-size:18px;color:#0f5bd7;white-space:nowrap}
+.wallet-strategy-field{margin-top:12px}
+.wallet-strategy-help{display:block;color:#64748b;font-size:10px;line-height:1.4;margin-top:2px}
+.wallet-plan-list{gap:12px}
+.wallet-plan-group{display:grid;gap:6px}
+.wallet-plan-group-title{font-size:10px;font-weight:900;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.wallet-plan-row{grid-template-columns:minmax(0,1fr) 145px;gap:10px;min-height:42px}
+.wallet-plan-row label{font-size:12px}
+.wallet-plan-row input{min-height:40px;text-align:right;font-weight:800}
+
+.wallet-danger-details{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.wallet-danger-details>summary{cursor:pointer;color:#991b1b;font-size:12px;font-weight:850}
+.wallet-danger-details .wallet-reset-box{margin-top:9px}
+.wallet-manage-main span{font-size:10px}
+.wallet-manage-actions [data-wallet-move]{width:36px;padding:5px;flex:0 0 36px}
+.wallet-edit-type-grid.priority-hidden{grid-template-columns:1fr}
+.wallet-edit-type-grid.priority-hidden #walletEditPriorityField{display:none}
+
+@media(max-width:760px){
+  .wallets-head{flex-direction:row;align-items:flex-start}
+  .wallet-head-actions{width:auto;display:flex}
+  .wallet-head-actions #walletPlanBtn{width:auto;min-height:40px;font-size:12px!important}
+  .wallet-overview-card{padding:13px}
+  .wallet-overview-total{font-size:28px}
+  .wallet-overview-grid{grid-template-columns:1fr 1fr;gap:6px}
+  .wallet-overview-grid>div{padding:8px}
+  .wallet-filter{width:100%}
+  .wallet-filter button{flex:1;min-height:38px}
+  .wallet-card{padding:11px}
+  .wallet-card-actions button{min-height:44px!important;font-size:13px!important}
+  .wallet-plan-sticky{top:-16px}
+  .wallet-plan-row{grid-template-columns:minmax(0,1fr) 120px;gap:8px}
+  .wallet-plan-row input{min-height:44px}
+  #walletFullHistoryModal .sheet{max-height:calc(100dvh - 16px);overflow-y:auto}
+}
+@media(max-width:360px){
+  .wallets-head{flex-direction:column}
+  .wallet-head-actions{width:100%}
+  .wallet-head-actions #walletPlanBtn{width:100%}
+  .wallet-overview-grid{grid-template-columns:1fr}
+  .wallet-plan-row{grid-template-columns:1fr}
+  .wallet-plan-row input{text-align:left}
+}
+
+
+/* =========================================================
+   Кошельки 5.0 — второй этап упрощения ежедневного интерфейса
+   Только UI: финансовая математика, данные и Supabase не меняются.
+   ========================================================= */
+.wallet-cloud-state.ok{font-size:16px;line-height:1;color:#16803f}
+.wallet-overview-month{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:8px;align-items:center;margin-bottom:12px}
+.wallet-overview-month>b{text-align:center;color:#172033;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wallet-overview-state.hidden{display:none}
+.wallet-filter{width:max-content;max-width:100%;margin:0;overflow-x:auto;scrollbar-width:none}
+.wallet-filter button{min-height:36px}
+.wallet-card{padding:11px}
+.wallet-card-balance{margin-top:5px}
+.wallet-card-plan{margin-top:6px}
+.wallet-card-plan-main{margin-top:7px}
+.wallet-card-plan-line{font-size:10px}
+.wallet-goal-compact{margin-top:7px;color:#64748b;font-size:10px;line-height:1.35}
+.wallet-goal-compact.good{color:#166534;font-weight:800}
+.wallet-protected{width:23px;height:23px;padding:0;display:grid;place-items:center;font-size:12px;background:#fff7ed}
+.wallet-card-actions{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:7px;margin-top:9px;align-items:stretch}
+.wallet-card-actions>.wallet-expense-btn{width:100%}
+.wallet-overflow-wrap{position:relative;min-width:0}
+.wallet-overflow-toggle{width:44px!important;min-width:44px!important;height:100%;padding:0!important;font-size:20px!important;line-height:1}
+.wallet-overflow-menu{position:absolute;z-index:30;right:0;top:calc(100% + 6px);min-width:170px;max-width:min(220px,calc(100vw - 24px));padding:5px;border:1px solid var(--line);border-radius:11px;background:#fff;box-shadow:0 12px 30px rgba(15,23,42,.16)}
+.wallet-overflow-menu.open-up{top:auto;bottom:calc(100% + 6px)}
+.wallet-overflow-menu button{display:block;width:100%;min-height:40px;padding:8px 10px;border:0;border-radius:8px;background:#fff;color:#24344d;text-align:left;font-size:11px;font-weight:750}
+.wallet-overflow-menu button:hover{background:#f4f6f8}
+.wallet-overflow-menu button.danger-text{color:#b42318}
+.wallet-history-link{width:100%;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;font-size:12px}
+.wallet-manage-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:nowrap}
+.wallet-manage-actions>.secondary{min-height:38px}
+.wallet-manage-actions .wallet-overflow-toggle{height:38px}
+.wallet-edit-advanced{margin-top:10px;border-top:1px solid var(--line);padding-top:9px}
+.wallet-edit-advanced>summary{cursor:pointer;color:#475569;font-size:12px;font-weight:850}
+@media(max-width:760px){
+  .wallet-overview-month{margin-bottom:10px}
+  .wallet-filter{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;overflow:visible}
+  .wallet-filter button{width:100%;min-width:0;padding:6px 5px}
+  .wallet-card{padding:10px}
+  .wallet-card-actions>.wallet-expense-btn,.wallet-overflow-toggle{min-height:44px!important}
+  .wallet-history-link{min-height:46px}
+  .wallet-manage-row{grid-template-columns:minmax(0,1fr) auto;align-items:center}
+  .wallet-manage-actions{justify-content:flex-end}
+  .wallet-manage-actions>.secondary{min-height:44px}
+  .wallet-manage-actions .wallet-overflow-toggle{height:44px}
+}
+@media(max-width:360px){
+  .wallet-overview-grid{grid-template-columns:1fr 1fr}
+  .wallet-head-actions{width:auto}
+  .wallet-head-actions #walletPlanBtn{width:auto}
+}
+
+/* Stage 3: local error journal */
+.error-log-box{margin-top:10px}
+.error-log-list{display:grid;gap:8px;max-height:300px;overflow:auto;padding-right:2px}
+.error-log-empty{padding:10px 0;color:var(--muted);font-size:14px}
+.error-log-item{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:10px}
+.error-log-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;font-size:13px}
+.error-log-head b{overflow-wrap:anywhere}
+.error-log-head span{color:var(--muted);white-space:nowrap}
+.error-log-message{margin-top:6px;font-size:13px;line-height:1.35;overflow-wrap:anywhere}
+.error-log-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+#errorLogCountBadge{color:var(--muted);font-weight:700}
+
+
+/* KPI_EMPLOYEES_V1 */
+.today-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.kpi-shell{max-width:1100px;margin:0 auto}
+.kpi-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+.kpi-head h2{margin:0 0 4px}
+.kpi-toolbar{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.kpi-toolbar label{display:grid;gap:5px;font-size:12px;font-weight:700;color:var(--muted)}
+.kpi-toolbar input{min-height:42px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font:inherit}
+.kpi-notice{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--soft);font-size:13px;line-height:1.45;margin-bottom:14px}
+.kpi-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.kpi-summary-card{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px 14px;display:grid;gap:4px}
+.kpi-summary-card span{font-size:12px;color:var(--muted)}
+.kpi-summary-card b{font-size:25px;line-height:1}
+.kpi-summary-card.good b{color:#178447}.kpi-summary-card.bad b{color:#c73434}
+.kpi-loading,.kpi-empty{padding:20px;text-align:center;color:var(--muted)}
+.kpi-list{display:grid;gap:10px}
+.kpi-person{border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+.kpi-person summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 15px}
+.kpi-person summary::-webkit-details-marker{display:none}
+.kpi-person-main{display:grid;gap:3px;min-width:0}.kpi-person-main>b{font-size:16px}.kpi-person-main>span{font-size:12px;color:var(--muted)}
+.kpi-score{min-width:82px;text-align:right;display:grid;gap:2px}.kpi-score>b{font-size:24px;line-height:1}.kpi-score>span{font-size:11px;font-weight:700}
+.kpi-score.excellent b,.kpi-score.excellent span{color:#178447}.kpi-score.normal b,.kpi-score.normal span{color:#2366b1}.kpi-score.attention b,.kpi-score.attention span{color:#a66d00}.kpi-score.problem b,.kpi-score.problem span{color:#c73434}.kpi-score.nodata b,.kpi-score.nodata span{color:var(--muted)}
+.kpi-person-body{border-top:1px solid var(--line);padding:14px 15px;background:var(--soft)}
+.kpi-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kpi-metrics>div{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:10px;display:grid;gap:3px}.kpi-metrics span{font-size:11px;color:var(--muted)}.kpi-metrics b{font-size:14px}.kpi-metrics b.warn{color:#a66d00}.kpi-metrics b.bad{color:#c73434}
+.kpi-formula{font-size:12px;color:var(--muted);line-height:1.45;margin:12px 0}
+.kpi-issues{display:grid;gap:7px}.kpi-issues>b{font-size:13px;margin-bottom:2px}.kpi-issue{display:flex;justify-content:space-between;gap:12px;padding:9px 10px;border-radius:9px;background:var(--card);border:1px solid var(--line);font-size:12px}.kpi-issue span{color:var(--muted)}.kpi-issue.bad b,.kpi-issue.missed b,.kpi-issue.unclosed b{color:#c73434}.kpi-issue.late b,.kpi-issue.early b{color:#a66d00}
+.kpi-noissues{padding:10px 0;color:var(--muted);font-size:13px}
+@media(max-width:720px){
+  .today-head-actions{width:100%;justify-content:flex-start}
+  .kpi-head{align-items:center}.kpi-head .secondary{white-space:nowrap}
+  .kpi-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi-person summary{padding:13px 12px}.kpi-person-body{padding:12px}
+  .kpi-issue{display:grid;gap:3px}
+}
+
+
+/* --- Отчёт владельца --- */
+.today-head-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.owner-report-sheet{width:min(100%,760px)}
+.owner-report-period{font-size:12px;color:var(--muted);margin-top:4px}
+.owner-report-loading{padding:14px 0;color:var(--muted);font-size:13px}
+.owner-report-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0 10px}
+.owner-report-stat{border:1px solid var(--line);background:#f8fafc;border-radius:14px;padding:11px}
+.owner-report-stat span{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}
+.owner-report-stat b{font-size:22px;color:#24324a}
+.owner-report-stat.warn{background:#fff8e8;border-color:#f5d28a}.owner-report-stat.warn b{color:#8a5a00}
+.owner-report-stat.bad{background:#fff1f1;border-color:#f2bcbc}.owner-report-stat.bad b{color:#a61b1b}
+.owner-report-best{border:1px solid #bfe7cb;background:#edf9f1;border-radius:14px;padding:11px 12px;margin-bottom:14px}
+.owner-report-best span{display:block;color:#39704d;font-size:11px;margin-bottom:3px}.owner-report-best b{color:#14532d;font-size:15px}
+.owner-report-title{margin:15px 0 8px!important;color:#24324a!important;font-size:14px!important}
+.owner-report-people{display:grid;gap:8px}
+.owner-report-person{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:14px;padding:11px 12px;background:#fff}
+.owner-report-person>div:first-child b{display:block;font-size:14px}.owner-report-person>div:first-child span{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.owner-report-person-score{text-align:right}.owner-report-person-score b{display:block;font-size:20px}.owner-report-person-score span{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.owner-report-person.good{border-left:4px solid #4da66a}.owner-report-person.attention{border-left:4px solid #d7a62a}.owner-report-person.problem{border-left:4px solid #cf4b4b}
+.owner-report-attention{display:grid;gap:8px}.owner-report-alert{border:1px solid #f2bcbc;background:#fff1f1;border-radius:14px;padding:11px 12px}.owner-report-alert b{display:block;color:#a61b1b;font-size:13px}.owner-report-alert span{display:block;color:#7a3333;font-size:11px;margin-top:4px}
+.owner-report-ok{border:1px solid #bfe7cb;background:#edf9f1;color:#14532d;border-radius:14px;padding:12px;font-size:12px;font-weight:700}
+.owner-report-note,.owner-report-empty{border:1px solid var(--line);background:#f8fafc;color:var(--muted);border-radius:14px;padding:12px;font-size:12px}
+.owner-report-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+@media(max-width:600px){
+  .today-head{display:block}.today-head-actions{margin-top:10px;display:grid;grid-template-columns:1fr 1fr}.today-head-actions button{padding:9px 8px;font-size:12px}
+  .owner-report-summary{grid-template-columns:1fr 1fr}.owner-report-sheet{max-height:92vh}.owner-report-actions{grid-template-columns:1fr}
+}
