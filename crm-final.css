@@ -16,4 +16,46 @@ a:focus-visible{
   .inv-form input,.inv-form select,.inv-form textarea,
   .fin-form-grid input,.fin-form-grid select,.fin-form-grid textarea,
   .fin-assign-row select,.final-dialog input,.payroll-controls input{font-size:16px!important}
+
+  /* Audit fix stage 1: iPhone keyboard must never push CRM dialogs sideways. */
+  html,body{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden;
+  }
+  .overlay,.drawer-backdrop,.inv-overlay,.fin-overlay,.final-modal{
+    width:100%;
+    max-width:100vw;
+    overflow-x:hidden;
+  }
+  .order-modal,.dialog-card,.drawer,.inv-dialog,.fin-dialog,.final-dialog{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+  .order-modal{
+    height:var(--crm-visual-height,100dvh);
+    max-height:var(--crm-visual-height,100dvh);
+  }
+  .order-modal-body{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+    overscroll-behavior-x:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .order-layout,.order-main,.order-side,.detail-panel,.edit-grid,
+  .phase1-root,.phase-meta-grid,.phase-inline-facts,.phase-money-grid,
+  .final-title-row,.final-files{
+    min-width:0;
+    max-width:100%;
+  }
+  .order-modal input,.order-modal select,.order-modal textarea,
+  .phase1-root input,.phase1-root select,.phase1-root textarea{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
 }
