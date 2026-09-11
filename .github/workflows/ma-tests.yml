@@ -42,6 +42,7 @@ jobs:
           node --check tests/assistant-routing-tests.js
           node --check tests/assistant-launcher-tests.js
           node --check tests/assistant-launcher-viewport-tests.js
+          node --check tests/crm-regression-tests.js
           node --input-type=module --check < api/mcp.js
           node --input-type=module --check < api/oauth-protected-resource.js
           node --input-type=module --check < api/openai-apps-challenge.js
@@ -61,6 +62,8 @@ jobs:
         run: node tests/assistant-launcher-tests.js
       - name: Run assistant mobile viewport tests
         run: node tests/assistant-launcher-viewport-tests.js
+      - name: Run CRM audit regression checks
+        run: node tests/crm-regression-tests.js
       - name: Check read API syntax
         run: node --input-type=module --check < supabase/functions/ma-grafik-api/index.ts
       - name: Set up Deno
@@ -105,7 +108,7 @@ jobs:
           wait_for "$BASE/crm-phase1.js" "ma-crm-phase1-api"
           wait_for "$BASE/crm-inventory.js" "ma-crm-inventory-api"
           wait_for "$BASE/crm-finance.js" "ma-crm-finance-api"
-          wait_for "$BASE/crm-final.js" "ma-crm-final-api"
+          wait_for "$BASE/crm-final.js" "create-repair-bundle"
           headers="$(curl -sS -i --max-time 10 -X POST "$BASE/mcp" -H 'Content-Type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ma-grafik-smoke","version":"1.0"}}}')"
           [[ "$headers" =~ ^HTTP/[^[:space:]]+[[:space:]]401 ]]
           echo "OK: production smoke"
