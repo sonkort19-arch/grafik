@@ -49,7 +49,7 @@
     if(!mobile())return;
     const el=event.target;
     if(!(el instanceof HTMLElement)||!el.matches("input,select,textarea"))return;
-    if(!el.closest(".login-card,.drawer,.order-modal,.dialog-card,.inv-dialog,.fin-dialog,.final-dialog"))return;
+    if(!el.closest(".login-card,.drawer,.order-modal,.dialog-card,.inv-dialog,.fin-dialog,.final-dialog,.issue-dialog"))return;
     setTimeout(()=>{
       syncViewport();
       const vv=window.visualViewport;
@@ -72,3 +72,5 @@
   }
   document.addEventListener("focusin",keepFocusedControlVisible,true);
 })();
+
+import("./crm-issue.js?v=20260913-1").catch(err=>console.error("MA CRM issue module",err));
