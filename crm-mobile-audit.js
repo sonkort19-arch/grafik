@@ -74,3 +74,4 @@
 })();
 
 import("./crm-issue.js?v=20260913-1").catch(err=>console.error("MA CRM issue module",err));
+import("./crm-service-cost.js?v=20260913-1").catch(err=>console.error("MA CRM service cost module",err));
