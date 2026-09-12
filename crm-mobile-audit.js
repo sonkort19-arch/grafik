@@ -75,4 +75,4 @@
 
 import("./crm-issue.js?v=20260913-1").catch(err=>console.error("MA CRM issue module",err));
 import("./crm-service-cost.js?v=20260913-1").catch(err=>console.error("MA CRM service cost module",err));
-import("./crm-compact-order.js?v=20260913-1").catch(err=>console.error("MA CRM compact order module",err));
+import("./crm-compact-order-v2.js?v=20260913-2").catch(err=>console.error("MA CRM compact order module",err));
