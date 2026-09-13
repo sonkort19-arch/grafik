@@ -16,7 +16,7 @@ const orderApi=read('supabase/functions/ma-crm-order-api/index.ts');
 const migration=read('supabase/migrations/20260913040000_harden_ma_crm_order_module.sql');
 const lifecycleMigration=read('supabase/migrations/20260913041000_upgrade_ma_crm_issue_and_events.sql');
 const idempotencyMigration=read('supabase/migrations/20260913041500_order_item_idempotency.sql');
-const atomicMigration=read('supabase/migrations/20260913042000_atomic_items_and_order_events.sql');
+const eventMigration=read('supabase/migrations/20260913042000_extensible_status_and_event_triggers.sql');
 
 must(controller.includes('async function open('),'controller owns order open');
 must(controller.includes('async function refresh('),'controller owns order refresh');
@@ -61,20 +61,22 @@ must(lifecycleMigration.includes('ma_crm_issue_repair'),'issue RPC is upgraded a
 must(lifecycleMigration.includes('Для этой точки не настроена касса выбранного типа'),'issue cannot create uncategorized cashflow without a cashbox');
 must(lifecycleMigration.includes('ma_crm_snapshot_repair_payroll'),'issue snapshots payroll exactly at lifecycle completion');
 must(idempotencyMigration.includes('ma_crm_repair_items_idempotency_uidx'),'order item idempotency is enforced by a unique DB index');
-must(atomicMigration.includes('ma_crm_add_order_item'),'atomic item RPC exists');
-must(atomicMigration.includes('for update'),'atomic item RPC locks rows before stock/payment-sensitive mutation');
-must(atomicMigration.includes('ma_crm_repairs_status_fkey'),'repair status is backed by the status catalog for custom statuses');
-must(atomicMigration.includes('ma_crm_event_after_repair_insert'),'new orders/warranty relations are logged at DB boundary');
-must(atomicMigration.includes('ma_crm_event_after_file_insert')&&atomicMigration.includes('ma_crm_event_after_file_delete'),'file lifecycle is logged in order history');
+must(eventMigration.includes('ma_crm_repairs_status_fkey'),'repair status is backed by the status catalog for custom statuses');
+must(eventMigration.includes('on conflict do nothing'),'event logging is idempotent across DB/API writers');
+must(eventMigration.includes('ma_crm_event_after_repair_insert'),'new orders/warranty relations are logged at DB boundary');
+must(eventMigration.includes('ma_crm_event_after_payment_insert'),'initial and later payments are logged at DB boundary');
+must(eventMigration.includes('ma_crm_event_after_file_insert'),'file uploads are logged at DB boundary');
 
 must(orderApi.includes('upsert-item')&&orderApi.includes('delete-item'),'unified order API owns item mutations');
-must(orderApi.includes('ma_crm_add_order_item'),'new item inserts go through atomic server RPC');
+must(orderApi.includes('duplicateItem')&&orderApi.includes('idempotency_key:key'),'item API enforces stable server idempotency');
+must(orderApi.includes('ma_crm_inventory_use_for_repair')&&orderApi.includes('result.error.code==="23505"'),'inventory double-submit has a compensated duplicate path');
 must(orderApi.includes('add-payment')&&orderApi.includes('p_idempotency_key'),'unified order API owns idempotent payments');
 must(orderApi.includes('set-status')&&orderApi.includes('ma_crm_set_repair_status'),'unified order API uses transactional status RPC');
 must(orderApi.includes('item_type:itemType')&&orderApi.includes('display_type:itemType'),'updated non-stock items preserve semantic service/part type');
 must(orderApi.includes('quantity||0)*Number(x.unit_price||0)-Number(x.discount_amount||0)'),'order revenue includes discounts');
 must(orderApi.includes('quantity||0)*Number(x.unit_cost||0)'),'profit includes cost for both service and part');
-must(orderApi.includes('order_events')&&orderApi.includes('payroll-entries'),'unified order API exposes history and payroll snapshot sections');
+must(orderApi.includes('ma_crm_payroll_entries')&&orderApi.includes('payroll-entries'),'unified order API exposes immutable payroll snapshots');
+must(orderApi.includes('file_deleted')&&orderApi.includes('warranty_created'),'files and warranty actions write order events');
 
 if(process.exitCode)process.exit(process.exitCode);
 console.log('CRM order production-hardening structural tests passed');
