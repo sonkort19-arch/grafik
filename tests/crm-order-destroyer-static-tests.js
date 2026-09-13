@@ -8,6 +8,7 @@ const mobile = read('crm-mobile-audit.js');
 const orderApi = read('supabase/functions/ma-crm-order-api/index.ts');
 const payrollFix = read('supabase/migrations/20260913104500_fix_payroll_snapshot_unassigned_record.sql');
 const paymentGuard = read('supabase/migrations/20260913110500_guard_order_payment_balance.sql');
+const statusGuard = read('supabase/migrations/20260913111500_guard_issued_status_reopen.sql');
 
 function must(source, pattern, message) {
   assert(pattern.test(source), message);
@@ -45,5 +46,8 @@ must(paymentGuard, /v_repair\.status = 'issued'/, 'Issued orders must reject new
 must(paymentGuard, /p_amount - v_remaining > 0\.009/, 'Payments must not exceed the remaining balance');
 must(paymentGuard, /p_amount - v_refundable > 0\.009/, 'Refunds must not exceed money actually paid');
 must(paymentGuard, /p_kind = 'refund' and p_category not in \('refund','deposit_refund'\)/, 'Refund kind/category must stay consistent');
+
+must(statusGuard, /if v_repair\.status = 'issued' then/, 'Issued orders must not reopen through a plain status change');
+must(statusGuard, /Используй возврат или гарантийное обращение/, 'Issued status guard must direct staff to an explicit business flow');
 
 console.log('CRM order destroyer static guards: OK');
