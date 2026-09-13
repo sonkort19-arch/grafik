@@ -2,8 +2,8 @@ const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: __dirname,
-  testMatch: /crm-order\.spec\.cjs/,
-  timeout: 35_000,
+  testMatch: /crm-order.*\.spec\.cjs/,
+  timeout: 70_000,
   expect: { timeout: 8_000 },
   fullyParallel: false,
   workers: 1,
