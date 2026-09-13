@@ -2,6 +2,7 @@ const fs=require('fs');
 function read(p){return fs.readFileSync(p,'utf8');}
 function must(ok,msg){if(!ok){console.error('FAIL:',msg);process.exitCode=1;}else console.log('OK:',msg);}
 
+const crmCore=read('crm.js');
 const controller=read('crm-order-controller.js');
 const view=read('crm-order-view.js');
 const phase=read('crm-phase1.js');
@@ -24,8 +25,13 @@ must(controller.includes('AbortController'),'controller cancels stale order/sect
 must(controller.includes('registerSection')&&controller.includes('refreshSection'),'controller owns section loaders and cache');
 must(controller.includes('ma:order:ready'),'controller exposes order-ready lifecycle');
 must(controller.includes('readyToken'),'controller guards duplicate ready events');
+must(!crmCore.includes('function repairDetailHtml'),'legacy core detail renderer was removed');
+must(!crmCore.includes('function openRepair('),'legacy core order opener was removed');
+must(!crmCore.includes('function setRepairStatus('),'legacy core status writer was removed');
+must(!crmCore.includes('function saveRepairChanges('),'legacy core detail writer was removed');
+must(crmCore.includes('MAOrderController?.open'),'core list delegates opening to OrderController');
 must(view.includes('registerRenderer'),'order view is registered with controller');
-must(view.includes('stopImmediatePropagation'),'new view prevents legacy order opener from competing');
+must(view.includes('stopImmediatePropagation'),'new view prevents stray legacy order listeners from competing');
 must(!view.includes('finalPrice:'),'order edit cannot manually overwrite derived final price');
 must(!phase.includes('MutationObserver'),'order detail phase has no DOM observer');
 must(phase.includes('ma:order:ready'),'order detail phase is lifecycle-driven');
