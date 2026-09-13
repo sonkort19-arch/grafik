@@ -1,0 +1,75 @@
+name: CRM browser tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'crm*.js'
+      - 'crm*.css'
+      - 'crm.html'
+      - 'tests/e2e/**'
+      - '.github/workflows/crm-browser-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'crm*.js'
+      - 'crm*.css'
+      - 'crm.html'
+      - 'tests/e2e/**'
+      - '.github/workflows/crm-browser-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crm-browser-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright test runner
+        run: npm install --no-save --no-package-lock @playwright/test@1.55.0
+
+      - name: Install Chromium and WebKit
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Start local static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/ma-crm-e2e-http.log 2>&1 &
+          echo $! > /tmp/ma-crm-e2e-http.pid
+          for attempt in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:4173/crm.html >/dev/null; then
+              echo "Local CRM server is ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/ma-crm-e2e-http.log || true
+          exit 1
+
+      - name: Run CRM browser journeys
+        env:
+          CRM_E2E_BASE_URL: http://127.0.0.1:4173
+        run: npx playwright test --config tests/e2e/playwright.config.cjs
+
+      - name: Upload browser test report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crm-playwright-report
+          path: |
+            playwright-report
+            test-results
+            /tmp/ma-crm-e2e-http.log
+          if-no-files-found: ignore
+          retention-days: 7
