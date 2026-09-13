@@ -35,5 +35,6 @@
 
   function open(){if(!$("phaseItemForm"))return;injectStyle();close();mode="root";selectedType="service";selectedCategory="";const overlay=document.createElement("div");overlay.id="maItemPicker";overlay.className="ma-item-picker";overlay.innerHTML=`<div class="ma-item-sheet"><div class="ma-item-head"><h3>Добавить</h3><button class="ma-item-close" type="button">×</button></div><div class="ma-item-search"><span>⌕</span><input id="maItemSearchInput" placeholder="Поиск" autocomplete="off"></div><div class="ma-item-body"></div></div>`;document.body.appendChild(overlay);document.body.style.overflow="hidden";overlay.addEventListener("click",e=>{if(e.target===overlay)close();});overlay.querySelector(".ma-item-close").addEventListener("click",close);overlay.querySelector("#maItemSearchInput").addEventListener("input",()=>{if(mode==="services")render();});render();}
 
+  document.addEventListener("click",e=>{const btn=e.target.closest?.(".hc-add-toggle");if(!btn)return;e.preventDefault();e.stopImmediatePropagation();open();},true);
   window.__maOpenItemPicker=open;
 })();
