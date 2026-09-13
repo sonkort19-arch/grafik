@@ -9,6 +9,7 @@ const orderApi = read('supabase/functions/ma-crm-order-api/index.ts');
 const payrollFix = read('supabase/migrations/20260913104500_fix_payroll_snapshot_unassigned_record.sql');
 const paymentGuard = read('supabase/migrations/20260913110500_guard_order_payment_balance.sql');
 const statusGuard = read('supabase/migrations/20260913111500_guard_issued_status_reopen.sql');
+const payrollClamp = read('supabase/migrations/20260913112500_clamp_negative_payroll_profit.sql');
 
 function must(source, pattern, message) {
   assert(pattern.test(source), message);
@@ -49,5 +50,10 @@ must(paymentGuard, /p_kind = 'refund' and p_category not in \('refund','deposit_
 
 must(statusGuard, /if v_repair\.status = 'issued' then/, 'Issued orders must not reopen through a plain status change');
 must(statusGuard, /Используй возврат или гарантийное обращение/, 'Issued status guard must direct staff to an explicit business flow');
+
+must(payrollClamp, /v_raw_basis numeric/, 'Payroll must preserve raw profit separately from payable basis');
+must(payrollClamp, /v_basis := greatest\(v_raw_basis, 0\)/, 'Master percentage basis must never be negative');
+must(payrollClamp, /v_manager_basis := greatest\(round\(v_total_profit, 2\), 0\)/, 'Manager percentage basis must never be negative');
+must(payrollClamp, /'rawProfit', v_raw_basis/, 'Payroll snapshot must preserve raw item profit for audit');
 
 console.log('CRM order destroyer static guards: OK');
