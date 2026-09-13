@@ -41,7 +41,14 @@
     const saveBtn=$("saveRepairChanges");if(saveBtn)saveBtn.addEventListener("click",()=>save(r.id,saveBtn));
   }
 
-  function interceptOpen(event){const opener=event.target.closest?.("[data-repair-id],[data-recent-repair]");if(!opener)return;const id=opener.dataset.repairId||opener.dataset.recentRepair;if(!id)return;event.preventDefault();event.stopImmediatePropagation();event.stopPropagation();window.MAOrderController.open(String(id));}
+  function interceptOpen(event){
+    if(event.target.closest?.("#repairDetailOverlay"))return;
+    const opener=event.target.closest?.("[data-repair-id],[data-recent-repair]");
+    if(!opener)return;
+    const id=opener.dataset.repairId||opener.dataset.recentRepair;
+    if(!id)return;
+    event.preventDefault();event.stopImmediatePropagation();event.stopPropagation();window.MAOrderController.open(String(id));
+  }
   function interceptClose(event){const close=event.target.closest?.("#closeRepairDetail"),overlay=event.target===$("repairDetailOverlay");if(!close&&!overlay)return;if($("repairDetailOverlay")?.classList.contains("hidden"))return;event.preventDefault();event.stopImmediatePropagation();event.stopPropagation();window.MAOrderController.close();}
   function interceptEscape(event){if(event.key!=="Escape"||$("repairDetailOverlay")?.classList.contains("hidden"))return;event.preventDefault();event.stopImmediatePropagation();window.MAOrderController.close();}
 
