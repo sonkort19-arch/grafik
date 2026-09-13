@@ -3,18 +3,28 @@ function read(p){return fs.readFileSync(p,'utf8');}
 function must(ok,msg){if(!ok){console.error('FAIL:',msg);process.exitCode=1;}else console.log('OK:',msg);}
 
 const controller=read('crm-order-controller.js');
+const view=read('crm-order-view.js');
 const phase=read('crm-phase1.js');
 const compact=read('crm-compact-order-v2.js');
 const issue=read('crm-issue.js');
 const finalJs=read('crm-final.js');
 const mobile=read('crm-mobile-audit.js');
 const picker=read('crm-item-picker.js');
+const orderApi=read('supabase/functions/ma-crm-order-api/index.ts');
+const migration=read('supabase/migrations/20260913040000_harden_ma_crm_order_module.sql');
+const lifecycleMigration=read('supabase/migrations/20260913041000_upgrade_ma_crm_issue_and_events.sql');
 
+must(controller.includes('async function open('),'controller owns order open');
+must(controller.includes('async function refresh('),'controller owns order refresh');
+must(controller.includes('AbortController'),'controller cancels stale order/section requests');
+must(controller.includes('registerSection')&&controller.includes('refreshSection'),'controller owns section loaders and cache');
 must(controller.includes('ma:order:ready'),'controller exposes order-ready lifecycle');
 must(controller.includes('readyToken'),'controller guards duplicate ready events');
+must(view.includes('registerRenderer'),'order view is registered with controller');
+must(view.includes('stopImmediatePropagation'),'new view prevents legacy order opener from competing');
+must(!view.includes('finalPrice:'),'order edit cannot manually overwrite derived final price');
 must(!phase.includes('MutationObserver'),'order detail phase has no DOM observer');
 must(phase.includes('ma:order:ready'),'order detail phase is lifecycle-driven');
-must(phase.includes('ma-crm-item-cost-api'),'service cost is first-class in item writes');
 must(!compact.includes('MutationObserver'),'compact order UI has no DOM observer');
 must(compact.includes('ma:order:phase-ready'),'compact UI waits for detail phase event');
 must(issue.includes('MAOrderController'),'issue flow reads controller snapshot');
@@ -24,10 +34,28 @@ must(!finalJs.includes('MutationObserver'),'final order tools have no DOM observ
 must(finalJs.includes('ma:order:ready'),'documents/files follow the controller lifecycle');
 must(!mobile.includes('crm-order-stability.js'),'obsolete stability observer is not loaded');
 must(!mobile.includes('crm-service-cost.js'),'obsolete service-cost observer is not loaded');
-must(mobile.includes('crm-order-controller.js'),'new controller is loaded');
+must(mobile.includes('crm-order-controller.js')&&mobile.includes('crm-order-view.js'),'controller loads before the order view');
 must(!fs.existsSync('crm-order-stability.js'),'obsolete stability module was deleted');
 must(!fs.existsSync('crm-service-cost.js'),'obsolete service cost module was deleted');
 must(!picker.includes('prefers-color-scheme:dark'),'item picker follows CRM light theme');
 
+must(migration.includes('ma_crm_service_catalog'),'service catalog exists in schema');
+must(migration.includes('discount_amount')&&migration.includes('executor'),'order items support discount and executor');
+must(migration.includes('idempotency_key'),'payments have server idempotency field');
+must(migration.includes('ma_crm_order_events'),'append-only order event stream exists');
+must(migration.includes('ma_crm_payroll_entries'),'payroll snapshot table exists');
+must(migration.includes('ma_crm_snapshot_repair_payroll'),'payroll snapshot RPC exists');
+must(lifecycleMigration.includes('ma_crm_issue_repair'),'issue RPC is upgraded atomically');
+must(lifecycleMigration.includes('Для этой точки не настроена касса выбранного типа'),'issue cannot create uncategorized cashflow without a cashbox');
+must(lifecycleMigration.includes('ma_crm_snapshot_repair_payroll'),'issue snapshots payroll exactly at lifecycle completion');
+
+must(orderApi.includes('upsert-item')&&orderApi.includes('delete-item'),'unified order API owns item mutations');
+must(orderApi.includes('add-payment')&&orderApi.includes('p_idempotency_key'),'unified order API owns idempotent payments');
+must(orderApi.includes('set-status')&&orderApi.includes('ma_crm_set_repair_status'),'unified order API uses transactional status RPC');
+must(orderApi.includes('item_type:itemType')&&orderApi.includes('display_type:itemType'),'new items preserve semantic service/part type');
+must(orderApi.includes('quantity||0)*Number(x.unit_price||0)-Number(x.discount_amount||0)'),'order revenue includes discounts');
+must(orderApi.includes('quantity||0)*Number(x.unit_cost||0)'),'profit includes cost for both service and part');
+must(orderApi.includes('order_events')&&orderApi.includes('payroll-entries'),'unified order API exposes history and payroll snapshot sections');
+
 if(process.exitCode)process.exit(process.exitCode);
-console.log('CRM order v2 structural tests passed');
+console.log('CRM order production-hardening structural tests passed');
