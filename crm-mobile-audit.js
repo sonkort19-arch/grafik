@@ -42,6 +42,7 @@
   syncViewport();guardLoginAutofocus();window.addEventListener("resize",syncViewport,{passive:true});window.addEventListener("orientationchange",()=>setTimeout(syncViewport,120),{passive:true});if(window.visualViewport){window.visualViewport.addEventListener("resize",syncViewport,{passive:true});window.visualViewport.addEventListener("scroll",syncViewport,{passive:true});}document.addEventListener("focusin",keepFocusedControlVisible,true);
 })();
 
+import("./crm-order-controller.js?v=20260913-v4").catch(err=>console.error("MA CRM order controller",err));
 import("./crm-issue.js?v=20260913-v2").catch(err=>console.error("MA CRM issue module",err));
 import("./crm-compact-order-v2.js?v=20260913-v3").catch(err=>console.error("MA CRM compact order module",err));
 import("./crm-item-picker.js?v=20260913-v2").catch(err=>console.error("MA CRM item picker module",err));
