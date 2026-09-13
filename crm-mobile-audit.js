@@ -73,6 +73,7 @@
   document.addEventListener("focusin",keepFocusedControlVisible,true);
 })();
 
+import("./crm-order-controller.js?v=20260913-v2").catch(err=>console.error("MA CRM order controller",err));
 import("./crm-order-stability.js?v=20260913-1").catch(err=>console.error("MA CRM order stability module",err));
 import("./crm-issue.js?v=20260913-1").catch(err=>console.error("MA CRM issue module",err));
 import("./crm-service-cost.js?v=20260913-2").catch(err=>console.error("MA CRM service cost module",err));
