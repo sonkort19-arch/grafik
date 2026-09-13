@@ -49,7 +49,7 @@
     if(!mobile())return;
     const el=event.target;
     if(!(el instanceof HTMLElement)||!el.matches("input,select,textarea"))return;
-    if(!el.closest(".login-card,.drawer,.order-modal,.dialog-card,.inv-dialog,.fin-dialog,.final-dialog,.issue-dialog"))return;
+    if(!el.closest(".login-card,.drawer,.order-modal,.dialog-card,.inv-dialog,.fin-dialog,.final-dialog,.issue-dialog,.ma-item-sheet"))return;
     setTimeout(()=>{
       syncViewport();
       const vv=window.visualViewport;
@@ -77,3 +77,4 @@ import("./crm-order-stability.js?v=20260913-1").catch(err=>console.error("MA CRM
 import("./crm-issue.js?v=20260913-1").catch(err=>console.error("MA CRM issue module",err));
 import("./crm-service-cost.js?v=20260913-2").catch(err=>console.error("MA CRM service cost module",err));
 import("./crm-compact-order-v2.js?v=20260913-2").catch(err=>console.error("MA CRM compact order module",err));
+import("./crm-item-picker.js?v=20260913-1").catch(err=>console.error("MA CRM item picker module",err));
