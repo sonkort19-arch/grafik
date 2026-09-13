@@ -11,6 +11,7 @@ const payrollFix = read('supabase/migrations/20260913104500_fix_payroll_snapshot
 const paymentGuard = read('supabase/migrations/20260913110500_guard_order_payment_balance.sql');
 const statusGuard = read('supabase/migrations/20260913111500_guard_issued_status_reopen.sql');
 const payrollClamp = read('supabase/migrations/20260913112500_clamp_negative_payroll_profit.sql');
+const itemFreeze = read('supabase/migrations/20260913113500_freeze_issued_order_items.sql');
 
 function must(source, pattern, message) { assert(pattern.test(source), message); }
 function mustNot(source, pattern, message) { assert(!pattern.test(source), message); }
@@ -58,5 +59,9 @@ must(payrollClamp, /v_raw_basis numeric/, 'Payroll must preserve raw profit sepa
 must(payrollClamp, /v_basis := greatest\(v_raw_basis, 0\)/, 'Master percentage basis must never be negative');
 must(payrollClamp, /v_manager_basis := greatest\(round\(v_total_profit, 2\), 0\)/, 'Manager percentage basis must never be negative');
 must(payrollClamp, /'rawProfit', v_raw_basis/, 'Payroll snapshot must preserve raw item profit for audit');
+
+must(itemFreeze, /before insert or update or delete on public\.ma_crm_repair_items/, 'Issued order item freeze must cover insert/update/delete');
+must(itemFreeze, /if v_status = 'issued' then/, 'Issued order items must reject post-close mutations');
+must(itemFreeze, /Товары и услуги нельзя изменять/, 'Issued item freeze must explain the business rule');
 
 console.log('CRM order destroyer static guards: OK');
