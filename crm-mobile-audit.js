@@ -75,25 +75,25 @@
     const button=document.getElementById("openSidebar"),backdrop=document.getElementById("sidebarBackdrop");
     if(!button||button.dataset.mobileTouchBound==="1")return;
     button.dataset.mobileTouchBound="1";
-    const openFromTouch=event=>{
+    let lastTouchAt=0;
+    const openMenu=event=>{
       if(!mobile())return;
       repairOrphanedScrollLock();
-      event.preventDefault();event.stopPropagation();
+      if(event.cancelable)event.preventDefault();
+      event.stopPropagation();
       setSidebar(true);
     };
-    const closeFromTouch=event=>{
+    const closeMenu=event=>{
       if(!mobile())return;
-      event.preventDefault();event.stopPropagation();
+      if(event.cancelable)event.preventDefault();
+      event.stopPropagation();
       setSidebar(false);
       repairOrphanedScrollLock();
     };
-    if(window.PointerEvent){
-      button.addEventListener("pointerup",event=>{if(event.pointerType==="touch"||event.pointerType==="pen")openFromTouch(event);},{passive:false});
-      backdrop?.addEventListener("pointerup",event=>{if(event.pointerType==="touch"||event.pointerType==="pen")closeFromTouch(event);},{passive:false});
-    }else{
-      button.addEventListener("touchend",openFromTouch,{passive:false});
-      backdrop?.addEventListener("touchend",closeFromTouch,{passive:false});
-    }
+    button.addEventListener("touchend",event=>{lastTouchAt=Date.now();openMenu(event);},{passive:false,capture:true});
+    button.addEventListener("click",event=>{if(Date.now()-lastTouchAt<500){if(event.cancelable)event.preventDefault();event.stopPropagation();return;}openMenu(event);},true);
+    backdrop?.addEventListener("touchend",event=>{lastTouchAt=Date.now();closeMenu(event);},{passive:false,capture:true});
+    backdrop?.addEventListener("click",event=>{if(Date.now()-lastTouchAt<500){if(event.cancelable)event.preventDefault();event.stopPropagation();return;}closeMenu(event);},true);
   }
 
   function suppressNextProgrammaticFocus(el,duration=180){
