@@ -1,6 +1,6 @@
 (()=>{
   "use strict";
-  if(window.MAOrderView?.version==="2")return;
+  if(window.MAOrderView?.version==="3")return;
 
   const API_URL="https://yedzfmibceboncrytbqz.supabase.co/functions/v1/ma-crm-order-api";
   const API_KEY="sb_publishable_tSqbw3aeAgxYuzHhQurCuw_yDze4ZNn";
@@ -41,7 +41,14 @@
     const saveBtn=$("saveRepairChanges");if(saveBtn)saveBtn.addEventListener("click",()=>save(r.id,saveBtn));
   }
 
-  function interceptOpen(event){const opener=event.target.closest?.("[data-repair-id],[data-recent-repair]");if(!opener)return;const id=opener.dataset.repairId||opener.dataset.recentRepair;if(!id)return;event.preventDefault();event.stopImmediatePropagation();event.stopPropagation();window.MAOrderController.open(String(id));}
+  function interceptOpen(event){
+    if(event.target.closest?.("#repairDetailOverlay"))return;
+    const opener=event.target.closest?.("[data-repair-id],[data-recent-repair]");
+    if(!opener)return;
+    const id=opener.dataset.repairId||opener.dataset.recentRepair;
+    if(!id)return;
+    event.preventDefault();event.stopImmediatePropagation();event.stopPropagation();window.MAOrderController.open(String(id));
+  }
   function interceptClose(event){const close=event.target.closest?.("#closeRepairDetail"),overlay=event.target===$("repairDetailOverlay");if(!close&&!overlay)return;if($("repairDetailOverlay")?.classList.contains("hidden"))return;event.preventDefault();event.stopImmediatePropagation();event.stopPropagation();window.MAOrderController.close();}
   function interceptEscape(event){if(event.key!=="Escape"||$("repairDetailOverlay")?.classList.contains("hidden"))return;event.preventDefault();event.stopImmediatePropagation();window.MAOrderController.close();}
 
@@ -49,5 +56,5 @@
   controller.registerRenderer(render);
   controller.registerAuthErrorHandler(message=>{localStorage.removeItem(CRM_SESSION_KEY);controller.close();const main=$("crmMain"),login=$("loginOverlay"),error=$("crmLoginError");main?.classList.add("hidden");login?.classList.remove("hidden");if(error)error.textContent=message||"Сессия закончилась. Войдите снова.";});
   document.addEventListener("click",interceptOpen,true);document.addEventListener("click",interceptClose,true);document.addEventListener("keydown",interceptEscape,true);
-  window.MAOrderView={version:"2",render};
+  window.MAOrderView={version:"3",render};
 })();
