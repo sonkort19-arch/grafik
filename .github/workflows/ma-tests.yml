@@ -124,6 +124,7 @@ jobs:
           deno check supabase/functions/ma-crm-inventory-api/index.ts
           deno check supabase/functions/ma-crm-finance-api/index.ts
           deno check supabase/functions/ma-crm-final-api/index.ts
+          deno check supabase/functions/ma-crm-item-cost-api/index.ts
           deno check supabase/functions/ma-shifts/index.ts
 
   production-smoke:
