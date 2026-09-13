@@ -44,7 +44,7 @@
 
 const controllerReady=import("./crm-order-controller.js?v=20260913-v5");
 const orderReady=controllerReady.then(()=>Promise.all([
-  import("./crm-order-view.js?v=20260913-v2"),
+  import("./crm-order-view.js?v=20260913-v3"),
   import("./crm-order-documents.js?v=20260913-v2")
 ]));
 const pickerReady=orderReady.then(()=>import("./crm-item-picker.js?v=20260913-v2"));
