@@ -18,6 +18,8 @@ const migration=read('supabase/migrations/20260913040000_harden_ma_crm_order_mod
 const lifecycleMigration=read('supabase/migrations/20260913041000_upgrade_ma_crm_issue_and_events.sql');
 const idempotencyMigration=read('supabase/migrations/20260913041500_order_item_idempotency.sql');
 const eventMigration=read('supabase/migrations/20260913042000_extensible_status_and_event_triggers.sql');
+const securityMigration=read('supabase/migrations/20260913043000_secure_order_hardening_objects.sql');
+const paymentEventMigration=read('supabase/migrations/20260913043100_fix_order_payment_event_source.sql');
 
 must(controller.includes('async function open('),'controller owns order open');
 must(controller.includes('async function refresh('),'controller owns order refresh');
@@ -72,6 +74,10 @@ must(eventMigration.includes('on conflict do nothing'),'event logging is idempot
 must(eventMigration.includes('ma_crm_event_after_repair_insert'),'new orders/warranty relations are logged at DB boundary');
 must(eventMigration.includes('ma_crm_event_after_payment_insert'),'initial and later payments are logged at DB boundary');
 must(eventMigration.includes('ma_crm_event_after_file_insert'),'file uploads are logged at DB boundary');
+must(securityMigration.includes('enable row level security'),'new order tables are protected by RLS');
+must(securityMigration.includes('revoke all on table public.ma_crm_order_events from anon, authenticated'),'order event stream is not directly exposed to clients');
+must(securityMigration.includes('revoke all on function public.ma_crm_event_after_payment_insert() from public, anon, authenticated'),'trigger functions cannot be called directly');
+must(paymentEventMigration.includes("'payment:'||v_payment.id::text"),'payment RPC and DB trigger share one idempotent event source');
 
 must(orderApi.includes('upsert-item')&&orderApi.includes('delete-item'),'unified order API owns item mutations');
 must(orderApi.includes('duplicateItem')&&orderApi.includes('idempotency_key:key'),'item API enforces stable server idempotency');
