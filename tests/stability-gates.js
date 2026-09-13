@@ -131,6 +131,7 @@ function assertSupabaseFunctionClassification() {
     'ma-crm-inventory-api',
     'ma-crm-finance-api',
     'ma-crm-final-api',
+    'ma-crm-item-cost-api',
     'ma-shifts'
   ]);
   const legacyFunctions = new Set(['ma-grafik-api']);
