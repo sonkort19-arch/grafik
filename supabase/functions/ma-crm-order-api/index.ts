@@ -1,0 +1,143 @@
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const corsHeaders={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, apikey, content-type, x-crm-session","Access-Control-Allow-Methods":"POST, OPTIONS"};
+const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
+const SERVICE_ROLE=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ADMIN_EMAIL=(Deno.env.get("ADMIN_EMAIL")||"bul782@mail.ru").toLowerCase();
+const PIN_PEPPER=Deno.env.get("PIN_PEPPER")||"";
+const db=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,autoRefreshToken:false}});
+type Actor={kind:"admin"|"staff";employee:string;role:"admin"|"manager"|"master";email?:string};
+
+function json(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers:{...corsHeaders,"Content-Type":"application/json"}});}
+function text(v:unknown,max=1000){return String(v??"").trim().slice(0,max);}
+function decimal(v:unknown,max=100000000){const n=Number(String(v??0).replace(/\s/g,"").replace(",","."));if(!Number.isFinite(n)||n<0||n>max)throw new Error("Неверное числовое значение");return Math.round(n*100)/100;}
+function positive(v:unknown,max=100000000){const n=decimal(v,max);if(n<=0)throw new Error("Значение должно быть больше нуля");return n;}
+function round(v:number){return Math.round((Number(v)||0)*100)/100;}
+function b64url(bytes:Uint8Array){let s="";for(const b of bytes)s+=String.fromCharCode(b);return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");}
+function fromB64url(value:string){const base=value.replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-value.length%4)%4),raw=atob(base);return Uint8Array.from(raw,c=>c.charCodeAt(0));}
+async function hmac(value:string){if(!PIN_PEPPER)throw new Error("CRM auth is not configured");const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(PIN_PEPPER),{name:"HMAC",hash:"SHA-256"},false,["sign","verify"]);return new Uint8Array(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(value)));}
+async function readSession(req:Request):Promise<Actor|null>{const token=req.headers.get("x-crm-session")||"",[payload,sig]=token.split(".");if(!payload||!sig)return null;const expected=await hmac(payload),actual=fromB64url(sig);if(actual.length!==expected.length)return null;let diff=0;for(let i=0;i<actual.length;i++)diff|=actual[i]^expected[i];if(diff!==0)return null;try{const data=JSON.parse(new TextDecoder().decode(fromB64url(payload)));if(!data?.employee||Number(data.exp)<Date.now())return null;const {data:pin}=await db.from("ma_crm_pins").select("employee,role,active").eq("employee",data.employee).eq("active",true).maybeSingle();if(!pin)return null;return {kind:"staff",employee:String(pin.employee),role:pin.role==="master"?"master":"manager"};}catch(_){return null;}}
+async function readAdmin(req:Request):Promise<Actor|null>{const token=(req.headers.get("authorization")||"").replace(/^Bearer\s+/i,"");if(!token)return null;const {data,error}=await db.auth.getUser(token);if(error||!data.user||data.user.email?.toLowerCase()!==ADMIN_EMAIL)return null;return {kind:"admin",employee:"Администратор",role:"admin",email:data.user.email||ADMIN_EMAIL};}
+async function requireAuth(req:Request){const actor=await readAdmin(req)||await readSession(req);if(!actor)throw new Error("Нужен вход в CRM");return actor;}
+function requireManager(actor:Actor){if(actor.role==="master")throw new Error("Нет доступа для роли мастера");return actor;}
+async function repairFor(actor:Actor,idRaw:unknown){const id=text(idRaw,80);if(!id)throw new Error("Не указан заказ");const {data,error}=await db.from("ma_crm_repairs").select("*,customer:ma_crm_customers(*)").eq("id",id).single();if(error||!data)throw new Error("Заказ не найден");if(actor.role==="master"&&String(data.master||"")!==actor.employee)throw new Error("Нет доступа к этому заказу");return data;}
+async function activeRoster(){const {data}=await db.from("ma_schedule_config").select("settings").eq("id","main").maybeSingle(),s:any=data?.settings||{};return (s.employeeSchedules||[]).filter((x:any)=>x?.name&&!x?.inactive).map((x:any)=>({name:String(x.name),role:x.role==="master"?"master":"manager"}));}
+
+async function totals(repair:any){
+  const [{data:items,error:itemError},{data:payments,error:paymentError}]=await Promise.all([
+    db.from("ma_crm_repair_items").select("*").eq("repair_id",repair.id).order("created_at",{ascending:true}),
+    db.from("ma_crm_payments").select("*").eq("repair_id",repair.id).order("created_at",{ascending:false}),
+  ]);
+  if(itemError)throw itemError;if(paymentError)throw paymentError;
+  const rows=items||[],pays=payments||[];
+  const revenue=round(rows.reduce((sum:any,x:any)=>sum+Number(x.quantity||0)*Number(x.unit_price||0)-Number(x.discount_amount||0),0));
+  const cost=round(rows.reduce((sum:any,x:any)=>sum+Number(x.quantity||0)*Number(x.unit_cost||0),0));
+  const netPaid=round(pays.reduce((sum:any,x:any)=>sum+(x.kind==="refund"?-1:1)*Number(x.amount||0),0));
+  const orderTotal=rows.length?revenue:Number(repair.final_price??repair.estimated_price??0);
+  return {items:rows,payments:pays,totals:{itemsTotal:revenue,cost,profit:round(revenue-cost),paid:netPaid,orderTotal:round(orderTotal),balance:round(orderTotal-netPaid)}};
+}
+async function recalcRepair(repairId:string,actor:string){const {data:repair,error}=await db.from("ma_crm_repairs").select("id,estimated_price").eq("id",repairId).single();if(error||!repair)throw new Error("Заказ не найден");const {data:rows,error:itemError}=await db.from("ma_crm_repair_items").select("quantity,unit_price,discount_amount").eq("repair_id",repairId);if(itemError)throw itemError;const items=rows||[],finalPrice=items.length?round(items.reduce((sum:any,x:any)=>sum+Number(x.quantity||0)*Number(x.unit_price||0)-Number(x.discount_amount||0),0)):null;const {error:updateError}=await db.from("ma_crm_repairs").update({final_price:finalPrice,updated_at:new Date().toISOString(),updated_by:actor}).eq("id",repairId);if(updateError)throw updateError;return finalPrice;}
+async function logEvent(repairId:string,type:string,actor:string,oldValue:any,newValue:any,description="",sourceId:string|null=null){const {error}=await db.rpc("ma_crm_log_order_event",{p_repair_id:repairId,p_event_type:type,p_employee:actor,p_old_value:oldValue??null,p_new_value:newValue??null,p_description:description,p_source_id:sourceId});if(error)throw error;}
+
+async function detail(req:Request,body:any){
+  const actor=await requireAuth(req),repair=await repairFor(actor,body.id||body.repairId),payment=await totals(repair);
+  const historyQuery=db.from("ma_crm_repair_status_history").select("*").eq("repair_id",repair.id).order("created_at",{ascending:false}).limit(80);
+  const statusQuery=db.from("ma_crm_status_definitions").select("code,name,group_code,sort_order,actions").eq("active",true).order("sort_order");
+  if(actor.role==="master"){
+    const [history,statuses]=await Promise.all([historyQuery,statusQuery]);if(history.error)throw history.error;if(statuses.error)throw statuses.error;
+    return {ok:true,repair,history:history.data||[],paymentSummary:{paid:payment.totals.paid,total:payment.totals.orderTotal,remaining:payment.totals.balance,payments:payment.payments},customerHistory:{repairs:[],sales:[]},statuses:statuses.data||[]};
+  }
+  const [history,statuses,past,sales]=await Promise.all([
+    historyQuery,statusQuery,
+    db.from("ma_crm_repairs").select("id,order_no,device,model,status,accepted_at,final_price,estimated_price").eq("customer_id",repair.customer_id).neq("id",repair.id).order("accepted_at",{ascending:false}).limit(20),
+    db.from("ma_crm_sales").select("id,sale_no,device,model,imei,sale_price,sold_at").eq("customer_id",repair.customer_id).order("sold_at",{ascending:false}).limit(20),
+  ]);
+  if(history.error)throw history.error;if(statuses.error)throw statuses.error;if(past.error)throw past.error;if(sales.error)throw sales.error;
+  return {ok:true,repair,history:history.data||[],paymentSummary:{paid:payment.totals.paid,total:payment.totals.orderTotal,remaining:payment.totals.balance,payments:payment.payments},customerHistory:{repairs:past.data||[],sales:sales.data||[]},statuses:statuses.data||[]};
+}
+
+async function commerce(req:Request,body:any){const actor=await requireAuth(req),repair=await repairFor(actor,body.id||body.repairId),data=await totals(repair);return {ok:true,repair:{id:repair.id,service:repair.service,estimated_price:repair.estimated_price,final_price:repair.final_price},...data};}
+
+async function catalog(req:Request,body:any){
+  const actor=await requireAuth(req),repair=await repairFor(actor,body.id||body.repairId);
+  const [{data:categories,error:ce},{data:services,error:se},{data:products,error:pe},{data:stock,error:ste},employees]=await Promise.all([
+    db.from("ma_crm_service_categories").select("id,name,sort_order").eq("active",true).order("sort_order").order("name"),
+    db.from("ma_crm_service_catalog").select("id,category_id,name,default_price,default_cost,sort_order").eq("active",true).order("sort_order").order("name"),
+    db.from("ma_crm_inventory_products").select("id,name,sku,unit,cost_price,sale_price,category").eq("active",true).eq("category","part").order("name"),
+    db.from("ma_crm_inventory_stock").select("product_id,quantity").eq("service",repair.service).gt("quantity",0),
+    activeRoster(),
+  ]);
+  if(ce)throw ce;if(se)throw se;if(pe)throw pe;if(ste)throw ste;
+  const stockById=new Map((stock||[]).map((x:any)=>[x.product_id,Number(x.quantity||0)]));
+  return {ok:true,repair:{id:repair.id,service:repair.service},categories:(categories||[]).map((c:any)=>({...c,services:(services||[]).filter((s:any)=>s.category_id===c.id)})),uncategorizedServices:(services||[]).filter((s:any)=>!s.category_id),products:(products||[]).filter((p:any)=>stockById.has(p.id)).map((p:any)=>({...p,stock:stockById.get(p.id)})),employees};
+}
+
+async function upsertItem(req:Request,body:any){
+  const actor=await requireAuth(req),repair=await repairFor(actor,body.repairId),id=text(body.id,80),itemType=text(body.itemType,20),title=text(body.title,240),inventoryProductId=text(body.inventoryProductId,80),catalogId=text(body.serviceCatalogId,80);
+  if(!["service","part"].includes(itemType))throw new Error("Выбери тип позиции");if(!title&&!inventoryProductId)throw new Error("Укажи название позиции");
+  const quantity=positive(body.quantity,10000),unitPrice=decimal(body.unitPrice),unitCost=decimal(body.unitCost),discount=decimal(body.discount||0),executor=text(body.executor,100);
+  if(discount>quantity*unitPrice)throw new Error("Скидка не может быть больше стоимости позиции");
+  let item:any=null;
+  if(inventoryProductId){
+    if(itemType!=="part")throw new Error("Складская позиция должна быть товаром");if(id)throw new Error("Складскую запчасть удалите и добавьте заново");
+    const {data:used,error:useError}=await db.rpc("ma_crm_inventory_use_for_repair",{p_repair_id:repair.id,p_product_id:inventoryProductId,p_quantity:quantity,p_unit_price:unitPrice,p_actor:actor.employee});if(useError)throw useError;
+    const itemId=String(used?.itemId||"");if(!itemId)throw new Error("Не удалось добавить запчасть со склада");
+    const {data,error}=await db.from("ma_crm_repair_items").update({display_type:"part",discount_amount:discount,executor,updated_at:new Date().toISOString()}).eq("id",itemId).select("*").single();if(error)throw error;item=data;
+  }else{
+    const payload:any={repair_id:repair.id,item_type:itemType,display_type:itemType,title,quantity,unit_price:unitPrice,unit_cost:unitCost,discount_amount:discount,executor,service_catalog_id:catalogId||null,updated_at:new Date().toISOString()};
+    let result:any;
+    if(id)result=await db.from("ma_crm_repair_items").update(payload).eq("id",id).eq("repair_id",repair.id).select("*").single();
+    else result=await db.from("ma_crm_repair_items").insert({...payload,created_by:actor.employee}).select("*").single();
+    if(result.error)throw result.error;item=result.data;
+  }
+  const finalPrice=await recalcRepair(repair.id,actor.employee);
+  await logEvent(repair.id,id?"item_updated":"item_added",actor.employee,null,item,id?`Изменена позиция «${item.title}»`:`Добавлена позиция «${item.title}»`,item.id);
+  const data=await totals({...repair,final_price:finalPrice});return {ok:true,item,finalPrice,...data};
+}
+
+async function deleteItem(req:Request,body:any){
+  const actor=await requireAuth(req),repair=await repairFor(actor,body.repairId),id=text(body.id,80);if(!id)throw new Error("Не указана позиция");
+  const {data:old,error:readError}=await db.from("ma_crm_repair_items").select("*").eq("id",id).eq("repair_id",repair.id).single();if(readError||!old)throw new Error("Позиция не найдена");
+  const {error}=await db.from("ma_crm_repair_items").delete().eq("id",id).eq("repair_id",repair.id);if(error)throw error;
+  const finalPrice=await recalcRepair(repair.id,actor.employee);await logEvent(repair.id,"item_deleted",actor.employee,old,null,`Удалена позиция «${old.title}»`,old.id);
+  const data=await totals({...repair,final_price:finalPrice});return {ok:true,finalPrice,...data};
+}
+
+async function addPayment(req:Request,body:any){
+  const actor=requireManager(await requireAuth(req)),repair=await repairFor(actor,body.repairId),kind=text(body.kind,20)||"payment",method=text(body.method,20)||"cash",category=text(body.category,30)||(kind==="refund"?"refund":"payment"),key=text(body.idempotencyKey,160)||crypto.randomUUID();
+  const {data,error}=await db.rpc("ma_crm_add_order_payment",{p_repair_id:repair.id,p_kind:kind,p_method:method,p_category:category,p_amount:positive(body.amount),p_note:text(body.note,500),p_actor:actor.employee,p_idempotency_key:key});if(error)throw error;
+  const summary=await totals(repair);return {ok:true,result:data,idempotencyKey:key,...summary};
+}
+
+async function setStatus(req:Request,body:any){const actor=await requireAuth(req),repair=await repairFor(actor,body.id||body.repairId),status=text(body.status,40);const {data,error}=await db.rpc("ma_crm_set_repair_status",{p_repair_id:repair.id,p_status:status,p_actor:actor.employee});if(error)throw error;const updated=await repairFor(actor,repair.id);return {ok:true,result:data,repair:updated};}
+
+async function updateOrder(req:Request,body:any){
+  const actor=requireManager(await requireAuth(req)),repair=await repairFor(actor,body.id||body.repairId),patch:any={updated_by:actor.employee,updated_at:new Date().toISOString()};
+  if("device" in body)patch.device=text(body.device,100);if("model" in body)patch.model=text(body.model,160);if("imei" in body)patch.imei=text(body.imei,80);if("issue" in body){patch.issue=text(body.issue,1000);if(!patch.issue)throw new Error("Неисправность не может быть пустой");}if("estimatedPrice" in body)patch.estimated_price=decimal(body.estimatedPrice);if("manager" in body)patch.manager=text(body.manager,100);if("master" in body)patch.master=text(body.master,100);if("comment" in body)patch.comment=text(body.comment,2000);
+  if("dueAt" in body){const raw=text(body.dueAt,80);patch.due_at=raw?new Date(raw).toISOString():null;}if("warrantyDays" in body){const n=Number(body.warrantyDays);if(!Number.isInteger(n)||n<0||n>730)throw new Error("Гарантия должна быть от 0 до 730 дней");patch.warranty_days=n;}if("warrantyNote" in body)patch.warranty_note=text(body.warrantyNote,1000);
+  const {data,error}=await db.from("ma_crm_repairs").update(patch).eq("id",repair.id).select("*,customer:ma_crm_customers(*)").single();if(error)throw error;
+  await logEvent(repair.id,"order_updated",actor.employee,{device:repair.device,model:repair.model,imei:repair.imei,issue:repair.issue,manager:repair.manager,master:repair.master,comment:repair.comment,due_at:repair.due_at,warranty_days:repair.warranty_days,warranty_note:repair.warranty_note},{device:data.device,model:data.model,imei:data.imei,issue:data.issue,manager:data.manager,master:data.master,comment:data.comment,due_at:data.due_at,warranty_days:data.warranty_days,warranty_note:data.warranty_note},"Изменены данные заказа");
+  return {ok:true,repair:data};
+}
+
+async function events(req:Request,body:any){const actor=await requireAuth(req),repair=await repairFor(actor,body.id||body.repairId);const {data,error}=await db.from("ma_crm_order_events").select("*").eq("repair_id",repair.id).order("created_at",{ascending:false}).order("id",{ascending:false}).limit(200);if(error)throw error;return {ok:true,events:data||[]};}
+async function payrollEntries(req:Request,body:any){const actor=await requireAuth(req),repair=await repairFor(actor,body.id||body.repairId);if(actor.role!=="admin"&&actor.employee!==repair.master&&actor.employee!==repair.manager)throw new Error("Нет доступа к начислениям заказа");const {data,error}=await db.from("ma_crm_payroll_entries").select("*").eq("repair_id",repair.id).order("created_at",{ascending:true});if(error)throw error;return {ok:true,entries:data||[]};}
+
+Deno.serve(async(req:Request)=>{
+  if(req.method==="OPTIONS")return new Response("ok",{headers:corsHeaders});
+  if(req.method!=="POST")return json({ok:false,error:"Method not allowed"},405);
+  try{
+    const body=await req.json().catch(()=>({})),op=text(body?.op,60);
+    if(op==="detail")return json(await detail(req,body));
+    if(op==="commerce")return json(await commerce(req,body));
+    if(op==="catalog")return json(await catalog(req,body));
+    if(op==="upsert-item")return json(await upsertItem(req,body));
+    if(op==="delete-item")return json(await deleteItem(req,body));
+    if(op==="add-payment")return json(await addPayment(req,body));
+    if(op==="set-status")return json(await setStatus(req,body));
+    if(op==="update-order")return json(await updateOrder(req,body));
+    if(op==="events")return json(await events(req,body));
+    if(op==="payroll-entries")return json(await payrollEntries(req,body));
+    return json({ok:false,error:"Неизвестная операция"},400);
+  }catch(e:any){console.error("ma-crm-order-api",e);const message=e?.message||"Ошибка CRM",status=/Нужен вход|Нет доступа/.test(message)?403:400;return json({ok:false,error:message},status);}
+});
