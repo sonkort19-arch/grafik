@@ -108,12 +108,12 @@
   function keepFocusedControlVisible(event){
     if(!mobile())return;const el=event.target;if(!(el instanceof HTMLElement)||!el.matches("input,select,textarea"))return;
     if(!el.closest(".login-card,.drawer,.order-modal,.dialog-card,.inv-dialog,.fin-dialog,.final-dialog,.issue-dialog,.ma-item-sheet"))return;
-    setTimeout(()=>{syncViewport();const vv=window.visualViewport,top=(vv?.offsetTop||0)+64,bottom=(vv?.offsetTop||0)+(vv?.height||window.innerHeight)-72,rect=el.getBoundingClientRect();if(rect.top>=top&&rect.bottom<=bottom)return;try{el.scrollIntoView({block:"nearest",inline:"nearest",behavior:"smooth"});}catch(_){el.scrollIntoView();}},120);
+    setTimeout(()=>{syncViewport();const vv=window.visualViewport,top=(vv?.offsetTop||0)+64,bottom=(vv?.offsetTop||0)+(vv?.height||window.innerHeight)-72,rect=el.getBoundingClientRect();if(rect.top>=top&&rect.bottom<=bottom)return;try{el.scrollIntoView({block:"nearest",inline:"nearest",behavior:"auto"});}catch(_){el.scrollIntoView();}},90);
   }
 
   injectMobileTouchFix();syncViewport();guardLoginAutofocus();bindMobileMenuTouch();repairOrphanedScrollLock();
   window.addEventListener("resize",scheduleViewportSync,{passive:true});
-  window.addEventListener("orientationchange",()=>setTimeout(()=>{scheduleViewportSync();repairOrphanedScrollLock();},120),{passive:true});
+  window.addEventListener("orientationchange",()=>setTimeout(()=>{scheduleViewportSync();repairOrphanedScrollLock();},100),{passive:true});
   window.addEventListener("pageshow",()=>{repairOrphanedScrollLock();scheduleViewportSync();},{passive:true});
   document.addEventListener("visibilitychange",()=>{if(!document.hidden){repairOrphanedScrollLock();scheduleViewportSync();}},{passive:true});
   document.addEventListener("ma:order:closed",()=>setTimeout(repairOrphanedScrollLock,0));
@@ -124,12 +124,24 @@
   document.addEventListener("focusin",keepFocusedControlVisible,true);
 })();
 
-const controllerReady=import("./crm-order-controller.js?v=20260913-v5");
-const orderReady=controllerReady.then(()=>Promise.all([
-  import("./crm-order-view.js?v=20260913-v3"),
-  import("./crm-order-documents.js?v=20260913-v2")
-]));
-const pickerReady=orderReady.then(()=>import("./crm-item-picker.js?v=20260913-v2"));
-orderReady.then(()=>import("./crm-issue.js?v=20260913-v3")).catch(err=>console.error("MA CRM issue module",err));
-pickerReady.then(()=>import("./crm-compact-order-v2.js?v=20260913-v6")).catch(err=>console.error("MA CRM compact order module",err));
-orderReady.then(()=>import("./crm-order-history.js?v=20260913-v1")).catch(err=>console.error("MA CRM order history module",err));
+const MODULES={
+  controller:"./crm-order-controller.js?v=20260913-v6",
+  view:"./crm-order-view.js?v=20260913-v4",
+  documents:"./crm-order-documents.js?v=20260913-v2",
+  picker:"./crm-item-picker.js?v=20260913-v2",
+  issue:"./crm-issue.js?v=20260913-v3",
+  compact:"./crm-compact-order-v2.js?v=20260913-v7",
+  history:"./crm-order-history.js?v=20260913-v1"
+};
+for(const href of Object.values(MODULES)){
+  if(document.head.querySelector(`link[rel="modulepreload"][href="${href}"]`))continue;
+  const link=document.createElement("link");link.rel="modulepreload";link.href=href;document.head.appendChild(link);
+}
+const report=(name,err)=>console.error(`MA CRM ${name} module`,err);
+const controllerReady=import(MODULES.controller);
+const viewReady=controllerReady.then(()=>import(MODULES.view));
+controllerReady.then(()=>import(MODULES.documents)).catch(err=>report("documents",err));
+const pickerReady=controllerReady.then(()=>import(MODULES.picker));
+viewReady.then(()=>import(MODULES.issue)).catch(err=>report("issue",err));
+Promise.all([viewReady,pickerReady]).then(()=>import(MODULES.compact)).catch(err=>report("compact order",err));
+viewReady.then(()=>import(MODULES.history)).catch(err=>report("order history",err));
