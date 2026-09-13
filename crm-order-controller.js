@@ -9,12 +9,39 @@
   const readJson=key=>{try{return JSON.parse(localStorage.getItem(key)||"null");}catch(_){return null;}};
   const adminToken=()=>readJson(ADMIN_SESSION_KEY)?.access_token||"";
   const crmSession=()=>{try{return localStorage.getItem(CRM_SESSION_KEY)||"";}catch(_){return"";}};
-  const state={repairId:"",data:null,token:0,readyToken:0,closed:true};
+
+  const state={
+    repairId:"",
+    data:null,
+    loading:false,
+    error:null,
+    token:0,
+    readyToken:0,
+    closed:true,
+    request:null,
+    renderer:null,
+    authErrorHandler:null,
+    sectionLoaders:new Map(),
+    sectionData:new Map(),
+    sectionRequests:new Map(),
+  };
 
   function headers(){const h={"Content-Type":"application/json","apikey":API_KEY};const a=adminToken(),s=crmSession();if(a)h.Authorization=`Bearer ${a}`;if(s)h["x-crm-session"]=s;return h;}
   function emit(name,detail={}){document.dispatchEvent(new CustomEvent(name,{detail:{...detail,repairId:state.repairId,token:state.token}}));}
-  function setLoading(){const body=$("repairDetailBody");if(!body)return;body.innerHTML='<div class="crm-order-loading">Загружаем заказ…</div>';}
-  function installStyle(){if($("crmOrderControllerStyle"))return;const style=document.createElement("style");style.id="crmOrderControllerStyle";style.textContent='.crm-order-loading{min-height:220px;display:flex;align-items:center;justify-content:center;padding:24px;color:#7b8794;font-size:14px;text-align:center}';document.head.appendChild(style);}
+  function installStyle(){if($("crmOrderControllerStyle"))return;const style=document.createElement("style");style.id="crmOrderControllerStyle";style.textContent='.crm-order-loading,.crm-order-error{min-height:220px;display:flex;align-items:center;justify-content:center;padding:24px;color:#7b8794;font-size:14px;text-align:center}.crm-order-error{color:#b42318}';document.head.appendChild(style);}
+  function showOverlay(){const overlay=$("repairDetailOverlay");if(overlay)overlay.classList.remove("hidden");document.body.style.overflow="hidden";}
+  function setLoading(){const body=$("repairDetailBody");if(body)body.innerHTML='<div class="crm-order-loading">Загружаем заказ…</div>';}
+  function setError(message){const body=$("repairDetailBody");if(body)body.innerHTML=`<div class="crm-order-error">${String(message||"Не удалось открыть заказ").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]))}</div>`;}
+
+  function abortBase(){if(state.request){try{state.request.abort();}catch(_){ }state.request=null;}}
+  function abortSections(){for(const controller of state.sectionRequests.values()){try{controller.abort();}catch(_){ }}state.sectionRequests.clear();}
+
+  async function readRepair(id,{signal}={}){
+    const res=await fetch(BASE_API,{method:"POST",headers:headers(),body:JSON.stringify({op:"repair",id}),signal,cache:"no-store"});
+    const data=await res.json().catch(()=>({ok:false,error:"Сервер вернул непонятный ответ"}));
+    if(!res.ok||data?.ok===false){const error=new Error(data?.error||`Ошибка ${res.status}`);error.status=res.status;throw error;}
+    return data;
+  }
 
   function waitForBaseMarkup(token,data,attempt=0){
     if(token!==state.token||state.closed)return;
@@ -27,54 +54,58 @@
       emit("ma:order:ready",{data,repair:data?.repair||null,body});
       return;
     }
-    if(attempt>=90){emit("ma:order:error",{message:"Карточка заказа не успела отрисоваться"});return;}
+    if(attempt>=90){const message="Карточка заказа не успела отрисоваться";state.error=message;emit("ma:order:error",{message});return;}
     requestAnimationFrame(()=>waitForBaseMarkup(token,data,attempt+1));
   }
 
-  function acceptBaseData(data){
-    const repair=data?.repair;if(!repair?.id)return;
-    state.repairId=String(repair.id);state.data=data;state.closed=false;state.token++;state.readyToken=0;
-    const token=state.token;
-    emit("ma:order:data",{data,repair});
-    requestAnimationFrame(()=>waitForBaseMarkup(token,data));
+  async function open(id,options={}){
+    const repairId=String(id||"").trim();if(!repairId)return null;
+    installStyle();abortBase();abortSections();state.sectionData.clear();
+    const token=++state.token;state.readyToken=0;state.repairId=repairId;state.data=null;state.loading=true;state.error=null;state.closed=false;
+    const controller=new AbortController();state.request=controller;
+    showOverlay();if(!options.keepMarkup)setLoading();
+    emit("ma:order:opening",{repairId,reason:options.reason||"open"});
+    try{
+      const data=await readRepair(repairId,{signal:controller.signal});
+      if(controller.signal.aborted||token!==state.token||state.closed)return null;
+      state.request=null;state.data=data;state.loading=false;state.error=null;
+      if(typeof state.renderer!=="function")throw new Error("Рендерер карточки заказа не подключён");
+      state.renderer(data,{token,reason:options.reason||"open"});
+      emit("ma:order:loaded",{data,repair:data?.repair||null});
+      requestAnimationFrame(()=>waitForBaseMarkup(token,data));
+      return data;
+    }catch(error){
+      if(error?.name==="AbortError"||controller.signal.aborted||token!==state.token)return null;
+      state.request=null;state.loading=false;state.error=error?.message||"Не удалось открыть заказ";
+      if(Number(error?.status)===403&&typeof state.authErrorHandler==="function")state.authErrorHandler(state.error);
+      else setError(state.error);
+      emit("ma:order:error",{message:state.error,error});
+      return null;
+    }
   }
 
-  function close(){
-    if(state.closed)return;
-    const old={repairId:state.repairId,data:state.data,token:state.token};
-    state.closed=true;state.repairId="";state.data=null;state.token++;state.readyToken=0;
-    document.dispatchEvent(new CustomEvent("ma:order:closed",{detail:old}));
-  }
+  async function refresh(options={}){if(!state.repairId||state.closed)return null;return open(state.repairId,{...options,reason:options.reason||"refresh",keepMarkup:options.keepMarkup===true});}
 
-  async function readRepair(id){
-    const res=await fetch(BASE_API,{method:"POST",headers:headers(),body:JSON.stringify({op:"repair",id}),cache:"no-store"});
-    const data=await res.json().catch(()=>({ok:false,error:"Сервер вернул непонятный ответ"}));
-    if(!res.ok||data?.ok===false)throw new Error(data?.error||`Ошибка ${res.status}`);
-    return data;
-  }
+  function registerRenderer(renderer){state.renderer=typeof renderer==="function"?renderer:null;}
+  function registerAuthErrorHandler(handler){state.authErrorHandler=typeof handler==="function"?handler:null;}
+  function registerSection(name,loader){const key=String(name||"").trim();if(!key||typeof loader!=="function")return;state.sectionLoaders.set(key,loader);}
+  function unregisterSection(name){const key=String(name||"").trim();state.sectionLoaders.delete(key);const req=state.sectionRequests.get(key);if(req){try{req.abort();}catch(_){ }state.sectionRequests.delete(key);}state.sectionData.delete(key);}
+  function setSection(name,data,{emitChange=true}={}){const key=String(name||"").trim();if(!key)return;state.sectionData.set(key,data);if(emitChange)emit("ma:order:section-changed",{section:key,data});}
+  function getSection(name){return state.sectionData.get(String(name||"").trim())||null;}
 
-  function installFetchBridge(){
-    if(window.__maOrderFetchBridge)return;
-    const upstream=window.fetch.bind(window);
-    window.fetch=async function(input,init={}){
-      const url=typeof input==="string"?input:input?.url||"";
-      let body=null;
-      if(url.startsWith(BASE_API)&&init?.body){try{body=JSON.parse(String(init.body));}catch(_){}}
-      const response=await upstream(input,init);
-      if(response.ok&&body?.op==="repair"){
-        try{const data=await response.clone().json();queueMicrotask(()=>acceptBaseData(data));}catch(_){ }
-      }
-      return response;
-    };
-    window.__maOrderFetchBridge=true;
-  }
-
-  function installDomBridge(){
-    document.addEventListener("click",event=>{
-      const opener=event.target.closest?.("[data-repair-id],[data-recent-repair]");
-      if(opener){installStyle();setTimeout(setLoading,0);}
-      if(event.target.closest?.("#closeRepairDetail"))close();
-    },true);
+  async function refreshSection(name,options={}){
+    const key=String(name||"").trim(),loader=state.sectionLoaders.get(key);if(!key||!loader||!state.repairId||state.closed)return null;
+    const previous=state.sectionRequests.get(key);if(previous){try{previous.abort();}catch(_){ }}
+    const controller=new AbortController();state.sectionRequests.set(key,controller);const token=state.token,repairId=state.repairId;
+    emit("ma:order:section-loading",{section:key});
+    try{
+      const data=await loader({repairId,token,signal:controller.signal,current:state.data,force:options.force===true});
+      if(controller.signal.aborted||state.closed||token!==state.token||repairId!==state.repairId)return null;
+      state.sectionRequests.delete(key);state.sectionData.set(key,data);emit("ma:order:section-loaded",{section:key,data});return data;
+    }catch(error){
+      if(error?.name==="AbortError"||controller.signal.aborted||token!==state.token)return null;
+      state.sectionRequests.delete(key);emit("ma:order:section-error",{section:key,message:error?.message||"Не удалось загрузить раздел",error});throw error;
+    }
   }
 
   function updateSnapshot(patch){
@@ -83,17 +114,24 @@
     emit("ma:order:changed",{data:state.data,repair:state.data.repair,patch});
   }
 
-  function sectionChanged(section,payload={}){emit("ma:order:section-changed",{section,...payload});}
+  function replaceSnapshot(data){if(!data?.repair)return;state.data=data;state.repairId=String(data.repair.id||state.repairId);emit("ma:order:changed",{data,repair:data.repair,replace:true});}
 
-  installStyle();installFetchBridge();installDomBridge();
+  function close(){
+    if(state.closed)return;
+    const old={repairId:state.repairId,data:state.data,token:state.token};abortBase();abortSections();state.sectionData.clear();
+    state.closed=true;state.repairId="";state.data=null;state.loading=false;state.error=null;state.token++;state.readyToken=0;
+    const overlay=$("repairDetailOverlay");if(overlay)overlay.classList.add("hidden");document.body.style.overflow="";
+    document.dispatchEvent(new CustomEvent("ma:order:closed",{detail:old}));
+  }
+
+  installStyle();
   window.MAOrderController={
     get current(){return state.data;},
     get repair(){return state.data?.repair||null;},
     get repairId(){return state.repairId;},
     get token(){return state.token;},
-    readRepair,
-    updateSnapshot,
-    sectionChanged,
-    close,
+    get loading(){return state.loading;},
+    get error(){return state.error;},
+    open,close,refresh,readRepair,registerRenderer,registerAuthErrorHandler,registerSection,unregisterSection,refreshSection,setSection,getSection,updateSnapshot,replaceSnapshot,
   };
 })();
