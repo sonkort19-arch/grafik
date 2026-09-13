@@ -56,6 +56,8 @@ jobs:
           node --check crm-mobile-audit.js
           node --check crm-order-controller.js
           node --check crm-order-view.js
+          node --check crm-order-documents.js
+          node --check crm-order-history.js
           node --check crm-compact-order-v2.js
           node --check crm-issue.js
           node --check crm-item-picker.js
@@ -68,6 +70,7 @@ jobs:
           node --check tests/assistant-launcher-viewport-tests.js
           node --check tests/crm-regression-tests.js
           node --check tests/crm-order-v2-tests.js
+          node --check tests/crm-order-controller-tests.js
           node --check tests/stability-gates.js
           node --check tests/redesign-final-check.js
           node --input-type=module --check < api/mcp.js
@@ -104,8 +107,11 @@ jobs:
       - name: Run CRM audit regression checks
         run: node tests/crm-regression-tests.js
 
-      - name: Run CRM order v2 guards
+      - name: Run CRM order hardening guards
         run: node tests/crm-order-v2-tests.js
+
+      - name: Run CRM order lifecycle behavior tests
+        run: node tests/crm-order-controller-tests.js
 
       - name: Run final redesign guard
         run: node tests/redesign-final-check.js
@@ -158,12 +164,15 @@ jobs:
           wait_for "$BASE/oauth/consent.html" "Подключение ChatGPT"
           wait_for "$BASE/crm.html" "crm-final.js"
           wait_for "$BASE/crm-final.css" "crm-stage7.css"
-          wait_for "$BASE/crm-phase1.js" "ma-crm-phase1-api"
+          wait_for "$BASE/crm-phase1.js" "ma-crm-order-api"
           wait_for "$BASE/crm-inventory.js" "ma-crm-inventory-api"
           wait_for "$BASE/crm-finance.js" "ma-crm-finance-api"
           wait_for "$BASE/crm-final.js" "create-repair-bundle"
           wait_for "$BASE/crm-order-controller.js" "registerSection"
           wait_for "$BASE/crm-order-view.js" "MAOrderView"
+          wait_for "$BASE/crm-order-documents.js" "MAOrderDocuments"
+          wait_for "$BASE/crm-order-history.js" "registerSection"
+          wait_for "$BASE/crm-item-picker.js" "ma-crm-order-api"
           wait_status "$BASE/crm-location.js"
           headers="$(curl -sS -i --max-time 10 -X POST "$BASE/mcp" -H 'Content-Type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ma-grafik-smoke","version":"1.0"}}}')"
           [[ "$headers" =~ ^HTTP/[^[:space:]]+[[:space:]]401 ]]
