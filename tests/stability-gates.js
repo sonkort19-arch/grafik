@@ -120,8 +120,6 @@ function assertSupabaseFunctionClassification() {
     return;
   }
 
-  // Strict functions are Deno type-checked in CI. Legacy functions are explicitly
-  // classified so existing technical debt cannot silently spread to new modules.
   const strictFunctions = new Set([
     'ma-grafik-write-api',
     'ma-grafik-mcp',
@@ -132,6 +130,7 @@ function assertSupabaseFunctionClassification() {
     'ma-crm-finance-api',
     'ma-crm-final-api',
     'ma-crm-item-cost-api',
+    'ma-crm-order-api',
     'ma-shifts'
   ]);
   const legacyFunctions = new Set(['ma-grafik-api']);
@@ -167,7 +166,9 @@ function assertSupabaseFunctionClassification() {
   'crm-inventory.js',
   'crm-finance.js',
   'crm-final.js',
-  'crm-location.js'
+  'crm-location.js',
+  'crm-order-controller.js',
+  'crm-order-view.js'
 ].forEach(read);
 
 assertLocalRefsExist('index.html');
