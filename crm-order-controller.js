@@ -1,5 +1,6 @@
 (()=>{
   "use strict";
+  if(window.MAOrderController?.version==="4")return;
 
   const BASE_API="https://yedzfmibceboncrytbqz.supabase.co/functions/v1/ma-crm-api";
   const API_KEY="sb_publishable_tSqbw3aeAgxYuzHhQurCuw_yDze4ZNn";
@@ -126,6 +127,7 @@
 
   installStyle();
   window.MAOrderController={
+    version:"4",
     get current(){return state.data;},
     get repair(){return state.data?.repair||null;},
     get repairId(){return state.repairId;},
