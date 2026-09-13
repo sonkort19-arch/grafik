@@ -1,6 +1,6 @@
 (()=>{
   "use strict";
-  if(window.MAOrderView?.version==="3")return;
+  if(window.MAOrderView?.version==="2")return;
 
   const API_URL="https://yedzfmibceboncrytbqz.supabase.co/functions/v1/ma-crm-order-api";
   const API_KEY="sb_publishable_tSqbw3aeAgxYuzHhQurCuw_yDze4ZNn";
@@ -56,5 +56,5 @@
   controller.registerRenderer(render);
   controller.registerAuthErrorHandler(message=>{localStorage.removeItem(CRM_SESSION_KEY);controller.close();const main=$("crmMain"),login=$("loginOverlay"),error=$("crmLoginError");main?.classList.add("hidden");login?.classList.remove("hidden");if(error)error.textContent=message||"Сессия закончилась. Войдите снова.";});
   document.addEventListener("click",interceptOpen,true);document.addEventListener("click",interceptClose,true);document.addEventListener("keydown",interceptEscape,true);
-  window.MAOrderView={version:"3",render};
+  window.MAOrderView={version:"2",render};
 })();
