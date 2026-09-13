@@ -55,6 +55,7 @@ jobs:
           node --check crm-location.js
           node --check crm-mobile-audit.js
           node --check crm-order-controller.js
+          node --check crm-order-view.js
           node --check crm-compact-order-v2.js
           node --check crm-issue.js
           node --check crm-item-picker.js
@@ -125,6 +126,7 @@ jobs:
           deno check supabase/functions/ma-crm-finance-api/index.ts
           deno check supabase/functions/ma-crm-final-api/index.ts
           deno check supabase/functions/ma-crm-item-cost-api/index.ts
+          deno check supabase/functions/ma-crm-order-api/index.ts
           deno check supabase/functions/ma-shifts/index.ts
 
   production-smoke:
@@ -160,6 +162,8 @@ jobs:
           wait_for "$BASE/crm-inventory.js" "ma-crm-inventory-api"
           wait_for "$BASE/crm-finance.js" "ma-crm-finance-api"
           wait_for "$BASE/crm-final.js" "create-repair-bundle"
+          wait_for "$BASE/crm-order-controller.js" "registerSection"
+          wait_for "$BASE/crm-order-view.js" "MAOrderView"
           wait_status "$BASE/crm-location.js"
           headers="$(curl -sS -i --max-time 10 -X POST "$BASE/mcp" -H 'Content-Type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ma-grafik-smoke","version":"1.0"}}}')"
           [[ "$headers" =~ ^HTTP/[^[:space:]]+[[:space:]]401 ]]
