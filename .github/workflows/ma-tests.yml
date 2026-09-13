@@ -71,6 +71,7 @@ jobs:
           node --check tests/crm-regression-tests.js
           node --check tests/crm-order-v2-tests.js
           node --check tests/crm-order-controller-tests.js
+          node --check tests/crm-order-destroyer-static-tests.js
           node --check tests/stability-gates.js
           node --check tests/redesign-final-check.js
           node --input-type=module --check < api/mcp.js
@@ -112,6 +113,9 @@ jobs:
 
       - name: Run CRM order lifecycle behavior tests
         run: node tests/crm-order-controller-tests.js
+
+      - name: Run CRM order destroyer static guards
+        run: node tests/crm-order-destroyer-static-tests.js
 
       - name: Run final redesign guard
         run: node tests/redesign-final-check.js
