@@ -7,6 +7,7 @@ const issue = read('crm-issue.js');
 const mobile = read('crm-mobile-audit.js');
 const orderApi = read('supabase/functions/ma-crm-order-api/index.ts');
 const payrollFix = read('supabase/migrations/20260913104500_fix_payroll_snapshot_unassigned_record.sql');
+const paymentGuard = read('supabase/migrations/20260913110500_guard_order_payment_balance.sql');
 
 function must(source, pattern, message) {
   assert(pattern.test(source), message);
@@ -38,5 +39,11 @@ must(payrollFix, /v_comp_percent numeric/, 'Payroll fix must use scalar compensa
 mustNot(payrollFix, /v_rule\s+record/, 'Payroll snapshot must not reintroduce unassigned RECORD rule variables');
 mustNot(payrollFix, /v_comp\s+record/, 'Payroll snapshot must not reintroduce unassigned RECORD compensation variables');
 must(payrollFix, /coalesce\(v_comp_percent, 0\)/, 'Missing compensation must safely fall back to 0%');
+
+must(paymentGuard, /v_existing\.repair_id is distinct from p_repair_id/, 'Idempotency keys must not cross order boundaries');
+must(paymentGuard, /v_repair\.status = 'issued'/, 'Issued orders must reject new manual payments');
+must(paymentGuard, /p_amount - v_remaining > 0\.009/, 'Payments must not exceed the remaining balance');
+must(paymentGuard, /p_amount - v_refundable > 0\.009/, 'Refunds must not exceed money actually paid');
+must(paymentGuard, /p_kind = 'refund' and p_category not in \('refund','deposit_refund'\)/, 'Refund kind/category must stay consistent');
 
 console.log('CRM order destroyer static guards: OK');
