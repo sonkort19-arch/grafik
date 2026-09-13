@@ -5,18 +5,15 @@ const read = path => fs.readFileSync(path, 'utf8');
 const controller = read('crm-order-controller.js');
 const issue = read('crm-issue.js');
 const mobile = read('crm-mobile-audit.js');
+const warrantyGuard = read('crm-warranty-guard.js');
 const orderApi = read('supabase/functions/ma-crm-order-api/index.ts');
 const payrollFix = read('supabase/migrations/20260913104500_fix_payroll_snapshot_unassigned_record.sql');
 const paymentGuard = read('supabase/migrations/20260913110500_guard_order_payment_balance.sql');
 const statusGuard = read('supabase/migrations/20260913111500_guard_issued_status_reopen.sql');
 const payrollClamp = read('supabase/migrations/20260913112500_clamp_negative_payroll_profit.sql');
 
-function must(source, pattern, message) {
-  assert(pattern.test(source), message);
-}
-function mustNot(source, pattern, message) {
-  assert(!pattern.test(source), message);
-}
+function must(source, pattern, message) { assert(pattern.test(source), message); }
+function mustNot(source, pattern, message) { assert(!pattern.test(source), message); }
 
 must(controller, /new AbortController\(\)/, 'OrderController must cancel stale requests');
 must(controller, /token!==state\.token/, 'OrderController must reject stale order responses');
@@ -30,6 +27,12 @@ mustNot(issue, /location\.reload\s*\(/, 'Issue flow must not reload the CRM');
 
 must(mobile, /touchend/, 'iPhone menu must have a real touch path');
 must(mobile, /repairOrphanedScrollLock/, 'Mobile shell must repair orphaned scroll locks');
+must(mobile, /crm-warranty-guard\.js/, 'Warranty double-submit guard must load with the order modules');
+
+must(warrantyGuard, /button\.disabled=true/, 'Warranty creation must lock immediately after the first action');
+must(warrantyGuard, /warrantyBusy/, 'Warranty creation must have an explicit busy guard');
+must(warrantyGuard, /stopImmediatePropagation\(\)/, 'Warranty guard must suppress the legacy duplicate handler');
+must(warrantyGuard, /idempotencyKey:key/, 'Warranty request must carry a stable request key for backend migration compatibility');
 
 must(orderApi, /idempotencyKey/, 'Order API must support idempotency keys');
 must(orderApi, /ma_crm_add_order_payment/, 'Payments must go through atomic payment RPC');
