@@ -42,8 +42,12 @@
   syncViewport();guardLoginAutofocus();window.addEventListener("resize",syncViewport,{passive:true});window.addEventListener("orientationchange",()=>setTimeout(syncViewport,120),{passive:true});if(window.visualViewport){window.visualViewport.addEventListener("resize",syncViewport,{passive:true});window.visualViewport.addEventListener("scroll",syncViewport,{passive:true});}document.addEventListener("focusin",keepFocusedControlVisible,true);
 })();
 
-const orderReady=import("./crm-order-controller.js?v=20260913-v4")
-  .then(()=>import("./crm-order-view.js?v=20260913-v1"));
-orderReady.then(()=>import("./crm-issue.js?v=20260913-v2")).catch(err=>console.error("MA CRM issue module",err));
-orderReady.then(()=>import("./crm-compact-order-v2.js?v=20260913-v3")).catch(err=>console.error("MA CRM compact order module",err));
+const controllerReady=import("./crm-order-controller.js?v=20260913-v5");
+const orderReady=controllerReady.then(()=>Promise.all([
+  import("./crm-order-view.js?v=20260913-v2"),
+  import("./crm-order-documents.js?v=20260913-v1")
+]));
+orderReady.then(()=>import("./crm-issue.js?v=20260913-v3")).catch(err=>console.error("MA CRM issue module",err));
+orderReady.then(()=>import("./crm-compact-order-v2.js?v=20260913-v4")).catch(err=>console.error("MA CRM compact order module",err));
 orderReady.then(()=>import("./crm-item-picker.js?v=20260913-v2")).catch(err=>console.error("MA CRM item picker module",err));
+orderReady.then(()=>import("./crm-order-history.js?v=20260913-v1")).catch(err=>console.error("MA CRM order history module",err));
