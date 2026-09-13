@@ -1,4 +1,4 @@
-/* ВАЖНО: styles-redesign-v5.css импортирует styles-legacy.css — это активная базовая зависимость, не удалять. */
+/* ВАЖНО: основной redesign-слой импортирует styles-legacy.css — это активная базовая зависимость, не удалять. */
 @import url("./styles-redesign-v5.css");
 @import url("./styles-stage6.css");
 @import url("./styles-stage8.css");

@@ -26,55 +26,23 @@
 
   function suppressNextProgrammaticFocus(el,duration=180){
     if(!el||!mobile())return;
-    try{
-      Object.defineProperty(el,"focus",{configurable:true,value:()=>{}});
-      setTimeout(()=>{try{delete el.focus;}catch(_){ }},duration);
-    }catch(_){ }
+    try{Object.defineProperty(el,"focus",{configurable:true,value:()=>{}});setTimeout(()=>{try{delete el.focus;}catch(_){ }},duration);}catch(_){ }
   }
-
   function guardLoginAutofocus(){
-    const overlay=document.getElementById("loginOverlay");
-    if(!overlay)return;
-    const arm=()=>{
-      if(overlay.classList.contains("hidden")||!mobile())return;
-      suppressNextProgrammaticFocus(document.getElementById("crmLoginName"));
-      suppressNextProgrammaticFocus(document.getElementById("crmLoginPin"));
-      syncViewport();
-    };
-    new MutationObserver(arm).observe(overlay,{attributes:true,attributeFilter:["class"]});
-    arm();
+    const overlay=document.getElementById("loginOverlay");if(!overlay)return;
+    const arm=()=>{if(overlay.classList.contains("hidden")||!mobile())return;suppressNextProgrammaticFocus(document.getElementById("crmLoginName"));suppressNextProgrammaticFocus(document.getElementById("crmLoginPin"));syncViewport();};
+    new MutationObserver(arm).observe(overlay,{attributes:true,attributeFilter:["class"]});arm();
   }
-
   function keepFocusedControlVisible(event){
-    if(!mobile())return;
-    const el=event.target;
-    if(!(el instanceof HTMLElement)||!el.matches("input,select,textarea"))return;
+    if(!mobile())return;const el=event.target;if(!(el instanceof HTMLElement)||!el.matches("input,select,textarea"))return;
     if(!el.closest(".login-card,.drawer,.order-modal,.dialog-card,.inv-dialog,.fin-dialog,.final-dialog,.issue-dialog,.ma-item-sheet"))return;
-    setTimeout(()=>{
-      syncViewport();
-      const vv=window.visualViewport;
-      const top=(vv?.offsetTop||0)+64;
-      const bottom=(vv?.offsetTop||0)+(vv?.height||window.innerHeight)-72;
-      const rect=el.getBoundingClientRect();
-      if(rect.top>=top&&rect.bottom<=bottom)return;
-      try{el.scrollIntoView({block:"nearest",inline:"nearest",behavior:"smooth"});}
-      catch(_){el.scrollIntoView();}
-    },120);
+    setTimeout(()=>{syncViewport();const vv=window.visualViewport,top=(vv?.offsetTop||0)+64,bottom=(vv?.offsetTop||0)+(vv?.height||window.innerHeight)-72,rect=el.getBoundingClientRect();if(rect.top>=top&&rect.bottom<=bottom)return;try{el.scrollIntoView({block:"nearest",inline:"nearest",behavior:"smooth"});}catch(_){el.scrollIntoView();}},120);
   }
 
-  syncViewport();
-  guardLoginAutofocus();
-  window.addEventListener("resize",syncViewport,{passive:true});
-  window.addEventListener("orientationchange",()=>setTimeout(syncViewport,120),{passive:true});
-  if(window.visualViewport){
-    window.visualViewport.addEventListener("resize",syncViewport,{passive:true});
-    window.visualViewport.addEventListener("scroll",syncViewport,{passive:true});
-  }
-  document.addEventListener("focusin",keepFocusedControlVisible,true);
+  syncViewport();guardLoginAutofocus();window.addEventListener("resize",syncViewport,{passive:true});window.addEventListener("orientationchange",()=>setTimeout(syncViewport,120),{passive:true});if(window.visualViewport){window.visualViewport.addEventListener("resize",syncViewport,{passive:true});window.visualViewport.addEventListener("scroll",syncViewport,{passive:true});}document.addEventListener("focusin",keepFocusedControlVisible,true);
 })();
 
-import("./crm-order-stability.js?v=20260913-1").catch(err=>console.error("MA CRM order stability module",err));
-import("./crm-issue.js?v=20260913-1").catch(err=>console.error("MA CRM issue module",err));
-import("./crm-service-cost.js?v=20260913-2").catch(err=>console.error("MA CRM service cost module",err));
-import("./crm-compact-order-v2.js?v=20260913-2").catch(err=>console.error("MA CRM compact order module",err));
-import("./crm-item-picker.js?v=20260913-1").catch(err=>console.error("MA CRM item picker module",err));
+import("./crm-order-controller.js?v=20260913-v3").catch(err=>console.error("MA CRM order controller",err));
+import("./crm-issue.js?v=20260913-v2").catch(err=>console.error("MA CRM issue module",err));
+import("./crm-compact-order-v2.js?v=20260913-v3").catch(err=>console.error("MA CRM compact order module",err));
+import("./crm-item-picker.js?v=20260913-v2").catch(err=>console.error("MA CRM item picker module",err));

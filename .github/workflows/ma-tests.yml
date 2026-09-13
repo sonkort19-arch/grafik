@@ -53,6 +53,11 @@ jobs:
           node --check crm-final.js
           node --check crm.js
           node --check crm-location.js
+          node --check crm-mobile-audit.js
+          node --check crm-order-controller.js
+          node --check crm-compact-order-v2.js
+          node --check crm-issue.js
+          node --check crm-item-picker.js
           node --check tests/run-tests.js
           node --check tests/assistant-tests.js
           node --check tests/assistant-robustness-tests.js
@@ -61,6 +66,7 @@ jobs:
           node --check tests/assistant-launcher-tests.js
           node --check tests/assistant-launcher-viewport-tests.js
           node --check tests/crm-regression-tests.js
+          node --check tests/crm-order-v2-tests.js
           node --check tests/stability-gates.js
           node --check tests/redesign-final-check.js
           node --input-type=module --check < api/mcp.js
@@ -97,6 +103,9 @@ jobs:
       - name: Run CRM audit regression checks
         run: node tests/crm-regression-tests.js
 
+      - name: Run CRM order v2 guards
+        run: node tests/crm-order-v2-tests.js
+
       - name: Run final redesign guard
         run: node tests/redesign-final-check.js
 
@@ -115,6 +124,7 @@ jobs:
           deno check supabase/functions/ma-crm-inventory-api/index.ts
           deno check supabase/functions/ma-crm-finance-api/index.ts
           deno check supabase/functions/ma-crm-final-api/index.ts
+          deno check supabase/functions/ma-crm-item-cost-api/index.ts
           deno check supabase/functions/ma-shifts/index.ts
 
   production-smoke:
