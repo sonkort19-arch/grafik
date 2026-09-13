@@ -49,5 +49,5 @@ const orderReady=controllerReady.then(()=>Promise.all([
 ]));
 const pickerReady=orderReady.then(()=>import("./crm-item-picker.js?v=20260913-v2"));
 orderReady.then(()=>import("./crm-issue.js?v=20260913-v3")).catch(err=>console.error("MA CRM issue module",err));
-pickerReady.then(()=>import("./crm-compact-order-v2.js?v=20260913-v5")).catch(err=>console.error("MA CRM compact order module",err));
+pickerReady.then(()=>import("./crm-compact-order-v2.js?v=20260913-v6")).catch(err=>console.error("MA CRM compact order module",err));
 orderReady.then(()=>import("./crm-order-history.js?v=20260913-v1")).catch(err=>console.error("MA CRM order history module",err));
