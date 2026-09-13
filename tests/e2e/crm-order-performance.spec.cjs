@@ -92,16 +92,32 @@ test('CRM order responsiveness stays within practical mobile budgets', async ({ 
     reopen.push(Date.now()-s);
   }
 
-  let tabP95 = null, pickerMs = null;
+  let tapP95 = null, appTabP95 = null, pickerMs = null;
   if (isMobile) {
-    const tabTimes = [];
+    const tapTimes = [];
     for (const tab of ['items','payments','history','files','general','items','payments','general']) {
       const s = Date.now();
       await page.locator(`#hcOrderTabs [data-hc-tab="${tab}"]`).tap();
       await expect(page.locator(`#hcOrderTabs [data-hc-tab="${tab}"]`)).toHaveClass(/active/);
-      tabTimes.push(Date.now()-s);
+      tapTimes.push(Date.now()-s);
     }
-    tabP95 = percentile(tabTimes, .95);
+    tapP95 = percentile(tapTimes, .95);
+
+    const appTabTimes = await page.evaluate(() => {
+      const tabs = ['items','payments','history','files','general','items','payments','general'];
+      const times = [];
+      for (let round=0; round<12; round++) {
+        for (const tab of tabs) {
+          const start = performance.now();
+          window.MAOrderCompact.setTab(tab);
+          const button = document.querySelector(`#hcOrderTabs [data-hc-tab="${tab}"]`);
+          if (!button?.classList.contains('active')) throw new Error(`Tab ${tab} did not become active synchronously`);
+          times.push(performance.now()-start);
+        }
+      }
+      return times;
+    });
+    appTabP95 = Math.round(percentile(appTabTimes, .95) * 100) / 100;
 
     await page.locator('#hcOrderTabs [data-hc-tab="items"]').tap();
     const pickerStart = Date.now();
@@ -110,14 +126,26 @@ test('CRM order responsiveness stays within practical mobile budgets', async ({ 
     pickerMs = Date.now()-pickerStart;
   }
 
-  const result = { project:testInfo.project.name, bootMs, firstOpenMs, reopenAvgMs:Math.round(reopen.reduce((a,b)=>a+b,0)/reopen.length), reopenP95Ms:percentile(reopen,.95), tabP95Ms:tabP95, pickerOpenMs:pickerMs };
+  const result = {
+    project:testInfo.project.name,
+    bootMs,
+    firstOpenMs,
+    reopenAvgMs:Math.round(reopen.reduce((a,b)=>a+b,0)/reopen.length),
+    reopenP95Ms:percentile(reopen,.95),
+    tapP95Ms:tapP95,
+    appTabP95Ms:appTabP95,
+    pickerOpenMs:pickerMs
+  };
   console.log(`PERF_RESULT ${JSON.stringify(result)}`);
 
   expect(bootMs).toBeLessThan(3000);
   expect(firstOpenMs).toBeLessThan(1500);
   expect(percentile(reopen,.95)).toBeLessThan(1200);
   if (isMobile) {
-    expect(tabP95).toBeLessThan(250);
+    // Real WebKit touch includes browser/automation gesture scheduling, so keep it as a practical upper bound.
+    expect(tapP95).toBeLessThan(450);
+    // This isolates MA CRM's own synchronous DOM switch from WebKit touch overhead.
+    expect(appTabP95).toBeLessThan(25);
     expect(pickerMs).toBeLessThan(600);
   }
 });
