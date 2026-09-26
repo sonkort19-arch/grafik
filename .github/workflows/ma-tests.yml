@@ -86,6 +86,9 @@ jobs:
       - name: Run MA Grafik regression suite
         run: node tests/run-tests.js
 
+      - name: Check push notification and cron safeguards
+        run: node tests/push-cron-tests.js
+
       - name: Run free assistant parser tests
         run: node tests/assistant-tests.js
 
