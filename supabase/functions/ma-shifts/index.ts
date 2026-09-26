@@ -5,7 +5,7 @@ import webpush from "npm:web-push@3.6.7";
 if (!("window" in globalThis)) {
   Object.defineProperty(globalThis, "window", { value: globalThis, configurable: true });
 }
-await import("https://raw.githubusercontent.com/sonkort19-arch/grafik/main/schedule.js");
+await import("https://raw.githubusercontent.com/sonkort19-arch/grafik/ce8b50b9c2d76203b4bf49c87b6fef607bc2e9bc/schedule.js");
 const SharedSchedule:any = (globalThis as any).MASchedule || (globalThis as any).window?.MASchedule;
 if (!SharedSchedule?.create) throw new Error("Не удалось загрузить общий расчёт графика");
 
@@ -290,8 +290,15 @@ async function handleSetPin(req:Request,body:any){
   const employee=String(body.employee||"").trim(), pin=String(body.pin||"");
   if(!employee) throw new Error("Не указано имя");
   if(!/^\d{4}$/.test(pin)) throw new Error("PIN должен состоять из 4 цифр");
+  const settings=await loadScheduleSettings();
+  const staff=(settings.employeeSchedules||[]).find((x:any)=>x.name===employee && !x.inactive);
+  if(!staff) throw new Error("Сотрудник не найден в активном графике");
+  const {data:existingPin,error:readError}=await admin.from("ma_employee_pins").select("role").eq("employee",employee).maybeSingle();
+  if(readError) throw readError;
+  // Preserve existing acting-manager permissions; new masters get reminder-only PINs.
+  const role=existingPin?.role==="manager"?"manager":staff.role==="master"?"master":"manager";
   const pin_hash=await hashPin(pin);
-  const {error}=await admin.from("ma_employee_pins").upsert({employee,role:"manager",pin_hash,active:true,updated_at:new Date().toISOString()},{onConflict:"employee"});
+  const {error}=await admin.from("ma_employee_pins").upsert({employee,role,pin_hash,active:true,updated_at:new Date().toISOString()},{onConflict:"employee"});
   if(error) throw error;
   return {ok:true};
 }
