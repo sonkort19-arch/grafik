@@ -3,7 +3,7 @@ const fs=require("node:fs");
 const assert=require("node:assert/strict");
 
 const server=fs.readFileSync("supabase/functions/ma-shifts/index.ts","utf8");
-const migration=fs.readFileSync("supabase/migrations/20260926222500_schedule_ma_grafik_checks.sql","utf8");
+const migration=fs.readFileSync("supabase/migrations/20260926191016_schedule_ma_grafik_checks.sql","utf8");
 const app=fs.readFileSync("app.js","utf8");
 
 function check(condition,message){assert.ok(condition,message);console.log("PASS "+message);}
