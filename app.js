@@ -3072,14 +3072,15 @@
     finally{ btn.disabled=false; btn.textContent="Подтвердить"; }
   }
 
+  const pinEmployeeNames=()=>[...new Set([...activeManagerNames(),...activeEmployeeNames()])];
   function renderPinFields(){
     const root=$("pinFields"); if(!root) return;
-    root.innerHTML=activeManagerNames().map((n,i)=>`<div class="pin-grid"><div class="field" style="margin:0"><label>${escapeHtml(n)}</label><input class="readonly" value="${["Георгий","Асик"].includes(n)?"Мастер Новы / ответственный":"Менеджер"}" readonly></div><div class="field" style="margin:0"><label>Новый PIN</label><input id="managerPin${i}" type="password" inputmode="numeric" maxlength="4" placeholder="4 цифры"></div></div>`).join("");
+    root.innerHTML=pinEmployeeNames().map((n,i)=>`<div class="pin-grid"><div class="field" style="margin:0"><label>${escapeHtml(n)}</label><input class="readonly" value="${["Георгий","Асик"].includes(n)?"Мастер Новы / ответственный":"Менеджер"}" readonly></div><div class="field" style="margin:0"><label>Новый PIN</label><input id="managerPin${i}" type="password" inputmode="numeric" maxlength="4" placeholder="4 цифры"></div></div>`).join("");
   }
 
   async function saveManagerPins(){
     if(!isAdmin()){ openLoginModal(); return; }
-    const names=activeManagerNames();
+    const names=pinEmployeeNames();
     const updates=names.map((name,i)=>({name,pin:$(`managerPin${i}`).value.trim(),index:i})).filter(x=>x.pin);
     if(!updates.length){ toast("Новые PIN не введены"); return; }
 
@@ -3180,6 +3181,20 @@
     const padding="=".repeat((4-base64String.length%4)%4); const base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");
     const raw=atob(base64); return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
   }
+  let lastAdminPushStatusCheck=0;
+  async function checkAdminPushStatus(){
+    if(!isAdmin() || Notification.permission!=="granted" || Date.now()-lastAdminPushStatusCheck<30000) return;
+    lastAdminPushStatusCheck=Date.now();
+    try{
+      const reg=serviceWorkerRegistration || await registerServiceWorker();
+      const sub=reg && await reg.pushManager.getSubscription();
+      const el=$("pushState");
+      if(!el) return;
+      if(!sub){ el.textContent="Разрешение получено, но подписки нет. Нажми «Включить уведомления»."; return; }
+      const status=await shiftFunction({op:"subscription-status",audience:"admin",endpoint:sub.endpoint},{admin:true});
+      el.textContent=status.active?"Уведомления подключены к серверу на этом телефоне.":"Подписка на сервере неактивна. Нажми «Включить уведомления» для восстановления.";
+    }catch(e){ lastAdminPushStatusCheck=0; logAppError("push status",e); }
+  }
   function updatePushState(){
     const el=$("pushState"), btn=$("enablePushBtn"); if(!el||!btn) return;
     const standalone=window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true;
@@ -3191,6 +3206,7 @@
     else el.textContent=standalone?"Уведомления ещё не включены на этом телефоне.":"На iPhone для push добавь сайт на экран «Домой», затем открой приложение и включи уведомления.";
     btn.disabled=false;
     updateSettingsSystemStatus();
+    if(Notification.permission==="granted") void checkAdminPushStatus();
   }
   async function registerServiceWorker({checkUpdate=true}={}){
     if(!("serviceWorker" in navigator)) return null;
@@ -3233,8 +3249,16 @@
       const reg=serviceWorkerRegistration || await registerServiceWorker(); if(!reg) throw new Error("Service Worker не зарегистрирован");
       let sub=await reg.pushManager.getSubscription();
       if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)});
-      await shiftFunction({op:"subscribe",subscription:sub.toJSON()},{admin:true});
-      toast("Push-уведомления включены на этом телефоне");
+      try{
+        await shiftFunction({op:"subscribe",subscription:sub.toJSON()},{admin:true});
+      }catch(e){
+        if(!/тестовое уведомление не доставлено/i.test(String(e?.message||""))) throw e;
+        await sub.unsubscribe();
+        sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)});
+        await shiftFunction({op:"subscribe",subscription:sub.toJSON()},{admin:true});
+      }
+      lastAdminPushStatusCheck=0;
+      toast("Тестовое уведомление отправлено и подписка активна");
     }catch(e){
       console.error(e);
       toast(e.message||"Не удалось включить push");
@@ -3280,7 +3304,15 @@
     const sub=reg ? await reg.pushManager.getSubscription() : null;
     const linked=employeePushName();
 
+    let serverActive=false,serverChecked=false;
     if(sub && Notification.permission==="granted" && linked===name){
+      try{
+        const result=await shiftFunction({op:"subscription-status",audience:"employee",employee:name,endpoint:sub.endpoint});
+        serverActive=result.active===true;
+        serverChecked=true;
+      }catch(e){ logAppError("employee push status",e); }
+    }
+    if(sub && Notification.permission==="granted" && linked===name && serverActive){
       state.textContent=`Включены для ${name}. Напомним вечером, за 1 час и за 15 минут до смены.`;
       state.className="employee-reminder-state employee-reminder-ok";
       enable.textContent="Напоминания включены";
@@ -3293,7 +3325,10 @@
     disable.classList.add("hidden");
     enable.textContent=linked && linked!==name ? `Переключить на ${name}` : "Включить напоминания";
 
-    if(linked && linked!==name){
+    if(linked===name && sub && serverChecked && !serverActive){
+      state.textContent="Подписка на сервере отключена. Нажми «Включить напоминания» и подтверди личный PIN.";
+      state.className="employee-reminder-state employee-reminder-warn";
+    }else if(linked && linked!==name){
       state.textContent=`Этот телефон сейчас подписан на напоминания для ${linked}.`;
       state.className="employee-reminder-state employee-reminder-warn";
     }else if(!standalone && /iPhone|iPad|iPod/i.test(navigator.userAgent)){
@@ -3331,11 +3366,21 @@
         });
       }
 
-      await shiftFunction({
-        op:"subscribe-employee",
-        employee:name,
-        subscription:sub.toJSON()
-      });
+      const adminMode=isAdmin();
+      const pin=adminMode?"":prompt(`Введите личный PIN для ${name} (4 цифры). Если PIN не назначен, попроси администратора установить его в настройках.`);
+      if(pin===null) throw new Error("Подключение отменено");
+      if(!adminMode && !/^\d{4}$/.test(pin)) throw new Error("Нужен личный PIN из 4 цифр");
+      const subscriptionRequest=subscription=>shiftFunction({
+        op:"subscribe-employee",employee:name,pin,subscription:subscription.toJSON()
+      },{admin:adminMode});
+      try{
+        await subscriptionRequest(sub);
+      }catch(e){
+        if(!/тестовое уведомление не доставлено/i.test(String(e?.message||""))) throw e;
+        await sub.unsubscribe();
+        sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)});
+        await subscriptionRequest(sub);
+      }
 
       saveEmployeePushName(name);
       toast(`Напоминания для ${name} включены`);
