@@ -164,6 +164,22 @@ async function verifyPin(employee:string,pin:string){
   throw new Error(lock?"5 неверных PIN. Вход заблокирован на 15 минут":"Неверный PIN");
 }
 
+async function verifyEmployeeSubscriptionPin(employee:string,pin:string){
+  const {data:guard,error:guardError}=await admin.from("ma_pin_guard").select("failed_attempts,locked_until").eq("employee",employee).maybeSingle();
+  if(guardError) throw guardError;
+  if(guard?.locked_until && new Date(guard.locked_until)>new Date()) throw new Error("PIN временно заблокирован");
+  const {data:row,error:pinError}=await admin.from("ma_employee_pins").select("pin_hash,active").eq("employee",employee).maybeSingle();
+  if(pinError) throw pinError;
+  if(!row||!row.active) throw new Error("Попроси администратора назначить личный PIN в настройках");
+  if(await hashPin(pin)===row.pin_hash){
+    await admin.from("ma_pin_guard").upsert({employee,failed_attempts:0,locked_until:null,updated_at:new Date().toISOString()});
+    return;
+  }
+  const failures=Number(guard?.failed_attempts||0)+1;
+  const until=failures>=5?new Date(Date.now()+15*60*1000).toISOString():null;
+  await admin.from("ma_pin_guard").upsert({employee,failed_attempts:until?0:failures,locked_until:until,updated_at:new Date().toISOString()});
+  throw new Error(until?"5 неверных PIN. Повтори через 15 минут.":"Неверный личный PIN");
+}
 async function sendWebPush(row:any,payload:any){
   try{
     await webpush.sendNotification(row.subscription,JSON.stringify(payload));
@@ -206,14 +222,16 @@ async function configuredEmployeeNames(settingsOverride?:any){
 }
 async function handleSubscribe(req:Request,body:any){
   const user=await assertAdmin(req);
+  if(!VAPID_PUBLIC_KEY||!VAPID_PRIVATE_KEY) throw new Error("Web Push не настроен на сервере");
   const sub=body.subscription;
   if(!sub?.endpoint) throw new Error("Нет push-подписки");
   const {data:row,error}=await admin.from("ma_push_subscriptions").upsert({endpoint:sub.endpoint,subscription:sub,user_email:user.email,audience:"admin",employee:null,active:true,updated_at:new Date().toISOString()},{onConflict:"endpoint"}).select("id,subscription").single();
   if(error) throw error;
-  await sendWebPush(row,{title:"MA График",body:"Уведомления администратора на этом телефоне включены",tag:"ma-push-test",url:"./"});
-  return {ok:true};
+  const delivered=await sendWebPush(row,{title:"MA График",body:"Уведомления администратора на этом телефоне включены",tag:"ma-push-test",url:"./"});
+  if(!delivered) throw new Error("Тестовое уведомление не доставлено. Создай новую подписку на устройстве.");
+  return {ok:true,verified:true};
 }
-async function handleSubscribeEmployee(body:any){
+async function handleSubscribeEmployee(req:Request,body:any){
   const employee=String(body.employee||"").trim();
   const sub=body.subscription;
   if(!employee) throw new Error("Не выбран сотрудник");
@@ -221,10 +239,41 @@ async function handleSubscribeEmployee(body:any){
   const s=await loadScheduleSettings();
   const allowed=await configuredEmployeeNames(s);
   if(!allowed.has(employee)) throw new Error("Сотрудник не найден в графике");
+  if(!VAPID_PUBLIC_KEY||!VAPID_PRIVATE_KEY) throw new Error("Web Push не настроен на сервере");
+  if(!await getAdminIfValid(req)) {
+    const pin=String(body.pin||"");
+    if(!/^\d{4}$/.test(pin)) throw new Error("Для напоминаний нужен личный PIN сотрудника");
+    await verifyEmployeeSubscriptionPin(employee,pin);
+  }
   const {data:row,error}=await admin.from("ma_push_subscriptions").upsert({endpoint:sub.endpoint,subscription:sub,user_email:`employee:${employee}`,audience:"employee",employee,active:true,updated_at:new Date().toISOString()},{onConflict:"endpoint"}).select("id,subscription").single();
   if(error) throw error;
-  await sendWebPush(row,{title:`${employee} — напоминания включены`,body:"Напомним о рабочем дне вечером, за 1 час и за 15 минут до смены.",tag:`employee-${employee}-test`,url:"./",employeeReminder:true});
-  return {ok:true,employee};
+  const delivered=await sendWebPush(row,{title:`${employee} — напоминания включены`,body:"Напомним о рабочем дне вечером, за 1 час и за 15 минут до смены.",tag:`employee-${employee}-test`,url:"./",employeeReminder:true});
+  if(!delivered) throw new Error("Тестовое уведомление не доставлено. Создай новую подписку.");
+  return {ok:true,employee,verified:true};
+}
+async function handleSubscriptionStatus(req:Request,body:any){
+  const endpoint=String(body.endpoint||"").trim(),audience=String(body.audience||"");
+  if(!endpoint||endpoint.length>4096||!["admin","employee"].includes(audience)) throw new Error("Неверные параметры подписки");
+  let query=admin.from("ma_push_subscriptions").select("active").eq("endpoint",endpoint).eq("audience",audience);
+  if(audience==="admin") await assertAdmin(req);
+  else {
+    const employee=String(body.employee||"").trim();
+    if(!employee) throw new Error("Не выбран сотрудник");
+    query=query.eq("employee",employee);
+  }
+  const {data,error}=await query.maybeSingle();
+  if(error) throw error;
+  return {ok:true,active:data?.active===true};
+}
+async function handleSchedulerStatus(req:Request){
+  await assertAdmin(req);
+  const [{data:last,error:lastError},{data:subs,error:subsError}]=await Promise.all([
+    admin.from("ma_grafik_cron_runs").select("executed_at").order("executed_at",{ascending:false}).limit(1).maybeSingle(),
+    admin.from("ma_push_subscriptions").select("audience").eq("active",true)
+  ]);
+  if(lastError) throw lastError;
+  if(subsError) throw subsError;
+  return {ok:true,lastRunAt:last?.executed_at||null,activeAdmin:(subs||[]).filter((x:any)=>x.audience==="admin").length,activeEmployees:(subs||[]).filter((x:any)=>x.audience==="employee").length};
 }
 async function handleUnsubscribeEmployee(body:any){
   const endpoint=String(body.endpoint||"").trim();
@@ -385,7 +434,8 @@ async function employeeReminderOnce(employee:string,workDate:string,type:string,
   if(old) return;
   const {error}=await admin.from("ma_employee_reminder_alerts").insert({employee,work_date:workDate,reminder_type:type,details:{text}});
   if(error){ if((error as any).code!=="23505") console.error(error); return; }
-  await sendPushToEmployee(employee,title,text,`employee-${employee}-${workDate}-${type}`);
+  const sent=await sendPushToEmployee(employee,title,text,`employee-${employee}-${workDate}-${type}`);
+  if(sent===0) await admin.from("ma_employee_reminder_alerts").delete().eq("employee",employee).eq("work_date",workDate).eq("reminder_type",type);
 }
 async function handleEmployeeReminders(s:any,lp:any,nowM:number){
   const names=[...await configuredEmployeeNames(s)], today=lp.date, tomorrow=addDaysISO(today,1);
@@ -411,10 +461,17 @@ async function alertOnce(service:string,date:string,type:string,title:string,tex
   if(old) return;
   const {error}=await admin.from("ma_shift_alerts").insert({service,shift_date:date,alert_type:type,details:{text}});
   if(error){ if((error as any).code!=="23505") console.error(error); return; }
-  await sendPush(title,text,`${service}-${date}-${type}`);
+  const sent=await sendPush(title,text,`${service}-${date}-${type}`);
+  if(sent===0) await admin.from("ma_shift_alerts").delete().eq("service",service).eq("shift_date",date).eq("alert_type",type);
 }
 async function handleCron(req:Request){
-  if(!CRON_SECRET||req.headers.get("x-cron-secret")!==CRON_SECRET) throw new Error("Неверный cron secret");
+  const provided=req.headers.get("x-cron-secret")||"";
+  let authorized=!!(CRON_SECRET && provided===CRON_SECRET);
+  if(!authorized && /^[a-f0-9]{64}$/.test(provided)){
+    const {data,error}=await admin.rpc("ma_grafik_verify_cron_secret",{p_secret:provided});
+    authorized=!error && data===true;
+  }
+  if(!authorized) throw new Error("Неверный cron secret");
   const lp=localParts(), nowM=lp.hour*60+lp.minute;
   const s=await loadScheduleSettings();
   const services=[s.service1||"Моба",s.service2||"Нова"];
@@ -426,7 +483,9 @@ async function handleCron(req:Request){
     if(nowM>=mins(t.start)+10 && !row?.opened_at) await alertOnce(String(service),lp.date,"not_opened",`${service} — смена не открыта`,`Прошло 10 минут после начала смены (${t.start}), но открытия нет.`);
     if(nowM>=mins(t.end)+15 && !row?.closed_at) await alertOnce(String(service),lp.date,"not_closed",`${service} — смена не закрыта`,`Прошло 15 минут после конца смены (${t.end}), но закрытия нет.`);
   }
-  return {ok:true,time:lp.time,scheduleSource:"shared-schedule.js"};
+  const {error:auditError}=await admin.from("ma_grafik_cron_runs").insert({summary:{time:lp.time,servicesChecked:services.length}});
+  if(auditError) throw auditError;
+  return {ok:true,time:lp.time,servicesChecked:services.length,scheduleSource:"shared-schedule.js"};
 }
 
 Deno.serve(async(req)=>{
@@ -434,7 +493,9 @@ Deno.serve(async(req)=>{
   try{
     const body=await req.json().catch(()=>({}));
     if(body.op==="subscribe") return json(await handleSubscribe(req,body));
-    if(body.op==="subscribe-employee") return json(await handleSubscribeEmployee(body));
+    if(body.op==="subscribe-employee") return json(await handleSubscribeEmployee(req,body));
+    if(body.op==="subscription-status") return json(await handleSubscriptionStatus(req,body));
+    if(body.op==="scheduler-status") return json(await handleSchedulerStatus(req));
     if(body.op==="unsubscribe-employee") return json(await handleUnsubscribeEmployee(body));
     if(body.op==="set-pin") return json(await handleSetPin(req,body));
     if(body.op==="pair-device") return json(await handlePairDevice(req,body));
