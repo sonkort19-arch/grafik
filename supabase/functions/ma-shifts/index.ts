@@ -273,7 +273,7 @@ async function handleSchedulerStatus(req:Request){
   ]);
   if(lastError) throw lastError;
   if(subsError) throw subsError;
-  return {ok:true,lastRunAt:last?.executed_at||null,activeAdmin:(subs||[]).filter((x:any)=>x.audience==="admin").length,activeEmployees:(subs||[]).filter((x:any)=>x.audience==="employee").length};
+  return {ok:true,pushConfigured:!!(VAPID_PUBLIC_KEY&&VAPID_PRIVATE_KEY),lastRunAt:last?.executed_at||null,activeAdmin:(subs||[]).filter((x:any)=>x.audience==="admin").length,activeEmployees:(subs||[]).filter((x:any)=>x.audience==="employee").length};
 }
 async function handleUnsubscribeEmployee(body:any){
   const endpoint=String(body.endpoint||"").trim();
