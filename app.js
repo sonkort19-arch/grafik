@@ -3181,6 +3181,17 @@
     const padding="=".repeat((4-base64String.length%4)%4); const base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");
     const raw=atob(base64); return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
   }
+  async function refreshSchedulerHealth(){
+    const el=$("schedulerHealth"); if(!el||!isAdmin())return;
+    try{
+      const status=await shiftFunction({op:"scheduler-status"},{admin:true});
+      const last=status.lastRunAt?Date.parse(status.lastRunAt):0;
+      const recent=last>0 && Date.now()-last<12*60*1000;
+      const time=last?new Intl.DateTimeFormat("ru-RU",{timeZone:"Europe/Moscow",hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit"}).format(new Date(last)):"нет успешных запусков";
+      el.textContent=`Автопроверка: ${recent?"работает":"нет свежих запусков"} (${time}). Активных телефонов: владелец — ${status.activeAdmin}, сотрудники — ${status.activeEmployees}.${status.pushConfigured?"":" Отправка Web Push не настроена на сервере."}`;
+      el.style.color=recent&&status.pushConfigured?"#198754":"#b45309";
+    }catch(e){el.textContent="Не удалось проверить запуск напоминаний: "+String(e.message||e);el.style.color="#b45309";}
+  }
   let lastAdminPushStatusCheck=0;
   async function checkAdminPushStatus(){
     if(!isAdmin() || Notification.permission!=="granted" || Date.now()-lastAdminPushStatusCheck<30000) return;
@@ -5375,6 +5386,7 @@
     fillDeviceServiceSelect();
     updateCurrentScheduleSummary();
     updatePushState();
+    if(isAdmin())void refreshSchedulerHealth();
     renderDevicePanel();
     renderErrorLog();
     renderBackupStatus();
