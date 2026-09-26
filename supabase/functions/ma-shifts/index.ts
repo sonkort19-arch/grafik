@@ -490,9 +490,10 @@ async function handleCron(req:Request){
     if(nowM>=mins(t.start)+10 && !row?.opened_at) await alertOnce(String(service),lp.date,"not_opened",`${service} — смена не открыта`,`Прошло 10 минут после начала смены (${t.start}), но открытия нет.`);
     if(nowM>=mins(t.end)+15 && !row?.closed_at) await alertOnce(String(service),lp.date,"not_closed",`${service} — смена не закрыта`,`Прошло 15 минут после конца смены (${t.end}), но закрытия нет.`);
   }
-  const {error:auditError}=await admin.from("ma_grafik_cron_runs").insert({summary:{time:lp.time,servicesChecked:services.length}});
+  const summary={time:lp.time,servicesChecked:services.length,pushConfigured:!!(VAPID_PUBLIC_KEY&&VAPID_PRIVATE_KEY)};
+  const {error:auditError}=await admin.from("ma_grafik_cron_runs").insert({summary});
   if(auditError) throw auditError;
-  return {ok:true,time:lp.time,servicesChecked:services.length,scheduleSource:"shared-schedule.js"};
+  return {ok:true,...summary,scheduleSource:"shared-schedule.js"};
 }
 
 Deno.serve(async(req)=>{
