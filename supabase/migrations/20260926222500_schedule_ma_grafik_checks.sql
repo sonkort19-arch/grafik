@@ -43,7 +43,7 @@ CREATE INDEX IF NOT EXISTS ma_grafik_cron_runs_executed_idx
 ALTER TABLE public.ma_grafik_cron_runs ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.ma_grafik_cron_runs FROM PUBLIC, anon, authenticated;
 GRANT SELECT, INSERT ON public.ma_grafik_cron_runs TO service_role;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO service_role;
+GRANT USAGE, SELECT ON SEQUENCE public.ma_grafik_cron_runs_id_seq TO service_role;
 
 -- Five-minute checks cover the ten-minute reminder windows.
 SELECT cron.schedule(
