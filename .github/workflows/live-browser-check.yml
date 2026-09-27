@@ -1,0 +1,33 @@
+name: MA Grafik live browser check
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/live-browser-check.cjs'
+      - '.github/workflows/live-browser-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browsers
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium webkit
+      - name: Open the live project in desktop Chrome and mobile Safari engine
+        run: node tests/live-browser-check.cjs
+      - name: Save browser screenshots and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ma-grafik-live-browser-results
+          path: live-browser-results/
+          retention-days: 7
+          if-no-files-found: ignore
