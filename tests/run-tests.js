@@ -566,10 +566,23 @@ test("Отчёт владельца: использует KPI и последн�
 test("index.html подключает модули в безопасном порядке",()=>{
   const html=fs.readFileSync("index.html","utf8");
   const refs=["schedule.js","shifts.js","employees.js","supabase.js","wallets.js","admin.js","errors.js","settings.js","devices.js","history.js","kpi.js","safety.js","app.js"];
-  const positions=refs.map(file=>html.indexOf(`<script src="${file}"></script>`));
+  const positions=refs.map(file=>html.indexOf(`<script defer src="${file}?v=`));
   assert(positions.every(x=>x>=0));
   assert.deepStrictEqual(positions,[...positions].sort((a,b)=>a-b));
-  assert(!html.includes("<script>\n(function(){"));
+  assert(html.includes("window.MABoot") && html.includes("lite.html"));
+  const inline=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+  assert.strictEqual(inline.length,1,"Только один автономный загрузчик в основной странице");
+  assert.doesNotThrow(()=>new Function(inline[0][1]));
+});
+
+test("Облегчённый график работает без внешних JavaScript-файлов",()=>{
+  const lite=fs.readFileSync("lite.html","utf8");
+  assert(lite.includes("global.MASchedule"));
+  assert(lite.includes("/rest/v1/ma_schedule_config"));
+  const scripts=[...lite.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+  assert.strictEqual(scripts.length,1);
+  assert.doesNotThrow(()=>new Function(scripts[0][1]));
+  assert(!/<script[^>]+src=/i.test(lite));
 });
 
 (async()=>{
