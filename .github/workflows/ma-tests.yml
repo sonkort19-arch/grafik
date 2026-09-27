@@ -137,6 +137,7 @@ jobs:
           deno check supabase/functions/ma-crm-item-cost-api/index.ts
           deno check supabase/functions/ma-crm-order-api/index.ts
           deno check supabase/functions/ma-shifts/index.ts
+          deno check supabase/functions/ma-grafik-mirror/index.ts
 
   production-smoke:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -152,6 +153,8 @@ jobs:
           wait_for() { local url="$1"; local expected="$2"; for attempt in $(seq 1 24); do body="$(curl -fsS --max-time 10 "$url" 2>/dev/null || true)"; if [[ "$body" == *"$expected"* ]]; then echo "OK: $url"; return 0; fi; echo "Waiting for $url ($attempt/24)"; sleep 5; done; echo "FAILED: $url"; return 1; }
           wait_status() { local url="$1"; for attempt in $(seq 1 24); do if curl -fsS --max-time 10 "$url" >/dev/null 2>&1; then echo "OK: $url"; return 0; fi; echo "Waiting for $url ($attempt/24)"; sleep 5; done; echo "FAILED: $url"; return 1; }
           wait_for "$BASE/" "MA График"
+          wait_for "$BASE/lite.html" "Облегчённая версия"
+          wait_for "https://yedzfmibceboncrytbqz.supabase.co/functions/v1/ma-grafik-mirror/lite.html" "Облегчённая версия"
           wait_for "$BASE/styles.css" "styles-stage8.css"
           wait_for "$BASE/styles-stage8.css" "ma-assistant-icon-blue.svg"
           wait_for "$BASE/assets/ma-assistant-icon-blue.svg" "#246BFD"
