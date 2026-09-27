@@ -6427,6 +6427,7 @@
     switchTab(isEmployeePhoneMode()?"employeeToday":"adminToday");
     document.body.classList.remove("app-booting");
     appInitialized=true;
+    if(window.MABoot&&typeof window.MABoot.ready==="function")window.MABoot.ready();
 
     // Всё сетевое — уже после показа интерфейса.
     registerServiceWorker({checkUpdate:true}).then(()=>{ updatePushState(); updateInstallUI(); });
@@ -6470,7 +6471,8 @@
 
   initApp().catch(e=>{
     logAppError("init",e);
-    document.body.classList.remove("app-booting");
+    if(window.MABoot&&typeof window.MABoot.fail==="function")window.MABoot.fail(e);
+    else document.body.classList.remove("app-booting");
     setCloudStatus("Ошибка запуска","offline");
   });
 })();

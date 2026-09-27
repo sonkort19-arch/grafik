@@ -4,9 +4,91 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
+<style>
+/* Аварийный экран должен работать даже при недоступности внешнего CSS. */
+body.app-booting{margin:0;background:#f6f8fc;color:#1c283a}
+body.app-booting .app,body.app-booting .bottom,body.app-booting .employee-identity-bar{visibility:hidden}
+body.app-booting .app-boot-screen{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:#f6f8fc;box-sizing:border-box}
+body.app-booting .app-boot-card{box-sizing:border-box;width:min(100%,420px);background:#fff;border:1px solid #dbe3f0;border-radius:20px;padding:24px;text-align:center;box-shadow:0 10px 28px rgba(18,39,82,.07);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body.app-booting .app-boot-logo{display:flex;align-items:center;justify-content:center;width:60px;height:60px;margin:0 auto 15px;background:#2766f5;border-radius:16px;color:#fff;font-size:25px;font-weight:800}
+body.app-booting .app-boot-title{font-size:23px;font-weight:800;color:#202b3c}
+body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
+.ma-boot-actions{display:grid;gap:10px;margin-top:19px}
+.ma-boot-actions button,.ma-boot-actions a{display:block;width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;text-align:center;text-decoration:none;font:600 15px/1.25 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer}
+.ma-boot-actions button{color:#fff;background:#2563eb;border:0}
+.ma-boot-actions a{color:#1d4ed8;background:#eff6ff;border:1px solid #c8dafa}
+.ma-boot-details{margin-top:12px;color:#64748b;font-size:12px;overflow-wrap:anywhere}
+</style>
+<script>
+(function(){
+  "use strict";
+  var completed=false;
+  var firstError="";
+  var timer;
+  function record(message){
+    if(!firstError)firstError=String(message||"Ошибка загрузки").slice(0,240);
+  }
+  function show(){
+    if(completed||!document.body||!document.body.classList.contains("app-booting"))return;
+    var screen=document.getElementById("appBootScreen");
+    if(!screen)return;
+    var title=screen.querySelector(".app-boot-title");
+    var description=screen.querySelector(".app-boot-text");
+    if(title)title.textContent="Не удалось открыть график";
+    if(description)description.textContent="Приложение не запустилось. Ваши данные и привязка устройства не удалены.";
+    if(document.getElementById("maBootRecovery"))return;
+    var panel=document.createElement("div");
+    panel.id="maBootRecovery";
+    var actions=document.createElement("div");
+    actions.className="ma-boot-actions";
+    var reload=document.createElement("button");
+    reload.type="button";
+    reload.textContent="Повторить загрузку";
+    reload.addEventListener("click",function(){
+      var next=new URL(location.href);
+      next.searchParams.set("ma_retry",String(Date.now()));
+      location.replace(next.href);
+    });
+    var lightweight=document.createElement("a");
+    lightweight.href="./lite.html";
+    lightweight.textContent="Открыть облегчённый график";
+    var detail=document.createElement("div");
+    detail.className="ma-boot-details";
+    detail.textContent=firstError?("Причина: "+firstError):"Не удалось завершить запуск за 9 секунд. Возможно, не загружаются файлы сайта.";
+    actions.appendChild(reload);
+    actions.appendChild(lightweight);
+    panel.appendChild(actions);
+    panel.appendChild(detail);
+    screen.querySelector(".app-boot-card").appendChild(panel);
+  }
+  window.MABoot={
+    ready:function(){completed=true;clearTimeout(timer);},
+    fail:function(reason){
+      if(completed)return;
+      record(reason&&reason.message?reason.message:reason);
+      if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",show,{once:true});
+      else show();
+    },
+    assetError:function(filename){record("Не загрузился файл "+String(filename||""));setTimeout(show,1200);}
+  };
+  window.addEventListener("error",function(event){
+    if(completed)return;
+    var node=event.target;
+    if(node&&(node.tagName==="SCRIPT"||node.tagName==="LINK")){
+      record("Не загрузился файл "+(node.getAttribute("src")||node.getAttribute("href")||""));
+    }else if(event.error||event.message){
+      record(event.error&&event.error.message?event.error.message:event.message);
+    }
+  },true);
+  window.addEventListener("unhandledrejection",function(event){
+    if(!completed)record(event.reason&&event.reason.message?event.reason.message:"Ошибка выполнения приложения");
+  });
+  timer=setTimeout(show,9000);
+})();
+</script>
 <title>MA График</title>
 <link rel="icon" type="image/png" sizes="64x64" href="ma-favicon-final-v6.png">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=20260927-boot-recovery-v1">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="ma-apple-touch-final-v6.png">
 </head>
@@ -899,19 +981,19 @@
   </div>
 </div>
 
-<script src="schedule.js"></script>
-<script src="shifts.js"></script>
-<script src="employees.js"></script>
-<script src="supabase.js"></script>
-<script src="wallets.js"></script>
-<script src="admin.js"></script>
-<script src="errors.js"></script>
-<script src="settings.js"></script>
-<script src="devices.js"></script>
-<script src="history.js"></script>
-<script src="kpi.js"></script>
-<script src="safety.js"></script>
-<script src="app.js"></script>
+<script defer src="schedule.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('schedule.js')"></script>
+<script defer src="shifts.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('shifts.js')"></script>
+<script defer src="employees.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('employees.js')"></script>
+<script defer src="supabase.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('supabase.js')"></script>
+<script defer src="wallets.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('wallets.js')"></script>
+<script defer src="admin.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('admin.js')"></script>
+<script defer src="errors.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('errors.js')"></script>
+<script defer src="settings.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('settings.js')"></script>
+<script defer src="devices.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('devices.js')"></script>
+<script defer src="history.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('history.js')"></script>
+<script defer src="kpi.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('kpi.js')"></script>
+<script defer src="safety.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('safety.js')"></script>
+<script defer src="app.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('app.js')"></script>
 
 </body>
 </html>
