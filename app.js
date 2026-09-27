@@ -6133,7 +6133,8 @@
   $("removeQuickReplace").onclick=removeQuickReplacement;
   $("savePinsBtn").onclick=saveManagerPins;
   $("pairDeviceBtn").onclick=pairCurrentDevice;
-  $("enablePushBtn").onclick=enablePush;
+  const pushButton=$("enablePushBtn");
+  if(pushButton)pushButton.onclick=enablePush;
   $("enableEmployeeReminders").onclick=enableEmployeeReminders;
   $("disableEmployeeReminders").onclick=disableEmployeeReminders;
   $("adminBtn").onclick=()=>{ if(isAdmin()) switchTab("settings"); else openLoginModal(); };

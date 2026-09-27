@@ -570,7 +570,8 @@ test("index.html подключает модули в безопасном по�
   assert(positions.every(x=>x>=0));
   assert.deepStrictEqual(positions,[...positions].sort((a,b)=>a-b));
   assert(html.includes("window.MABoot") && html.includes("lite.html"));
-  assert(html.includes("ma-grafik-mirror"),"Заставка должна ссылаться на независимое зеркало");
+  assert(html.includes('lightweight.href="./lite.html"'),"Аварийная кнопка ведёт к рабочему облегченному графику");
+  assert(/<\/div>\s*<button class="primary" id="enablePushBtn">/.test(html),"Кнопка уведомлений должна существовать как элемент DOM");
   const inline=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
   assert.strictEqual(inline.length,1,"Только один автономный загрузчик в основной странице");
   assert.doesNotThrow(()=>new Function(inline[0][1]));

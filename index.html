@@ -49,17 +49,13 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
       next.searchParams.set("ma_retry",String(Date.now()));
       location.replace(next.href);
     });
-    var mirror=document.createElement("a");
-    mirror.href="https://yedzfmibceboncrytbqz.supabase.co/functions/v1/ma-grafik-mirror/";
-    mirror.textContent="Резервный адрес — без Vercel";
     var lightweight=document.createElement("a");
-    lightweight.href="https://yedzfmibceboncrytbqz.supabase.co/functions/v1/ma-grafik-mirror/lite.html";
+    lightweight.href="./lite.html";
     lightweight.textContent="Облегчённый график";
     var detail=document.createElement("div");
     detail.className="ma-boot-details";
     detail.textContent=firstError?("Причина: "+firstError):"Не удалось завершить запуск за 9 секунд. Возможно, не загружаются файлы сайта.";
     actions.appendChild(reload);
-    actions.appendChild(mirror);
     actions.appendChild(lightweight);
     panel.appendChild(actions);
     panel.appendChild(detail);
@@ -451,7 +447,7 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
           <summary>Уведомления владельцу</summary>
           <div class="push-box" style="margin-top:10px">
             <div class="push-state" id="pushState">Проверяем поддержку уведомлений…</div>
-            <div class="push-state" id="schedulerHealth">Статус автоматических проверок появится после входа администратора.</div
+            <div class="push-state" id="schedulerHealth">Статус автоматических проверок появится после входа администратора.</div>
             <button class="primary" id="enablePushBtn">Включить уведомления</button>
           </div>
         </details>

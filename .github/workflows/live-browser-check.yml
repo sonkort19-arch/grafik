@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths:
       - 'tests/live-browser-check.cjs'
+      - 'index.html'
+      - 'app.js'
+      - 'lite.html'
       - '.github/workflows/live-browser-check.yml'
   workflow_dispatch:
 permissions:

@@ -10,8 +10,8 @@ const MIRROR = 'https://yedzfmibceboncrytbqz.supabase.co/functions/v1/ma-grafik-
 const checks = [
   { name: 'desktop-chromium-primary', engine: chromium, url: BASE, options: {viewport:{width:1365,height:900}}, kind:'main' },
   { name: 'iphone-webkit-primary', engine: webkit, url: BASE, options: devices['iPhone 14'], kind:'main' },
-  { name: 'desktop-chromium-mirror', engine: chromium, url: MIRROR, options: {viewport:{width:1365,height:900}}, kind:'main' },
-  { name: 'iphone-webkit-lite', engine: webkit, url: MIRROR+'lite.html', options: devices['iPhone 14'], kind:'lite' }
+  { name: 'desktop-chromium-lite', engine: chromium, url: BASE+'lite.html', options: {viewport:{width:1365,height:900}}, kind:'lite' },
+  { name: 'iphone-webkit-lite', engine: webkit, url: BASE+'lite.html', options: devices['iPhone 14'], kind:'lite' }
 ];
 async function probe(check) {
   const issues = [];
@@ -45,8 +45,8 @@ async function probe(check) {
   try{await page.screenshot({path:path.join(OUT,check.name+'.png'),fullPage:true,timeout:10000})}
   catch(e){issues.push('screenshot: '+String(e.message).slice(0,120))}
   const pass=check.kind==='main'
-    ? !!data&&!data.booting&&navigationStatus===200
-    : !!data&&navigationStatus===200&&!/Не удалось получить график|Не удалось рассчитать/.test(data.liteStatus+data.visibleContent);
+    ? !!data&&data.title==='MA График'&&!data.booting&&!data.recovery&&data.loadedScripts>=14&&navigationStatus===200&&!issues.some(s=>s.startsWith('pageerror'))
+    : !!data&&data.title.includes('МА График')&&navigationStatus===200&&data.loadedScripts>=1&&!data.visibleContent.startsWith('<!doctype html>')&&!/Не удалось получить график|Не удалось рассчитать/.test(data.liteStatus+data.visibleContent);
   const safe={
     check:check.name,passed:pass,status:navigationStatus,
     navigationError,data,issues:issues.slice(0,18)
