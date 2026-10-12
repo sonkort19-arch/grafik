@@ -67,8 +67,8 @@ test("замени Асика на Заура завтра",()=>{
 });
 
 // 11
-test("разговорная замена: можно Олега заменить Георгием",()=>{
-  const parsed=core.parseReplacement("можно Олега заменить Георгием завтра",names);
+test("разговорная замена: можно Олега заменить Зауром",()=>{
+  const parsed=core.parseReplacement("можно Олега заменить Зауром завтра",names);
   assert(parsed);
   assert.strictEqual(parsed.oldName,"Олег");
   assert.strictEqual(parsed.newName,"Заур");
