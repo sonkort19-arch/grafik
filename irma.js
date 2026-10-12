@@ -111,6 +111,15 @@
         <div class="field"><label for="irmaPassword">Пароль</label><input id="irmaPassword" type="password" autocomplete="current-password"></div>
         <div class="login-error" id="irmaLoginError" role="alert"></div>
         <div class="login-actions"><button type="button" class="primary" id="irmaLoginSubmit">Войти</button></div>
+        <details class="irma-setup">
+          <summary>Владельцу: активировать аккаунт Ирмы</summary>
+          <p>Сначала войдите в MA График как администратор, затем задайте пароль Ирмы.</p>
+          <label for="irmaSetupPassword">Пароль Ирмы</label>
+          <input id="irmaSetupPassword" type="password" autocomplete="new-password" placeholder="Пароль">
+          <button type="button" class="secondary" id="irmaSetupSubmit">Активировать доступ</button>
+          <div id="irmaSetupError" class="login-error" role="status"></div>
+        </details>
+
       </div>
       <div id="irmaReportsView" class="hidden">
         <div class="notice" style="margin:12px 0">График сотрудников доступен на основном экране. Здесь — отчёты по обращениям и закрытым сменам.</div>
@@ -127,6 +136,23 @@
     updateButton();
     $("irmaClose").onclick=closeModal;
     modal.onclick=e=>{if(e.target===modal)closeModal();};
+    $("irmaSetupSubmit").onclick=async()=>{
+      const error=$("irmaSetupError"),button=$("irmaSetupSubmit");
+      error.textContent="";
+      button.disabled=true;
+      try{
+        const owner=JSON.parse(localStorage.getItem("ma_schedule_admin_session_v1")||"null")?.access_token||"";
+        if(!owner)throw new Error("Сначала войдите как администратор MA График");
+        const password=$("irmaSetupPassword").value;
+        if(password.length<4)throw new Error("Пароль должен содержать минимум 4 символа");
+        const res=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json","apikey":PUBLIC_KEY,Authorization:"Bearer "+owner},body:JSON.stringify({action:"setup",password}),cache:"no-store"});
+        const data=await res.json().catch(()=>({}));
+        if(!res.ok||!data.ok)throw new Error(data.error||"Не удалось создать учётную запись");
+        $("irmaSetupPassword").value="";
+        error.textContent="Аккаунт активирован. Теперь Ирма может войти со своим паролем.";
+      }catch(e){error.textContent=e.message||"Ошибка настройки";}
+      finally{button.disabled=false;}
+    };
     $("irmaLoginSubmit").onclick=login;
     $("irmaPassword").onkeydown=e=>{if(e.key==="Enter")login();};
     $("irmaReportsRefresh").onclick=loadReports;

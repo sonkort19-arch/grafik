@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")||"";
 const SERVICE_ROLE=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
+const OWNER_EMAIL=(Deno.env.get("ADMIN_EMAIL")||"bul782@mail.ru").toLowerCase();
 if(!SUPABASE_URL||!SERVICE_ROLE) throw new Error("Supabase credentials are not configured");
 const admin=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,autoRefreshToken:false}});
 const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"POST, OPTIONS","Access-Control-Allow-Headers":"authorization,apikey,content-type,x-client-info","Cache-Control":"no-store"};
@@ -65,6 +66,20 @@ async function login(body:any){
   const session=await issueToken(data.username);
   return {ok:true,...session,username:data.username,employee:data.employee,role:data.role};
 }
+async function configureMarketer(req:Request,body:any){
+  const bearer=(req.headers.get("authorization")||"").replace(/^Bearer\s+/i,"");
+  if(!bearer)throw new Error("Нужно войти как владелец MA График");
+  const {data:user,error:authError}=await admin.auth.getUser(bearer);
+  if(authError||!user?.user||user.user.email?.toLowerCase()!==OWNER_EMAIL)throw new Error("Только владелец может создать аккаунт");
+  const password=String(body.password||"");
+  if(password.length<4||password.length>128)throw new Error("Пароль должен содержать от 4 до 128 символов");
+  const {data,error}=await admin.rpc("ma_set_marketer_credentials",{
+    p_username:"irma",p_employee_name:"Ирма",p_password:password
+  });
+  if(error||data!==true)throw new Error("Не удалось активировать логин Ирмы");
+  return {ok:true,username:"irma",employee:"Ирма",role:"marketer"};
+}
+
 async function reports(req:Request,body:any){
   const account=await checkToken(req);
   const {from,to,service}=clampRange(body);
@@ -85,6 +100,7 @@ Deno.serve(async(req:Request)=>{
   if(req.method!=="POST")return reply({ok:false,error:"Только POST"},405);
   try{
     const body=await req.json().catch(()=>({}));
+    if(body.action==="setup")return reply(await configureMarketer(req,body));
     if(body.action==="login")return reply(await login(body));
     if(body.action==="reports")return reply(await reports(req,body));
     if(body.action==="profile"){const a=await checkToken(req);return reply({ok:true,username:a.username,employee:a.employee_name,role:a.role});}

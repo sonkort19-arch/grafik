@@ -15,4 +15,6 @@ assert(api.includes("ma_shift_daily_reports")&&api.includes("ma_shifts!inner"));
 assert(!api.includes('action==="shift"'),"Marketer token cannot bypass shift confirmation");
 assert(migration.includes("ENABLE ROW LEVEL SECURITY")&&migration.includes("REVOKE ALL"));
 assert(migration.includes("failed_attempts")&&migration.includes("30 minutes"),"Rate-limit weak staff password");
+assert(api.includes('configureMarketer(req,body)')&&api.includes("admin.auth.getUser"),"Only owner can provision marketer password");
+assert(frontend.includes("irmaSetupPassword")&&frontend.includes("ma_schedule_admin_session_v1"),"Owner activation must be available in UI");
 console.log("PASS marketer account: isolated owner rights, signed session, reports only, password not in repository");
