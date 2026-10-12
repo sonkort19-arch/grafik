@@ -2705,6 +2705,12 @@
     const expectedManager=expected?.manager||"";
     const expectedMaster=expected?.master||"—";
 
+    const reportDraft=root.dataset.reportDate===now.date ? {
+      total:$("startupReportTotal")?.value,
+      reasons:$("startupReportReasons")?.value,
+      employee:$("startupShiftEmployee")?.value,
+      pin:$("startupShiftPin")?.value
+    } : null;
     let actionBlock="";
     if(action){
       const verb=action==="open"?"ОТКРЫТЬ СМЕНУ":"ЗАКРЫТЬ СМЕНУ";
@@ -2750,6 +2756,13 @@
       ${action ? '<button class="startup-shift-close" id="startupCloseWindow">Закрыть окно</button>' : ''}
     `;
 
+    root.dataset.reportDate=now.date;
+    if(action==="close" && reportDraft){
+      if(reportDraft.total!==undefined) $("startupReportTotal").value=reportDraft.total;
+      if(reportDraft.reasons!==undefined) $("startupReportReasons").value=reportDraft.reasons;
+      if(reportDraft.employee && [...$("startupShiftEmployee").options].some(o=>o.value===reportDraft.employee)) $("startupShiftEmployee").value=reportDraft.employee;
+      if(reportDraft.pin!==undefined) $("startupShiftPin").value=reportDraft.pin;
+    }
     const closeBtn=$("startupCloseWindow");
     if(closeBtn) closeBtn.onclick=closeStartupShiftWindow;
 
