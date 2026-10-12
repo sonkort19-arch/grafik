@@ -260,7 +260,7 @@
     const days=dateDiffDays(from,date);
     const phase=mod(days,4);
     const day=date.getDate();
-    const novaMaster=(phase===0 || phase===1) ? "Георгий" : "Асик";
+    const novaMaster=(phase===0 || phase===1) ? "Заур" : "Асик";
     const baseMobaMaster=(phase===0 || phase===1) ? "Олег" : "Ислам";
     const swapPairing=(day>=12 && day<=21);
     const mobaMaster=swapPairing
@@ -275,22 +275,22 @@
     if(key<MASTER_ROSTER_FROM) return null;
 
     // Временный график на отпуск Олега: 24–31 августа 2026.
-    // У Георгия и Асика по одному выходному; в эти два дня Нова работает без мастера.
+    // У Заура и Асика по одному выходному; в эти два дня Нова работает без мастера.
     const temporary={
       "2026-08-24":{s1:"Асик",s2:"Без мастера"},
-      "2026-08-25":{s1:"Георгий",s2:"Асик"},
-      "2026-08-26":{s1:"Георгий",s2:"Асик"},
-      "2026-08-27":{s1:"Георгий",s2:"Без мастера"},
-      "2026-08-28":{s1:"Георгий",s2:"Асик"},
-      "2026-08-29":{s1:"Георгий",s2:"Асик"},
-      "2026-08-30":{s1:"Асик",s2:"Георгий"},
-      "2026-08-31":{s1:"Асик",s2:"Георгий"}
+      "2026-08-25":{s1:"Заур",s2:"Асик"},
+      "2026-08-26":{s1:"Заур",s2:"Асик"},
+      "2026-08-27":{s1:"Заур",s2:"Без мастера"},
+      "2026-08-28":{s1:"Заур",s2:"Асик"},
+      "2026-08-29":{s1:"Заур",s2:"Асик"},
+      "2026-08-30":{s1:"Асик",s2:"Заур"},
+      "2026-08-31":{s1:"Асик",s2:"Заур"}
     };
     if(temporary[key]) return {...temporary[key],temporary:true};
 
     // Постоянный двухнедельный цикл. Его фаза считается от 24.08.2026,
     // поэтому после временного периода 01.09.2026 Олег выходит в Мобу,
-    // а Георгий/Асик продолжают нужную неделю цикла без сдвига.
+    // а Заур/Асик продолжают нужную неделю цикла без сдвига.
     const days=dateDiffDays(MASTER_ROSTER_FROM,date);
     const week=mod(Math.floor(days/7),2); // 0 = неделя 1, 1 = неделя 2
     const weekday=date.getDay(); // 0 вс, 1 пн ... 6 сб
@@ -301,17 +301,17 @@
 
     if(week===0){
       if(weekend){
-        mobaMaster="Георгий";
+        mobaMaster="Заур";
         novaMaster="Асик";
       }else{
-        novaMaster=(weekday===1 || weekday===2) ? "Асик" : "Георгий";
+        novaMaster=(weekday===1 || weekday===2) ? "Асик" : "Заур";
       }
     }else{
       if(weekend){
         mobaMaster="Асик";
-        novaMaster="Георгий";
+        novaMaster="Заур";
       }else{
-        novaMaster=(weekday===1 || weekday===2) ? "Георгий" : "Асик";
+        novaMaster=(weekday===1 || weekday===2) ? "Заур" : "Асик";
       }
     }
 
@@ -336,7 +336,7 @@
     const managerReady=key<MANAGER_ROSTER_FROM
       ? sameRoster(managers,["Сергей","Арсен","Дина"])
       : sameRoster(managers,["Арсен","Дина"]);
-    const masterReady=key>=MASTER_ROSTER_FROM && sameRoster(masters,["Олег","Георгий","Асик"]);
+    const masterReady=key>=MASTER_ROSTER_FROM && sameRoster(masters,["Олег","Заур","Асик"]);
 
     if(!managerReady && !masterReady) return null;
 
@@ -373,7 +373,7 @@
     }
 
     // Новый цикл мастеров:
-    // Олег — только Моба Пн–Пт; Георгий и Асик — Нова и выходные в Мобе по очереди.
+    // Олег — только Моба Пн–Пт; Заур и Асик — Нова и выходные в Мобе по очереди.
     let masterS1=null,masterS2=null,masterOff=[];
     let masterTeamS1=[],masterTeamS2=[];
 
@@ -381,9 +381,9 @@
       const masterDay=fixedMasterPlanForDate(date);
       masterS1=masterDay.s1;
       masterS2=masterDay.s2;
-      masterOff=["Олег","Георгий","Асик"].filter(n=>n!==masterS1 && n!==masterS2);
-      masterTeamS1=["Олег","Георгий","Асик"];
-      masterTeamS2=["Георгий","Асик"];
+      masterOff=["Олег","Заур","Асик"].filter(n=>n!==masterS1 && n!==masterS2);
+      masterTeamS1=["Олег","Заур","Асик"];
+      masterTeamS2=["Заур","Асик"];
     }
 
     if(managerReady && masterReady && key>=MANAGER_ROSTER_FROM){
@@ -471,7 +471,7 @@
     }
 
     // По субботам и воскресеньям в Нове менеджера нет.
-    // Мастер в Нове выбран новым двухнедельным циклом: Георгий или Асик.
+    // Мастер в Нове выбран новым двухнедельным циклом: Заур или Асик.
     if(dateKeyFromDate(date)<MANAGER_ROSTER_FROM && isNovaWeekendRule(date,settings.service2)){
       base.s2.manager="Без менеджера";
       base.s2.managerCount=0;

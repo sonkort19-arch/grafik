@@ -20,7 +20,7 @@ test("понимает сегодня/завтра/послезавтра",()=>{
 });
 
 test("понимает дату словами и цифрами",()=>{
-  assert.strictEqual(core.parseDate("12 сентября поставь Георгия","2026-09-09").key,"2026-09-12");
+  assert.strictEqual(core.parseDate("12 сентября поставь Заура","2026-09-09").key,"2026-09-12");
   assert.strictEqual(core.parseDate("на 15.09 замена","2026-09-09").key,"2026-09-15");
 });
 
@@ -35,17 +35,17 @@ test("следующая неделя начинается с понедельн
 
 test("понимает названия точек в разных падежах",()=>{
   assert.strictEqual(core.parseService("кто завтра в Мобе"),"Моба");
-  assert.strictEqual(core.parseService("поставь Георгия в Нову"),"Нова");
+  assert.strictEqual(core.parseService("поставь Заура в Нову"),"Нова");
 });
 
 test("понимает конструкцию поставь X вместо Y",()=>{
-  const parsed=core.parseReplacement("12 сентября поставь Георгия вместо Асика",["Олег","Георгий","Асик"]);
-  assert.deepStrictEqual(parsed,{oldName:"Асик",newName:"Георгий",kind:"instead"});
+  const parsed=core.parseReplacement("12 сентября поставь Заура вместо Асика",["Олег","Заур","Асик"]);
+  assert.deepStrictEqual(parsed,{oldName:"Асик",newName:"Заур",kind:"instead"});
 });
 
 test("понимает конструкцию замени X на Y",()=>{
-  const parsed=core.parseReplacement("замени Асика на Георгия 12 сентября",["Олег","Георгий","Асик"]);
-  assert.deepStrictEqual(parsed,{oldName:"Асик",newName:"Георгий",kind:"replace"});
+  const parsed=core.parseReplacement("замени Асика на Заура 12 сентября",["Олег","Заур","Асик"]);
+  assert.deepStrictEqual(parsed,{oldName:"Асик",newName:"Заур",kind:"replace"});
 });
 
 test("Асик распознаётся по старому варианту Аслан",()=>{

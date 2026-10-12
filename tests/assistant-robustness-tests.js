@@ -7,7 +7,7 @@ const vm=require("vm");
 global.window={};
 vm.runInThisContext(fs.readFileSync("assistant-core.js","utf8"),{filename:"assistant-core.js"});
 const core=window.MAAssistantCore;
-const names=["Олег","Георгий","Асик","Дина"];
+const names=["Олег","Заур","Асик","Дина"];
 let passed=0;
 
 function test(name,fn){
@@ -58,12 +58,12 @@ test("точка: кто в Нове 12 сентября",()=>{
 
 // 9
 test("замена с лишним словом пожалуйста",()=>{
-  assert.deepStrictEqual(core.parseReplacement("12 сентября поставь Георгия вместо Асика пожалуйста",names),{oldName:"Асик",newName:"Георгий",kind:"instead"});
+  assert.deepStrictEqual(core.parseReplacement("12 сентября поставь Заура вместо Асика пожалуйста",names),{oldName:"Асик",newName:"Заур",kind:"instead"});
 });
 
 // 10
-test("замени Асика на Георгия завтра",()=>{
-  assert.deepStrictEqual(core.parseReplacement("замени Асика на Георгия завтра",names),{oldName:"Асик",newName:"Георгий",kind:"replace"});
+test("замени Асика на Заура завтра",()=>{
+  assert.deepStrictEqual(core.parseReplacement("замени Асика на Заура завтра",names),{oldName:"Асик",newName:"Заур",kind:"replace"});
 });
 
 // 11
@@ -71,15 +71,15 @@ test("разговорная замена: можно Олега заменит�
   const parsed=core.parseReplacement("можно Олега заменить Георгием завтра",names);
   assert(parsed);
   assert.strictEqual(parsed.oldName,"Олег");
-  assert.strictEqual(parsed.newName,"Георгий");
+  assert.strictEqual(parsed.newName,"Заур");
 });
 
 // 12
 test("старое имя Аслан распознаётся как Асик в замене",()=>{
-  const parsed=core.parseReplacement("поставь Георгия вместо Аслана",names);
+  const parsed=core.parseReplacement("поставь Заура вместо Аслана",names);
   assert(parsed);
   assert.strictEqual(parsed.oldName,"Асик");
-  assert.strictEqual(parsed.newName,"Георгий");
+  assert.strictEqual(parsed.newName,"Заур");
 });
 
 // 13
@@ -89,9 +89,9 @@ test("дательный падеж: дай Дине выходной завтр
 });
 
 // 14
-test("родительный падеж: покажи график Георгия",()=>{
-  const found=core.findMentionedEmployees("покажи график Георгия",names);
-  assert.strictEqual(found[0].name,"Георгий");
+test("родительный падеж: покажи график Заура",()=>{
+  const found=core.findMentionedEmployees("покажи график Заура",names);
+  assert.strictEqual(found[0].name,"Заур");
 });
 
 // 15

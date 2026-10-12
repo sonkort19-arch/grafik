@@ -107,7 +107,7 @@ function normalizeSettings(raw) {
     novaShiftStart: "09:00",
     novaShiftEnd: "19:00",
     managers: [["Сергей", "Арсен"], ["Дина", "Амалия"]],
-    masters: [["Олег", "Георгий"], ["Асик", ""]],
+    masters: [["Олег", "Заур"], ["Асик", ""]],
     staffChanges: [],
     dayOverrides: [],
     employeeSchedules: [],
@@ -361,7 +361,7 @@ function legacyMasterPlanBeforeRemoval(settings, date) {
   const days = diffDays(from, key);
   const phase = mod(days, 4);
   const day = date.getUTCDate();
-  const novaMaster = (phase === 0 || phase === 1) ? "Георгий" : "Асик";
+  const novaMaster = (phase === 0 || phase === 1) ? "Заур" : "Асик";
   const baseMobaMaster = (phase === 0 || phase === 1) ? "Олег" : "Ислам";
   const swapPairing = day >= 12 && day <= 21;
   const mobaMaster = swapPairing ? (baseMobaMaster === "Олег" ? "Ислам" : "Олег") : baseMobaMaster;
@@ -373,13 +373,13 @@ function fixedMasterPlanForDate(date) {
   if (key < MASTER_ROSTER_FROM) return null;
   const temporary = {
     "2026-08-24": { s1: "Асик", s2: "Без мастера" },
-    "2026-08-25": { s1: "Георгий", s2: "Асик" },
-    "2026-08-26": { s1: "Георгий", s2: "Асик" },
-    "2026-08-27": { s1: "Георгий", s2: "Без мастера" },
-    "2026-08-28": { s1: "Георгий", s2: "Асик" },
-    "2026-08-29": { s1: "Георгий", s2: "Асик" },
-    "2026-08-30": { s1: "Асик", s2: "Георгий" },
-    "2026-08-31": { s1: "Асик", s2: "Георгий" },
+    "2026-08-25": { s1: "Заур", s2: "Асик" },
+    "2026-08-26": { s1: "Заур", s2: "Асик" },
+    "2026-08-27": { s1: "Заур", s2: "Без мастера" },
+    "2026-08-28": { s1: "Заур", s2: "Асик" },
+    "2026-08-29": { s1: "Заур", s2: "Асик" },
+    "2026-08-30": { s1: "Асик", s2: "Заур" },
+    "2026-08-31": { s1: "Асик", s2: "Заур" },
   };
   if (temporary[key]) return temporary[key];
 
@@ -391,11 +391,11 @@ function fixedMasterPlanForDate(date) {
   let novaMaster = "";
 
   if (week === 0) {
-    if (weekend) { mobaMaster = "Георгий"; novaMaster = "Асик"; }
-    else novaMaster = (weekday === 1 || weekday === 2) ? "Асик" : "Георгий";
+    if (weekend) { mobaMaster = "Заур"; novaMaster = "Асик"; }
+    else novaMaster = (weekday === 1 || weekday === 2) ? "Асик" : "Заур";
   } else {
-    if (weekend) { mobaMaster = "Асик"; novaMaster = "Георгий"; }
-    else novaMaster = (weekday === 1 || weekday === 2) ? "Георгий" : "Асик";
+    if (weekend) { mobaMaster = "Асик"; novaMaster = "Заур"; }
+    else novaMaster = (weekday === 1 || weekday === 2) ? "Заур" : "Асик";
   }
   return { s1: mobaMaster, s2: novaMaster };
 }
@@ -413,7 +413,7 @@ function balancedRosterState(settings, date) {
   const managerReady = key < MANAGER_ROSTER_FROM
     ? sameRoster(managers, ["Сергей", "Арсен", "Дина"])
     : sameRoster(managers, ["Арсен", "Дина"]);
-  const masterReady = key >= MASTER_ROSTER_FROM && sameRoster(masters, ["Олег", "Георгий", "Асик"]);
+  const masterReady = key >= MASTER_ROSTER_FROM && sameRoster(masters, ["Олег", "Заур", "Асик"]);
   if (!managerReady && !masterReady) return null;
 
   const days = diffDays(from, key);
@@ -445,7 +445,7 @@ function balancedRosterState(settings, date) {
     const md = fixedMasterPlanForDate(date);
     masterS1 = md.s1;
     masterS2 = md.s2;
-    masterOff = ["Олег", "Георгий", "Асик"].filter((n) => n !== masterS1 && n !== masterS2);
+    masterOff = ["Олег", "Заур", "Асик"].filter((n) => n !== masterS1 && n !== masterS2);
   }
 
   if (managerReady && masterReady && key >= MANAGER_ROSTER_FROM) managerS2 = masterS2;

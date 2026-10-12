@@ -53,7 +53,7 @@ const settings={
     {name:"Арсен",role:"manager",group:0,slot:1,cycleStart:"2026-08-01",workDays:2,offDays:2},
     {name:"Дина",role:"manager",group:1,slot:0,cycleStart:"2026-08-03",workDays:2,offDays:2},
     {name:"Олег",role:"master",group:0,slot:0,cycleStart:"2026-08-01",workDays:5,offDays:2},
-    {name:"Георгий",role:"master",group:0,slot:1,cycleStart:"2026-08-01",workDays:2,offDays:2},
+    {name:"Заур",role:"master",group:0,slot:1,cycleStart:"2026-08-01",workDays:2,offDays:2},
     {name:"Асик",role:"master",group:1,slot:0,cycleStart:"2026-08-03",workDays:2,offDays:2}
   ]
 };
@@ -134,29 +134,29 @@ test("07.09: Моба = Арсен + Олег; Нова = Асик один",()=
   assert.deepStrictEqual(row.s2,{manager:"Асик",master:"Асик"});
 });
 
-test("09.09: Моба = Дина + Олег; Нова = Георгий один",()=>{
+test("09.09: Моба = Дина + Олег; Нова = Заур один",()=>{
   const row=schedule.daySchedule(0,9);
   assert.deepStrictEqual(row.s1,{manager:"Дина",master:"Олег"});
-  assert.deepStrictEqual(row.s2,{manager:"Георгий",master:"Георгий"});
+  assert.deepStrictEqual(row.s2,{manager:"Заур",master:"Заур"});
 });
 
-test("12.09 выходной цикл: Моба = Дина + Георгий; Нова = Асик",()=>{
+test("12.09 выходной цикл: Моба = Дина + Заур; Нова = Асик",()=>{
   const row=schedule.daySchedule(0,12);
-  assert.deepStrictEqual(row.s1,{manager:"Дина",master:"Георгий"});
+  assert.deepStrictEqual(row.s1,{manager:"Дина",master:"Заур"});
   assert.deepStrictEqual(row.s2,{manager:"Асик",master:"Асик"});
 });
 
-test("14.09 вторая неделя мастеров: Нова = Георгий",()=>{
+test("14.09 вторая неделя мастеров: Нова = Заур",()=>{
   const row=schedule.daySchedule(0,14);
   assert.strictEqual(row.s1.manager,"Арсен");
   assert.strictEqual(row.s1.master,"Олег");
-  assert.deepStrictEqual(row.s2,{manager:"Георгий",master:"Георгий"});
+  assert.deepStrictEqual(row.s2,{manager:"Заур",master:"Заур"});
 });
 
 test("06.09 история сохранена: в Нове нет отдельного менеджера по старому правилу",()=>{
   const row=schedule.daySchedule(0,6);
   assert.strictEqual(row.s2.manager,"Без менеджера");
-  assert.strictEqual(row.s2.master,"Георгий");
+  assert.strictEqual(row.s2.master,"Заур");
 });
 
 test("Сергей исключён с 07.09, но существует в истории до этой даты",()=>{
@@ -167,10 +167,10 @@ test("Сергей исключён с 07.09, но существует в ис�
 });
 
 test("Однодневная ручная замена перекрывает базовый график",()=>{
-  settings.dayOverrides.push({date:"2026-09-07",service:"Моба",manager:"Дина",master:"Георгий"});
+  settings.dayOverrides.push({date:"2026-09-07",service:"Моба",manager:"Дина",master:"Заур"});
   try{
     const row=schedule.daySchedule(0,7);
-    assert.deepStrictEqual(row.s1,{manager:"Дина",master:"Георгий"});
+    assert.deepStrictEqual(row.s1,{manager:"Дина",master:"Заур"});
     assert.deepStrictEqual(row.s2,{manager:"Асик",master:"Асик"});
   }finally{
     settings.dayOverrides.pop();
@@ -195,19 +195,19 @@ test("PIN смены строго 4 цифры",()=>{
 
 test("Ожидаемый ответственный Новы совпадает с мастером",()=>{
   assert.deepStrictEqual(shifts.expectedForDate("2026-09-07","Нова"),{manager:"Асик",master:"Асик"});
-  assert.deepStrictEqual(shifts.expectedForDate("2026-09-09","Нова"),{manager:"Георгий",master:"Георгий"});
+  assert.deepStrictEqual(shifts.expectedForDate("2026-09-09","Нова"),{manager:"Заур",master:"Заур"});
 });
 
 // ---- Employee rules ----
 test("Активные сотрудники после 07.09 не содержат Сергея",()=>{
   const names=employees.activeEmployeeNames("2026-09-07");
   assert(!names.includes("Сергей"));
-  ["Арсен","Дина","Олег","Георгий","Асик"].forEach(name=>assert(names.includes(name),name));
+  ["Арсен","Дина","Олег","Заур","Асик"].forEach(name=>assert(names.includes(name),name));
 });
 
 test("Ответственные Новы доступны как открывающие смену",()=>{
   const names=employees.activeManagerNames("2026-09-07");
-  ["Арсен","Дина","Георгий","Асик"].forEach(name=>assert(names.includes(name),name));
+  ["Арсен","Дина","Заур","Асик"].forEach(name=>assert(names.includes(name),name));
   assert(!names.includes("Сергей"));
 });
 

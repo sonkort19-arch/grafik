@@ -51,7 +51,7 @@
     shiftStart: "08:00",
     shiftEnd: "22:00",
     managers: [["Сергей","Арсен"],["Дина","Амалия"]],
-    masters: [["Олег","Георгий"],["Асик",""]],
+    masters: [["Олег","Заур"],["Асик",""]],
     staffChanges: [],
     dayOverrides: []
   };
@@ -648,7 +648,7 @@
     const tempMasterNotice=(todayKey>=MASTER_ROSTER_FROM && todayKey<=MASTER_TEMP_TO)
       ? `<div class="current-schedule-card" style="grid-column:1/-1;border-color:#f1d79e;background:#fffaf0">
           <h3>Временный график мастеров · 24–31 августа</h3>
-          <div class="current-schedule-row">Олег в отпуске. Георгий и Асик работают по временному графику, у каждого по одному выходному. С 1 сентября возвращается постоянный цикл.</div>
+          <div class="current-schedule-row">Олег в отпуске. Заур и Асик работают по временному графику, у каждого по одному выходному. С 1 сентября возвращается постоянный цикл.</div>
         </div>`
       : "";
 
@@ -658,14 +658,14 @@
         <h3>${escapeHtml(settings.service1)}</h3>
         <div class="current-schedule-row"><b>Менеджеры:</b> Арсен / Дина — 2/2, только в этой точке</div>
         <div class="current-schedule-row"><b>Мастер:</b> Олег — Пн–Пт</div>
-        <div class="current-schedule-row"><b>Сб и Вс:</b> Георгий / Асик работают по очереди неделями</div>
+        <div class="current-schedule-row"><b>Сб и Вс:</b> Заур / Асик работают по очереди неделями</div>
         <div class="current-schedule-row"><b>На смене:</b> 1 менеджер + 1 мастер · 08:00–22:00</div>
       </div>
 
       <div class="current-schedule-card service-s2">
         <h3>${escapeHtml(settings.service2)}</h3>
         <div class="current-schedule-row"><b>Отдельного менеджера нет.</b></div>
-        <div class="current-schedule-row"><b>Мастер:</b> Георгий / Асик — по действующему двухнедельному циклу</div>
+        <div class="current-schedule-row"><b>Мастер:</b> Заур / Асик — по действующему двухнедельному циклу</div>
         <div class="current-schedule-row"><b>Ответственный:</b> мастер Новы одновременно выполняет функцию менеджера</div>
         <div class="current-schedule-row"><b>Смена:</b> 09:00–19:00 · мастер открывает и закрывает её своим PIN</div>
       </div>
@@ -3075,7 +3075,7 @@
   const pinEmployeeNames=()=>[...new Set([...activeManagerNames(),...activeEmployeeNames()])];
   function renderPinFields(){
     const root=$("pinFields"); if(!root) return;
-    root.innerHTML=pinEmployeeNames().map((n,i)=>`<div class="pin-grid"><div class="field" style="margin:0"><label>${escapeHtml(n)}</label><input class="readonly" value="${["Георгий","Асик"].includes(n)?"Мастер Новы / ответственный":"Менеджер"}" readonly></div><div class="field" style="margin:0"><label>Новый PIN</label><input id="managerPin${i}" type="password" inputmode="numeric" maxlength="4" placeholder="4 цифры"></div></div>`).join("");
+    root.innerHTML=pinEmployeeNames().map((n,i)=>`<div class="pin-grid"><div class="field" style="margin:0"><label>${escapeHtml(n)}</label><input class="readonly" value="${["Заур","Асик"].includes(n)?"Мастер Новы / ответственный":"Менеджер"}" readonly></div><div class="field" style="margin:0"><label>Новый PIN</label><input id="managerPin${i}" type="password" inputmode="numeric" maxlength="4" placeholder="4 цифры"></div></div>`).join("");
   }
 
   async function saveManagerPins(){
@@ -4822,7 +4822,7 @@
       return `
         <div class="schedule-manage-role">
           <div><small>${escapeHtml(label)} · сб/вс</small><b>Без менеджера</b></div>
-          <div style="font-size:12px;color:var(--muted);margin-top:6px">В Нове по субботам и воскресеньям работают только Георгий или Асик.</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px">В Нове по субботам и воскресеньям работают только Заур или Асик.</div>
         </div>`;
     }
 

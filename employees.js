@@ -30,7 +30,7 @@
     const active=activeEmployeesForDate(dateStr);
     const names=active.filter(x=>x.role==="manager").map(x=>x.name).filter(Boolean);
     if(dateStr>=MANAGER_ROSTER_FROM){
-      active.filter(x=>x.role==="master" && ["Георгий","Асик"].includes(x.name)).forEach(x=>{ if(x.name) names.push(x.name); });
+      active.filter(x=>x.role==="master" && ["Заур","Асик"].includes(x.name)).forEach(x=>{ if(x.name) names.push(x.name); });
     }
     return [...new Set(names)];
   }

@@ -19,7 +19,7 @@ function makeRepair(id = 'repair-full-1', orderNo = 4607) {
     estimated_price: 500,
     final_price: 500,
     manager: 'Тест Менеджер',
-    master: 'Георгий',
+    master: 'Заур',
     status: 'in_work',
     accepted_at: '2026-09-13T08:00:00.000Z',
     updated_at: '2026-09-13T08:30:00.000Z',
@@ -68,7 +68,7 @@ async function installFullMocks(page) {
       unit_price: 500,
       unit_cost: 0,
       discount_amount: 0,
-      executor: 'Георгий',
+      executor: 'Заур',
       service_catalog_id: null,
       inventory_product_id: null,
     }],
@@ -223,7 +223,7 @@ async function installFullMocks(page) {
           services: ['Мобильный Ангел', 'Nova'],
           employees: [
             { name: 'Тест Менеджер', role: 'manager' },
-            { name: 'Георгий', role: 'master' },
+            { name: 'Заур', role: 'master' },
             { name: 'Олег', role: 'master' },
           ],
         });
@@ -314,7 +314,7 @@ async function installFullMocks(page) {
             stock: 3,
           }],
           employees: [
-            { name: 'Георгий', employee: 'Георгий', role: 'master' },
+            { name: 'Заур', employee: 'Заур', role: 'master' },
             { name: 'Олег', employee: 'Олег', role: 'master' },
           ],
         });
