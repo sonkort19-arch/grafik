@@ -16,3 +16,10 @@ assert(!api.includes('action==="shift"'),"Marketer token cannot bypass shift con
 assert(migration.includes("ENABLE ROW LEVEL SECURITY")&&migration.includes("REVOKE ALL"));
 assert(migration.includes("failed_attempts")&&migration.includes("30 minutes"),"Rate-limit weak staff password");
 console.log("PASS marketer account: isolated owner rights, signed session, reports only, password not in repository");
+
+const shifts=read("supabase/functions/ma-shifts/index.ts");
+const app=read("app.js");
+assert(shifts.includes('if(employee==="Ирма")')&&shifts.includes('p_username:"irma",p_password:pin'),"Irma may confirm from an authorized workplace device using verified password");
+assert(shifts.includes('verifyShiftDevice(service,'),"Device proof remains mandatory");
+assert(app.includes('[...scheduled,"Ирма"]'),"Irma is available for shift confirmations in both views");
+console.log("PASS marketer can confirm shifts without bypassing workplace device verification");

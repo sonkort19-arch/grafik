@@ -149,6 +149,13 @@ async function assertAdmin(req:Request){
   return data.user;
 }
 async function verifyPin(employee:string,pin:string){
+  if(employee==="Ирма"){
+    const {data,error}=await admin.rpc("ma_verify_marketer_login",{p_username:"irma",p_password:pin});
+    if(error) throw error;
+    if(!data?.ok || data.employee!=="Ирма" || data.role!=="marketer")
+      throw new Error(data?.locked?"Вход Ирмы заблокирован на 30 минут":"Неверный пароль Ирмы");
+    return true;
+  }
   const {data:guard}=await admin.from("ma_pin_guard").select("*").eq("employee",employee).maybeSingle();
   if(guard?.locked_until && new Date(guard.locked_until)>new Date()) throw new Error("PIN временно заблокирован после нескольких ошибок. Попробуй позже.");
   const {data:row}=await admin.from("ma_employee_pins").select("pin_hash,active,role").eq("employee",employee).maybeSingle();
