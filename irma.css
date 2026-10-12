@@ -13,3 +13,11 @@
 .irma-report-body li{margin:6px 0;overflow-wrap:anywhere}
 .irma-empty{padding:16px;text-align:center;color:#64748b}
 @media(max-width:620px){.irma-filters{grid-template-columns:1fr 1fr}.irma-filters label:last-child{grid-column:1/-1}.irma-entry{font-size:11px;padding:8px 7px}}
+
+
+.irma-setup{margin:17px 0 3px;padding:12px;border:1px solid #dce4ef;border-radius:12px}
+.irma-setup summary{font-size:13px;font-weight:700;cursor:pointer}
+.irma-setup p{font-size:13px;color:#66758c;line-height:1.45}
+.irma-setup label{display:block;font-size:13px;font-weight:700;margin:10px 0 6px}
+.irma-setup input{box-sizing:border-box;width:100%;min-height:42px;border:1px solid #d2dcea;border-radius:10px;padding:8px 11px;font-size:16px}
+.irma-setup button{margin:10px 0}
