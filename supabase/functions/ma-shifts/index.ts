@@ -5,7 +5,7 @@ import webpush from "npm:web-push@3.6.7";
 if (!("window" in globalThis)) {
   Object.defineProperty(globalThis, "window", { value: globalThis, configurable: true });
 }
-await import("https://raw.githubusercontent.com/sonkort19-arch/grafik/ce8b50b9c2d76203b4bf49c87b6fef607bc2e9bc/schedule.js");
+await import("https://raw.githubusercontent.com/sonkort19-arch/grafik/238ec7519046076172490b06e07100fbeb30efab/schedule.js");
 const SharedSchedule:any = (globalThis as any).MASchedule || (globalThis as any).window?.MASchedule;
 if (!SharedSchedule?.create) throw new Error("Не удалось загрузить общий расчёт графика");
 
