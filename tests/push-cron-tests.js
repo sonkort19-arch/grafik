@@ -39,6 +39,6 @@ check(app.includes('op:"subscription-status",audience:"employee"') &&
       app.includes("Введите личный PIN") &&
       app.includes("Тестовое уведомление"),
       "Browser detects stale subscriptions and provides verified recovery");
-check(server.includes("raw.githubusercontent.com/sonkort19-arch/grafik/ce8b50b9c2d76203b4bf49c87b6fef607bc2e9bc/schedule.js"),
+check(/raw\.githubusercontent\.com\/sonkort19-arch\/grafik\/[a-f0-9]{40}\/schedule\.js/.test(server),
       "Server does not import a mutable schedule branch");
 console.log("All scheduler/push safety checks passed.");
