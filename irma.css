@@ -1,0 +1,15 @@
+/* Marketing-staff login and report viewer. */
+.irma-entry{white-space:nowrap;font-size:12px;padding:8px 10px}
+.irma-sheet{width:min(720px,100%);max-height:90dvh;overflow:auto}
+.irma-filters{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:8px;margin:10px 0}
+.irma-filters label{display:grid;gap:5px;font-size:12px;font-weight:700;color:#45576d}
+.irma-filters input,.irma-filters select{width:100%;min-width:0;box-sizing:border-box;border:1px solid #d6e0eb;border-radius:9px;padding:10px;background:#fff;color:#14233b}
+.irma-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.irma-report{margin:9px 0;border:1px solid #d9e2ee;border-radius:12px;background:#fff;overflow:hidden}
+.irma-report summary{cursor:pointer;padding:12px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;background:#f5f8fc}
+.irma-report summary span{color:#566a80;font-size:13px}
+.irma-report-body{padding:12px;font-size:14px;line-height:1.45}
+.irma-report-body ol{padding-left:22px;margin:8px 0}
+.irma-report-body li{margin:6px 0;overflow-wrap:anywhere}
+.irma-empty{padding:16px;text-align:center;color:#64748b}
+@media(max-width:620px){.irma-filters{grid-template-columns:1fr 1fr}.irma-filters label:last-child{grid-column:1/-1}.irma-entry{font-size:11px;padding:8px 7px}}
