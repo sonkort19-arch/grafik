@@ -2551,7 +2551,8 @@
   }
 
   function startupManagerOptions(expectedManager){
-    const names=(expectedManager && moscowParts().date>=MANAGER_ROSTER_FROM) ? [expectedManager] : activeManagerNames();
+    const scheduled=(expectedManager && moscowParts().date>=MANAGER_ROSTER_FROM) ? [expectedManager] : activeManagerNames();
+    const names=[...new Set([...scheduled,"Ирма"])];
     return names.map(n=>`<option value="${escapeHtml(n)}" ${n===expectedManager?"selected":""}>${escapeHtml(n)}</option>`).join("");
   }
 
@@ -3068,7 +3069,8 @@
         ? `По графику сегодня отвечает: <b>${escapeHtml(expected.master)}</b>`
         : `По графику сегодня: <b>${escapeHtml(expected.manager)} + ${escapeHtml(expected.master)}</b>`)
       : "На эту дату автоматический график не найден. Смену можно подтвердить вручную.";
-    const names=(expected && expected.manager && moscowParts().date>=MANAGER_ROSTER_FROM) ? [expected.manager] : activeManagerNames();
+    const scheduled=(expected && expected.manager && moscowParts().date>=MANAGER_ROSTER_FROM) ? [expected.manager] : activeManagerNames();
+    const names=[...new Set([...scheduled,"Ирма"])];
     $("shiftEmployee").innerHTML=names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
     if(expected && names.includes(expected.manager)) $("shiftEmployee").value=expected.manager;
     $("shiftPin").value=""; $("shiftActionError").textContent="";
