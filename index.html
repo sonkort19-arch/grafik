@@ -89,6 +89,7 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
 <title>MA График</title>
 <link rel="icon" type="image/png" sizes="64x64" href="ma-favicon-final-v6.png">
 <link rel="stylesheet" href="styles.css?v=20261012-daily-report-v1">
+<link rel="stylesheet" href="irma.css?v=20261012-v1">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="ma-apple-touch-final-v6.png">
 </head>
@@ -119,6 +120,7 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
       <div class="brand">MA График</div>
       <div style="display:flex;align-items:center;gap:8px">
         <div class="badge" id="saveBadge">Загрузка…</div>
+        <button class="authbtn" id="marketingOpenBtn" type="button">Маркетолог</button>
         <button class="authbtn" id="adminBtn">Администратор</button>
       </div>
     </div>
@@ -759,6 +761,36 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
   </div>
 </div>
 
+<div class="modal hidden" id="marketingModal">
+  <div class="sheet ma-marketer-sheet">
+    <div class="sheet-head"><h2>Ирма · Маркетолог</h2><button type="button" class="close" id="marketingClose" aria-label="Закрыть">×</button></div>
+    <div id="marketingLoginSection">
+      <p class="ma-marketer-note">Просмотр общего графика и отчётов обеих точек. Настройки владельца и финансы недоступны.</p>
+      <div class="field"><label for="marketingLogin">Логин</label><input id="marketingLogin" autocomplete="username" value="irma"></div>
+      <div class="field"><label for="marketingPassword">Пароль</label><input id="marketingPassword" type="password" autocomplete="current-password" placeholder="Пароль"></div>
+      <div class="login-error" id="marketingLoginError"></div>
+      <button class="primary" id="marketingLoginBtn" type="button">Войти</button>
+      <details class="ma-marketer-setup" id="marketingOwnerSetup">
+        <summary>Владельцу: настроить пароль Ирмы</summary>
+        <p class="ma-marketer-note">Сначала войдите как администратор MA График. Затем задайте пароль для отдельной учётной записи Ирмы.</p>
+        <div class="field"><label for="marketingSetupPassword">Пароль Ирмы</label><input id="marketingSetupPassword" type="password" autocomplete="new-password" placeholder="Новый пароль"></div>
+        <button class="secondary" id="marketingSetupBtn" type="button">Создать или обновить доступ</button>
+        <div class="login-error" id="marketingSetupError"></div>
+      </details>
+    </div>
+    <div id="marketingReportsSection" class="hidden">
+      <p class="ma-marketer-note">Просмотр и копирование дневных отчётов без изменения данных.</p>
+      <div class="ma-marketer-toolbar">
+        <label>Период <select id="marketingDays"><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="90">90 дней</option></select></label>
+        <button class="secondary" id="marketingReload" type="button">Обновить</button>
+        <button class="secondary" id="marketingLogout" type="button">Выйти</button>
+      </div>
+      <div class="login-error" id="marketingReportsError"></div>
+      <div id="marketingReportsList" class="ma-marketer-reports">Загрузка отчётов…</div>
+    </div>
+  </div>
+</div>
+
 <div class="modal hidden" id="loginModal">
   <div class="sheet">
     <div class="sheet-head"><h2>Вход администратора</h2><button class="close" id="closeLogin">×</button></div>
@@ -1002,6 +1034,8 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
 <script defer src="kpi.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('kpi.js')"></script>
 <script defer src="safety.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('safety.js')"></script>
 <script defer src="app.js?v=20261012-daily-report-v1" onerror="window.MABoot&&window.MABoot.assetError('app.js')"></script>
+<script defer src="irma.js?v=20261012-v1" onerror="window.MABoot&&window.MABoot.assetError('irma.js')"></script>
 
+<script defer src="marketing.js?v=20261012-irma-v1"></script>
 </body>
 </html>

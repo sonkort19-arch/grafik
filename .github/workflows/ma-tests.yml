@@ -30,6 +30,7 @@ jobs:
 
       - name: Check JavaScript syntax
         run: |
+          node --check irma.js
           node --check schedule.js
           node --check shifts.js
           node --check employees.js
@@ -44,6 +45,8 @@ jobs:
           node --check safety.js
           node --check assistant-core.js
           node --check assistant.js
+          node --check marketing.js
+          node --check tests/marketing-portal-tests.js
           node --check assistant-attendance.js
           node --check assistant-owner.js
           node --check app.js
@@ -85,6 +88,12 @@ jobs:
 
       - name: Run MA Grafik regression suite
         run: node tests/run-tests.js
+
+      - name: Test marketer access and report view
+        run: node tests/marketing-portal-tests.js
+
+      - name: Verify marketer account security boundaries
+        run: node tests/irma-access-tests.js
 
       - name: Require daily report before shift closing
         run: node tests/daily-shift-report-tests.js
@@ -140,6 +149,8 @@ jobs:
           deno check supabase/functions/ma-crm-item-cost-api/index.ts
           deno check supabase/functions/ma-crm-order-api/index.ts
           deno check supabase/functions/ma-shifts/index.ts
+          deno check supabase/functions/ma-marketer/index.ts
+          deno check supabase/functions/ma-marketer/index.ts
           deno check supabase/functions/ma-grafik-mirror/index.ts
 
   production-smoke:

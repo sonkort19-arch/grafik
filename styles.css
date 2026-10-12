@@ -29,3 +29,23 @@ body.startup-shift-mode .daily-report-fields textarea{width:100%;box-sizing:bord
 .shift-report-history{margin-top:12px;display:block}
 .shift-report-history ol{padding-left:22px;margin:8px 0 12px}
 .shift-report-history li{margin:6px 0;overflow-wrap:anywhere}
+
+
+/* Separate read-only marketing portal. */
+.ma-marketer-sheet{width:min(100%,750px);max-height:90dvh;overflow:auto}
+.ma-marketer-note{font-size:13px;line-height:1.5;color:#576579;margin:12px 0}
+.ma-marketer-setup{margin:18px 0 0;padding:12px;border:1px solid #dfe5ed;border-radius:12px}
+.ma-marketer-setup summary{font-size:13px;font-weight:700;cursor:pointer}
+.ma-marketer-setup .field{margin:10px 0}
+.ma-marketer-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0}
+.ma-marketer-toolbar label{display:flex;align-items:center;gap:7px;font-size:13px}
+.ma-marketer-toolbar select{padding:8px;border:1px solid #d3dce7;border-radius:9px;background:#fff}
+.ma-marketer-reports{display:grid;gap:12px;margin:12px 0}
+.ma-marketer-report{border:1px solid #dce4ef;border-radius:13px;padding:13px;background:#fafcff}
+.ma-marketer-report h3{margin:0 0 8px;font-size:16px}
+.ma-marketer-report .ma-report-meta{color:#526277;font-size:13px}
+.ma-marketer-report ol{padding-left:22px;line-height:1.45;white-space:pre-wrap}
+.ma-marketer-report li{margin:6px 0;overflow-wrap:anywhere}
+.ma-marketer-report-actions{display:flex;gap:8px;margin-top:12px}
+#marketingOpenBtn{white-space:nowrap}
+@media(max-width:410px){#marketingOpenBtn{font-size:12px;padding:8px}}
