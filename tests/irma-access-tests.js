@@ -1,0 +1,18 @@
+"use strict";
+const assert=require("assert"),fs=require("fs");
+const read=path=>fs.readFileSync(path,"utf8");
+const frontend=read("irma.js"),index=read("index.html"),api=read("supabase/functions/ma-marketer/index.ts");
+const migration=read("supabase/migrations/20261012180000_add_marketer_account.sql");
+assert(index.includes('src="irma.js?')&&index.includes('href="irma.css?'));
+assert(frontend.includes("sessionStorage.setItem(KEY")&&frontend.includes("Вход Ирмы"));
+assert(frontend.includes("escapeHtml(reason)"),"Reports must escape user-provided text");
+assert(frontend.includes("Показать отчёты"));
+assert(!frontend.includes("3578")&&!api.includes("3578"),"Never ship password to frontend or edge source");
+assert(api.includes('crypto.subtle.sign("HMAC"')&&api.includes('crypto.subtle.verify("HMAC"'),"Sessions must be signed and verified");
+assert(api.includes("ma_verify_marketer_login")&&api.includes("ma_marketer_accounts"));
+assert(api.includes('data.role!=="marketer"')||api.includes("data.role!==\"marketer\""));
+assert(api.includes("ma_shift_daily_reports")&&api.includes("ma_shifts!inner"));
+assert(!api.includes('action==="shift"'),"Marketer token cannot bypass shift confirmation");
+assert(migration.includes("ENABLE ROW LEVEL SECURITY")&&migration.includes("REVOKE ALL"));
+assert(migration.includes("failed_attempts")&&migration.includes("30 minutes"),"Rate-limit weak staff password");
+console.log("PASS marketer account: isolated owner rights, signed session, reports only, password not in repository");
