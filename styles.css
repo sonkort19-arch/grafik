@@ -13,3 +13,19 @@ a:focus-visible{
 @media(max-width:760px){
   input,select,textarea{font-size:16px!important}
 }
+
+
+/* Daily shift report required before closing: scoped to shift views. */
+.daily-report-fields{display:grid;gap:11px;padding:14px;border:1px solid #d9e2f0;border-radius:14px;background:#f8fbff;margin:12px 0}
+.daily-report-fields.hidden{display:none}
+.daily-report-title{font-size:16px;color:#172b4d;font-weight:800}
+.daily-report-fields .field{margin:0;display:grid;gap:6px}
+.daily-report-fields label{font-size:13px;color:#34425b;font-weight:700}
+.daily-report-fields input,.daily-report-fields textarea{width:100%;box-sizing:border-box;border:1px solid #cbd7e6;border-radius:10px;background:#fff;color:#182b44;padding:11px 12px;font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.daily-report-fields textarea{min-height:118px;resize:vertical}
+.daily-report-fields input[type=number]{max-width:230px}
+.daily-report-hint{font-size:12px;line-height:1.4;color:#67778e}
+body.startup-shift-mode .daily-report-fields textarea{width:100%;box-sizing:border-box;border:1px solid #cbd7e6;border-radius:10px;background:#fff;color:#182b44;padding:11px 12px;font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:118px;resize:vertical}
+.shift-report-history{margin-top:12px;display:block}
+.shift-report-history ol{padding-left:22px;margin:8px 0 12px}
+.shift-report-history li{margin:6px 0;overflow-wrap:anywhere}

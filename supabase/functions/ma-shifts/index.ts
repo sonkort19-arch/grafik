@@ -362,6 +362,25 @@ async function handleRevokeDevice(req:Request,body:any){
   return {ok:true};
 }
 
+function validateDailyReport(input:any){
+  const total=Number(input?.totalAppeals);
+  if(!Number.isSafeInteger(total) || total<0 || total>9999 || input?.totalAppeals===null || input?.totalAppeals===undefined){
+    throw new Error("Отчёт обязателен: укажи количество обращений от 0 до 9999");
+  }
+  if(!Array.isArray(input?.reasons) || input.reasons.length>60){
+    throw new Error("Отчёт обязателен: заполни причины обращений");
+  }
+  const reasons:string[]=input.reasons.map((item:any)=>{
+    if(typeof item!=="string") throw new Error("Некорректная причина обращения");
+    const value=item.trim();
+    if(value.length<3 || value.length>400) throw new Error("Каждая причина должна содержать 3–400 символов");
+    return value;
+  });
+  if(total>0 && !reasons.length) throw new Error("Нельзя закрыть смену без описания обращений");
+  if(total===0 && reasons.length) throw new Error("При нуле обращений причины должны быть пустыми");
+  return {total_appeals:total,reasons};
+}
+
 async function handleShift(req:Request,body:any){
   const action=body.action, service=String(body.service||"").trim(), employee=String(body.employee||"").trim(), pin=String(body.pin||"");
   if(!["open","close"].includes(action)) throw new Error("Неверное действие");
@@ -397,9 +416,20 @@ async function handleShift(req:Request,body:any){
 
   if(!existing?.opened_at) throw new Error("Смена ещё не была открыта");
   if(existing.closed_at) return {ok:false,error:`Смена уже закрыта в ${localParts(new Date(existing.closed_at)).time}`};
+  const dailyReport=validateDailyReport(body.dailyReport);
+  const {error:reportError}=await admin.from("ma_shift_daily_reports").upsert({
+    shift_id:existing.id,
+    ...dailyReport,
+    reported_by:employee,
+    submitted_at:now.toISOString()
+  },{onConflict:"shift_id"});
+  if(reportError) throw reportError;
   const early=Math.max(0,mins(end)-(lp.hour*60+lp.minute));
-  const {error}=await admin.from("ma_shifts").update({closed_at:now.toISOString(),closed_by:employee,early_close_minutes:early,closed_source:source,closed_device_id:shiftDevice?.id||null,updated_at:now.toISOString()}).eq("id",existing.id);
+  const {data:closedRows,error}=await admin.from("ma_shifts")
+    .update({closed_at:now.toISOString(),closed_by:employee,early_close_minutes:early,closed_source:source,closed_device_id:shiftDevice?.id||null,updated_at:now.toISOString()})
+    .eq("id",existing.id).is("closed_at",null).select("id");
   if(error) throw error;
+  if(!closedRows?.length) throw new Error("Смена уже закрыта на другом устройстве");
   const earlyText=early>0?` Раньше графика на ${early} мин.`:"";
   const closeActorText=adminUser?`Администратор закрыл за ${employee}`:`${employee} закрыл`;
   await sendPush(`${service} — смена закрыта`,`${closeActorText} смену в ${lp.time}.${earlyText}`,`${service}-${lp.date}-close`);

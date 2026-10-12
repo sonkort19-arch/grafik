@@ -2719,6 +2719,15 @@
             <label>PIN менеджера</label>
             <input id="startupShiftPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••">
           </div>
+          ${action==="close" ? `
+          <div class="daily-report-fields">
+            <b class="daily-report-title">Отчёт за ${escapeHtml(russianDateLong(now.date))}</b>
+            <div><label for="startupReportTotal">Всего обращений за день</label>
+              <input id="startupReportTotal" type="number" min="0" max="9999" step="1" inputmode="numeric" placeholder="Например, 4"></div>
+            <div><label for="startupReportReasons">Почему ушли / чем закончились обращения</label>
+              <textarea id="startupReportReasons" rows="5" placeholder="Каждое обращение с новой строки"></textarea></div>
+            <span class="daily-report-hint">Укажи причины по одной на строку. Если обращений не было — введи 0.</span>
+          </div>` : ""}
           <button class="${buttonClass}" id="startupShiftConfirm">${verb}</button>
         </div>
         <div class="startup-shift-error" id="startupShiftError"></div>`;
@@ -2779,6 +2788,7 @@
     try{
       if(!canUseShiftService(service)) throw new Error("Этот компьютер не разрешён для этой точки");
 
+      const dailyReport=action==="close" ? readDailyReport("startupReportTotal","startupReportReasons") : null;
       const deviceProof=await signDeviceProof("shift",[action,service,employee]);
       const result=await shiftFunction({
         op:"shift",
@@ -2789,7 +2799,8 @@
         deviceToken:loadShiftDeviceToken(),
         deviceProof,
         expectedManager:expected?.manager||null,
-        expectedMaster:expected?.master||null
+        expectedMaster:expected?.master||null,
+        ...(dailyReport ? {dailyReport} : {})
       });
 
       await loadTodayShifts(false);
@@ -3012,6 +3023,26 @@
     }
   }
 
+  function readDailyReport(totalId,reasonsId){
+    const totalRaw=String($(totalId)?.value??"").trim();
+    if(!/^(0|[1-9]\d*)$/.test(totalRaw) || Number(totalRaw)>9999){
+      throw new Error("Укажи количество обращений за день (от 0 до 9999)");
+    }
+    const totalAppeals=Number(totalRaw);
+    const reasons=String($(reasonsId)?.value||"").split(/\r?\n/)
+      .map(line=>line.trim().replace(/^(?:[-•*]|\d+[.)])\s*/,"").trim()).filter(Boolean);
+    if(reasons.length>60 || reasons.some(line=>line.length<3 || line.length>400)){
+      throw new Error("Напиши причины понятными строками (3–400 символов, максимум 60)");
+    }
+    if(totalAppeals>0 && !reasons.length){
+      throw new Error("Укажи причины ухода или результат обращений");
+    }
+    if(totalAppeals===0 && reasons.length){
+      throw new Error("При нуле обращений оставь список причин пустым");
+    }
+    return {totalAppeals,reasons};
+  }
+
   function openShiftAction(service,action,expected){
     if(!canUseShiftService(service)){
       toast(`Открытие смены доступно только на устройстве ${service}`);
@@ -3030,6 +3061,10 @@
     $("shiftPin").value=""; $("shiftActionError").textContent="";
     $("shiftPinField").classList.toggle("hidden",isAdmin());
     $("adminShiftNotice").classList.toggle("hidden",!isAdmin());
+    $("shiftDailyReport").classList.toggle("hidden",action!=="close");
+    $("shiftReportDate").textContent=russianDateLong(moscowParts().date);
+    $("shiftReportTotal").value="";
+    $("shiftReportReasons").value="";
     $("shiftActionModal").classList.remove("hidden");
     if(!isAdmin()) setTimeout(()=>$("shiftPin").focus(),100);
   }
@@ -3051,6 +3086,7 @@
         if(!ok) return;
       }
 
+      const dailyReport=p.action==="close" ? readDailyReport("shiftReportTotal","shiftReportReasons") : null;
       const deviceProof=adminMode ? null : await signDeviceProof("shift",[p.action,p.service,employee]);
       const body={
         op:"shift",
@@ -3061,7 +3097,8 @@
         deviceToken:adminMode?"":loadShiftDeviceToken(),
         deviceProof,
         expectedManager:p.expected?.manager||null,
-        expectedMaster:p.expected?.master||null
+        expectedMaster:p.expected?.master||null,
+        ...(dailyReport ? {dailyReport} : {})
       };
       const result=await shiftFunction(body,{admin:adminMode});
       closeShiftAction();
@@ -3628,7 +3665,7 @@
     const token=await getAdminToken();
     if(!token){ openLoginModal(); return; }
 
-    let q=`/rest/v1/${SHIFT_TABLE}?select=*&order=shift_date.desc,service.asc,id.desc`;
+    let q=`/rest/v1/${SHIFT_TABLE}?select=*,ma_shift_daily_reports(total_appeals,reasons,reported_by,submitted_at)&order=shift_date.desc,service.asc,id.desc`;
     if(from) q+=`&shift_date=gte.${encodeURIComponent(from)}`;
     if(to) q+=`&shift_date=lte.${encodeURIComponent(to)}`;
     if(service) q+=`&service=eq.${encodeURIComponent(service)}`;

@@ -200,6 +200,17 @@
       const openSource=historySourceText(r,"open");
       const closeSource=historySourceText(r,"close");
       const mismatch=historyHasMismatch(r);
+      const rawReport=r.ma_shift_daily_reports;
+      const report=Array.isArray(rawReport) ? rawReport[0] : rawReport;
+      const reportHtml=report ? `<div class="history-detail-card shift-report-history">
+        <b>Отчёт за день</b>
+        <div>Всего обращений: <strong>${escapeHtml(String(report.total_appeals))}</strong></div>
+        <div>Менеджер: ${escapeHtml(report.reported_by||"—")}</div>
+        ${Array.isArray(report.reasons)&&report.reasons.length
+          ? `<div style="margin-top:8px">Почему ушли / результат обращений:</div><ol>${report.reasons.map(reason=>`<li>${escapeHtml(String(reason))}</li>`).join("")}</ol>`
+          : `<div style="margin-top:8px">Обращений не было</div>`}
+        <button type="button" class="secondary copy-shift-report-btn" data-id="${r.id}">Скопировать отчёт</button>
+      </div>` : "";
 
       if(r.voided_at){
         return `<details class="history-item ${serviceClass}">
@@ -270,6 +281,8 @@
             </div>
           </div>
 
+          ${reportHtml}
+
           ${isAdmin()?`
             <div class="history-detail-actions">
               <button class="secondary edit-shift-btn" data-id="${r.id}">Исправить смену</button>
@@ -279,6 +292,26 @@
       </details>`;
     }).join("");
 
+    root.querySelectorAll(".copy-shift-report-btn").forEach(b=>{
+      b.onclick=async e=>{
+        e.preventDefault(); e.stopPropagation();
+        const row=rows.find(item=>String(item.id)===b.dataset.id);
+        const raw=row?.ma_shift_daily_reports;
+        const report=Array.isArray(raw) ? raw[0] : raw;
+        if(!report) return;
+        const lines=[
+          `Отчёт за ${String(row.shift_date||"").split("-").reverse().join(".")}`,
+          `Всего обращений: ${report.total_appeals}`,
+          `Менеджер: ${report.reported_by}`,
+          "", "Почему ушли / результат обращений:",
+          ...(Array.isArray(report.reasons)&&report.reasons.length
+            ? report.reasons.map((reason,i)=>`${i+1}. ${reason}`)
+            : ["Обращений не было"])
+        ];
+        try{await navigator.clipboard.writeText(lines.join("\n"));b.textContent="Скопировано";}
+        catch(_){b.textContent="Не удалось скопировать";}
+      };
+    });
     root.querySelectorAll(".edit-shift-btn").forEach(b=>{
       b.onclick=e=>{
         e.preventDefault();

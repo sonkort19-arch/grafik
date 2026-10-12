@@ -1,0 +1,18 @@
+"use strict";
+const assert=require("assert"),fs=require("fs");
+const app=fs.readFileSync("app.js","utf8");
+const ui=fs.readFileSync("index.html","utf8");
+const server=fs.readFileSync("supabase/functions/ma-shifts/index.ts","utf8");
+const history=fs.readFileSync("history.js","utf8");
+const migration=fs.readFileSync("supabase/migrations/20261012164000_require_shift_report_on_close.sql","utf8");
+for(const id of ["shiftDailyReport","shiftReportTotal","shiftReportReasons"]) assert(ui.includes('id="'+id+'"'),"Missing "+id);
+for(const id of ["startupReportTotal","startupReportReasons"]) assert(app.includes('id="'+id+'"'),"Missing "+id);
+assert(app.includes('readDailyReport("startupReportTotal","startupReportReasons")'));
+assert(app.includes('readDailyReport("shiftReportTotal","shiftReportReasons")'));
+assert(app.includes('...(dailyReport ? {dailyReport} : {})'));
+assert(server.includes('validateDailyReport(body.dailyReport)'),"Backend must enforce report");
+assert(server.includes('ma_shift_daily_reports'),"Backend must persist report");
+assert(server.includes('.is("closed_at",null)'),"Close must be conditional");
+assert(migration.includes('BEFORE UPDATE OF closed_at'),"DB must reject missing report");
+assert(history.includes('ma_shift_daily_reports')&&history.includes('Скопировать отчёт'),"History should show and allow copying report");
+console.log("PASS: both closing views require a private saved report, history displays it, and DB closes are guarded.");
