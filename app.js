@@ -131,7 +131,7 @@
   let historyRowsTruncated = false;
   let deviceListLoadState = "unknown";
   const {
-    walletCurrentMonthKey,walletMonthKeyFromIso,walletMonthLabel,walletShiftMonth,walletStartOfMonthIso,
+    walletCurrentMonthKey,walletMonthKeyFromIso,walletMonthLabel,walletShiftMonth,walletStartOfMonthIso,walletCountsTowardPlan,
     walletLegacyDefaults,emptyWalletState,walletBackupBeforeMigration,normalizeWalletDefinition,
     normalizeWalletTransaction,normalizeWalletState,loadWalletState,
     parseMoneyInput,moneyInputValue,formatMoney,walletTransactionMonth,
@@ -768,7 +768,7 @@
   }
 
   async function fetchWalletCloudConfig(token){
-    const res=await authFetch(`/rest/v1/${WALLET_CONFIG_TABLE}?select=wallets,strategy,last_rollover_month,history_cleared_at,updated_at&limit=1`,{method:"GET",headers:{Authorization:"Bearer "+token}});
+    const res=await authFetch(`/rest/v1/${WALLET_CONFIG_TABLE}?select=wallets,strategy,last_rollover_month,history_cleared_at,plan_reset_at,updated_at&limit=1`,{method:"GET",headers:{Authorization:"Bearer "+token}});
     if(!res.ok) throw await httpErrorFromResponse(res,"Не удалось загрузить настройки кошельков");
     return await res.json().catch(()=>[]);
   }
@@ -809,7 +809,7 @@
     const res=await authFetch(`/rest/v1/${WALLET_CONFIG_TABLE}?on_conflict=owner_id`,{
       method:"POST",
       headers:{Authorization:"Bearer "+token,Prefer:"resolution=merge-duplicates,return=minimal"},
-      body:JSON.stringify({owner_id:ownerId,wallets:state.wallets,strategy:state.strategy,last_rollover_month:state.lastRolloverMonth||walletCurrentMonthKey(),history_cleared_at:state.historyClearedAt||null,updated_at:state.configUpdatedAt||new Date().toISOString()})
+      body:JSON.stringify({owner_id:ownerId,wallets:state.wallets,strategy:state.strategy,last_rollover_month:state.lastRolloverMonth||walletCurrentMonthKey(),history_cleared_at:state.historyClearedAt||null,...(state.planResetAt?{plan_reset_at:state.planResetAt}:{}),updated_at:state.configUpdatedAt||new Date().toISOString()})
     });
     if(!res.ok) throw new Error(await res.text());
     // Старые версии приложения продолжают видеть планы встроенных кошельков.
@@ -831,6 +831,7 @@
       configUpdatedAt:row?.updated_at||"",
       historyClearedAt:row?.history_cleared_at||"",
       lastRolloverMonth:row?.last_rollover_month||walletCurrentMonthKey(),
+      planResetAt:row?.plan_reset_at||"",
       transactions
     });
   }
@@ -873,6 +874,11 @@
         walletCloudNeedsSetup=false;
 
         const remoteConfig=configRows[0]||null;
+        const localResetMs=Date.parse(walletState.planResetAt||"")||0;
+        const remoteResetMs=Date.parse(remoteConfig?.plan_reset_at||"")||0;
+        // После ручного сброса другое устройство не должно вернуть старый прогресс.
+        const effectiveResetMs=Math.max(localResetMs,remoteResetMs);
+        const effectiveResetAt=effectiveResetMs?new Date(effectiveResetMs).toISOString():"";
         const legacyPlan=planRows[0]||null;
         const localClearMs=Date.parse(walletState.historyClearedAt||"")||0;
         const remoteClearMs=Date.parse(remoteConfig?.history_cleared_at||"")||0;
@@ -895,7 +901,7 @@
         if(missingInCloud.length) await uploadWalletTransactions(token,ownerId,missingInCloud);
         const mergedTransactions=mergeWalletTransactionLists(walletState.transactions,remoteTransactions);
 
-        let nextState=normalizeWalletState({...walletState,historyClearedAt:effectiveClearAt||walletState.historyClearedAt,transactions:mergedTransactions});
+        let nextState=normalizeWalletState({...walletState,planResetAt:effectiveResetAt,historyClearedAt:effectiveClearAt||walletState.historyClearedAt,transactions:mergedTransactions});
         const localTime=Date.parse(nextState.configUpdatedAt||"")||0;
         const remoteTime=Date.parse(remoteConfig?.updated_at||"")||0;
         const legacyTime=Date.parse(legacyPlan?.updated_at||"")||0;
@@ -904,12 +910,13 @@
           const remoteState=walletStateFromCloudConfig(remoteConfig,mergedTransactions);
           // Никогда не теряем более новую отметку полной очистки.
           remoteState.historyClearedAt=effectiveClearAt||remoteState.historyClearedAt;
+          remoteState.planResetAt=effectiveResetAt;
           if(legacyTime>Math.max(remoteTime,localTime)){
             nextState=applyLegacyPlanRowToState(remoteState,legacyPlan);
             nextState.historyClearedAt=effectiveClearAt||nextState.historyClearedAt;
             nextState.transactions=mergedTransactions;
             await uploadWalletConfig(token,ownerId,nextState);
-          }else if(localTime>remoteTime || localClearMs>remoteClearMs){
+          }else if(localTime>remoteTime || localClearMs>remoteClearMs || localResetMs>remoteResetMs){
             await uploadWalletConfig(token,ownerId,nextState);
           }else{
             nextState=remoteState;
@@ -990,7 +997,7 @@
     let received=0,distributed=0,toppedUp=0,spent=0,allocated=0;
     walletState.transactions.forEach(t=>{
       if(walletId && t.walletId!==walletId) return;
-      if(walletTransactionMonth(t)!==monthKey) return;
+      if(!walletCountsTowardPlan(t,monthKey,walletState.planResetAt)) return;
       const source=t.type==="reversal"?t.sourceType:t.type;
       if(source==="distribution"){
         received+=t.amountCents;

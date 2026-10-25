@@ -356,7 +356,7 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
         <div class="wallets-head">
           <div class="wallets-title-block">
             <h2>Кошельки</h2>
-            <div class="wallets-sub">Личный бюджет на месяц</div>
+            <div class="wallets-sub">Расчётный месяц: с 25-го по 24-е. Остатки сохраняются.</div>
             <div class="wallet-cloud-line">
               <span class="wallet-cloud-state" id="walletCloudState">Облако: проверяем…</span>
               <button class="secondary wallet-sync-icon" id="walletSyncBtn" type="button" aria-label="Обновить кошельки из облака" title="Обновить из облака">↻</button>
@@ -613,7 +613,7 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
 <div class="modal hidden" id="walletDistributionModal">
   <div class="sheet">
     <div class="sheet-head">
-      <div><h2>Распределить деньги</h2><div class="employee-mode-note">Программа учитывает, сколько уже выделено по планам этого месяца.</div></div>
+      <div><h2>Распределить деньги</h2><div class="employee-mode-note">Новый план автоматически начинается 25-го числа. Остатки денег не обнуляются.</div></div>
       <button class="close" id="closeWalletDistribution">×</button>
     </div>
     <div class="field" style="margin-top:12px"><label>Общая сумма</label><input id="walletDistributionAmount" inputmode="decimal" autocomplete="off" placeholder="Например, 150000"></div>
@@ -639,7 +639,7 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
 <div class="modal hidden" id="walletPlanModal">
   <div class="sheet wallet-plan-sheet">
     <div class="sheet-head">
-      <div><h2>Месячные планы</h2><div class="employee-mode-note">Сколько всего нужно выделить в каждый кошелёк за месяц.</div></div>
+      <div><h2>Месячные планы</h2><div class="employee-mode-note">Период: с 25-го по 24-е. Ежемесячно выполнение плана начинается заново.</div></div>
       <button class="close" id="closeWalletPlan">×</button>
     </div>
     <div class="wallet-plan-sticky">
@@ -994,7 +994,7 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
 <script defer src="shifts.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('shifts.js')"></script>
 <script defer src="employees.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('employees.js')"></script>
 <script defer src="supabase.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('supabase.js')"></script>
-<script defer src="wallets.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('wallets.js')"></script>
+<script defer src="wallets.js?v=20261025-cycle25-v1" onerror="window.MABoot&&window.MABoot.assetError('wallets.js')"></script>
 <script defer src="admin.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('admin.js')"></script>
 <script defer src="errors.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('errors.js')"></script>
 <script defer src="settings.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('settings.js')"></script>
@@ -1002,7 +1002,7 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
 <script defer src="history.js?v=20261012-daily-report-v1" onerror="window.MABoot&&window.MABoot.assetError('history.js')"></script>
 <script defer src="kpi.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('kpi.js')"></script>
 <script defer src="safety.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('safety.js')"></script>
-<script defer src="app.js?v=20261012-daily-report-v1" onerror="window.MABoot&&window.MABoot.assetError('app.js')"></script>
+<script defer src="app.js?v=20261025-cycle25-v1" onerror="window.MABoot&&window.MABoot.assetError('app.js')"></script>
 <script defer src="irma.js?v=20261012-v1" onerror="window.MABoot&&window.MABoot.assetError('irma.js')"></script>
 
 </body>
