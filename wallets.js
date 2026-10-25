@@ -10,24 +10,29 @@
       const WALLET_STORAGE_KEY=String(deps.WALLET_STORAGE_KEY||"ma_personal_wallets_v1");
       const moscowParts=deps.moscowParts;
 
+      // Период бюджета начинается 25-го числа в часовом поясе Москвы.
+      function walletCycleKey(year,month,day){
+        const key=`${year}-${String(month).padStart(2,"0")}`;
+        return Number(day)>=25?key:walletShiftMonth(key,-1);
+      }
       function walletCurrentMonthKey(){
         const p=moscowParts();
-        return `${p.year}-${String(p.month).padStart(2,"0")}`;
+        return walletCycleKey(p.year,p.month,p.day);
       }
-
       function walletMonthKeyFromIso(iso){
         try{
-          const parts=new Intl.DateTimeFormat("en-CA",{timeZone:SHIFT_TIMEZONE,year:"numeric",month:"2-digit"}).formatToParts(new Date(iso));
-          const year=parts.find(x=>x.type==="year")?.value;
-          const month=parts.find(x=>x.type==="month")?.value;
-          return year&&month?`${year}-${month}`:walletCurrentMonthKey();
+          const d=new Date(iso);
+          if(Number.isNaN(d.getTime())) return walletCurrentMonthKey();
+          const parts=new Intl.DateTimeFormat("en-CA",{timeZone:SHIFT_TIMEZONE,year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d);
+          const read=type=>Number(parts.find(x=>x.type===type)?.value);
+          return walletCycleKey(read("year"),read("month"),read("day"));
         }catch(e){ return walletCurrentMonthKey(); }
       }
-
       function walletMonthLabel(key){
         const [y,m]=String(key||walletCurrentMonthKey()).split("-").map(Number);
         if(!y || !m) return key||"";
-        return `${MONTHS[m-1]||String(m)} ${y}`;
+        const fmt=new Intl.DateTimeFormat("ru-RU",{timeZone:"UTC",day:"numeric",month:"long",year:"numeric"});
+        return `${fmt.format(new Date(Date.UTC(y,m-1,25)))} — ${fmt.format(new Date(Date.UTC(y,m,24)))}`;
       }
 
       function walletShiftMonth(key,delta){
@@ -38,7 +43,7 @@
 
       function walletStartOfMonthIso(key){
         const [y,m]=String(key).split("-").map(Number);
-        return new Date(Date.UTC(y,m-1,1,21,0,0)-24*60*60*1000).toISOString();
+        return new Date(Date.UTC(y,m-1,24,21,0,0)).toISOString();
       }
 
       function walletLegacyDefaults(plans={}){
@@ -69,6 +74,7 @@
           configUpdatedAt:"",
           historyClearedAt:"",
           lastRolloverMonth:walletCurrentMonthKey(),
+          planResetAt:"",
           transactions:[]
         };
       }
@@ -133,6 +139,7 @@
         walletBackupBeforeMigration(raw);
         const historyClearedAt=raw.historyClearedAt && !Number.isNaN(Date.parse(String(raw.historyClearedAt))) ? String(raw.historyClearedAt) : "";
         const clearedMs=historyClearedAt ? Date.parse(historyClearedAt) : 0;
+        const planResetAt=raw.planResetAt && !Number.isNaN(Date.parse(String(raw.planResetAt))) ? String(raw.planResetAt) : "";
         const tx=(Array.isArray(raw.transactions)?raw.transactions.map(normalizeWalletTransaction).filter(Boolean):[])
           .filter(t=>!clearedMs || (Date.parse(t.createdAt)||0)>clearedMs);
         let wallets=[];
@@ -166,7 +173,7 @@
         return {
           version:WALLET_DATA_VERSION,wallets:dedup,
           strategy:raw.strategy==="priority"?"priority":"proportional",
-          configUpdatedAt,historyClearedAt,
+          configUpdatedAt,historyClearedAt,planResetAt,
           lastRolloverMonth:/^\d{4}-\d{2}$/.test(String(raw.lastRolloverMonth||""))?String(raw.lastRolloverMonth):walletCurrentMonthKey(),
           transactions:tx.sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)) || a.id.localeCompare(b.id))
         };
@@ -211,6 +218,13 @@
       }
 
       function walletTransactionMonth(t){ return walletMonthKeyFromIso(t.effectiveAt||t.createdAt); }
+      function walletCountsTowardPlan(t,monthKey,planResetAt=""){
+        if(walletTransactionMonth(t)!==monthKey) return false;
+        const resetTime=Date.parse(planResetAt||"");
+        if(!Number.isFinite(resetTime) || walletMonthKeyFromIso(planResetAt)!==monthKey) return true;
+        const effectiveTime=Date.parse(t.effectiveAt||t.createdAt);
+        return Number.isFinite(effectiveTime) && effectiveTime>=resetTime;
+      }
 
       function walletNewId(){
         try{ return `wallet_${crypto.randomUUID().replace(/-/g,"")}`; }
@@ -238,7 +252,7 @@
       }
 
       return {
-        walletCurrentMonthKey,walletMonthKeyFromIso,walletMonthLabel,walletShiftMonth,walletStartOfMonthIso,
+        walletCurrentMonthKey,walletMonthKeyFromIso,walletMonthLabel,walletShiftMonth,walletStartOfMonthIso,walletCountsTowardPlan,
         walletLegacyDefaults,emptyWalletState,walletBackupBeforeMigration,normalizeWalletDefinition,
         normalizeWalletTransaction,normalizeWalletState,loadWalletState,
         parseMoneyInput,moneyInputValue,formatMoney,walletTransactionMonth,

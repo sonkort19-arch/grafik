@@ -235,6 +235,40 @@ const walletApi=window.MAWallets.create({
   WALLET_STORAGE_KEY:"test_wallets"
 });
 
+test("Расчётный период начинается 25-го по времени Москвы",()=>{
+  assert.strictEqual(walletApi.walletMonthKeyFromIso("2026-10-24T20:59:59Z"),"2026-09");
+  assert.strictEqual(walletApi.walletMonthKeyFromIso("2026-10-24T21:00:00Z"),"2026-10");
+  assert.strictEqual(walletApi.walletMonthKeyFromIso("2026-11-24T20:59:59Z"),"2026-10");
+  assert.strictEqual(walletApi.walletMonthKeyFromIso("2026-11-24T21:00:00Z"),"2026-11");
+  assert.strictEqual(walletApi.walletMonthKeyFromIso("2026-12-24T21:00:00Z"),"2026-12");
+  assert.strictEqual(walletApi.walletStartOfMonthIso("2026-10"),"2026-10-24T21:00:00.000Z");
+  assert(walletApi.walletMonthLabel("2026-10").includes("24 ноября 2026"));
+});
+test("Текущий расчётный месяц меняется 25-го без сброса остатков",()=>{
+  const createAt=day=>window.MAWallets.create({
+    moscowParts:()=>({year:2026,month:10,day}),
+    SHIFT_TIMEZONE:"Europe/Moscow",WALLET_DATA_VERSION:3,WALLET_STORAGE_KEY:"test_cycle_day"
+  });
+  assert.strictEqual(createAt(24).walletCurrentMonthKey(),"2026-09");
+  assert.strictEqual(createAt(25).walletCurrentMonthKey(),"2026-10");
+});
+test("Сброс прогресса учитывает только операции после сохранённого времени",()=>{
+  const reset="2026-10-25T19:05:44.536Z";
+  const make=effectiveAt=>({walletId:"products",type:"distribution",amountCents:10001,effectiveAt,createdAt:effectiveAt});
+  assert.strictEqual(walletApi.walletCountsTowardPlan(make("2026-10-25T18:49:00Z"),"2026-10",reset),false);
+  assert.strictEqual(walletApi.walletCountsTowardPlan(make("2026-10-25T19:05:44.536Z"),"2026-10",reset),true);
+  assert.strictEqual(walletApi.walletCountsTowardPlan(make("2026-11-24T20:59:59Z"),"2026-10",reset),true);
+  assert.strictEqual(walletApi.walletCountsTowardPlan(make("2026-11-24T21:00:00Z"),"2026-11",reset),true);
+  assert.strictEqual(walletApi.walletCountsTowardPlan(make("2026-10-25T18:49:00Z"),"2026-10",""),true);
+});
+test("Новый параметр сброса сохраняется без изменения истории операций",()=>{
+  const transaction={id:"tx-one",operationId:"op-one",type:"distribution",walletId:"products",amountCents:12345,createdAt:"2026-10-25T18:49:00Z",effectiveAt:"2026-10-25T18:49:00Z"};
+  const state=walletApi.normalizeWalletState({version:3,planResetAt:"2026-10-25T19:05:44.536Z",wallets:[{id:"products",name:"Продукты"}],transactions:[transaction]});
+  assert.strictEqual(state.planResetAt,"2026-10-25T19:05:44.536Z");
+  assert.strictEqual(state.transactions.length,1);
+  assert.strictEqual(state.transactions[0].amountCents,12345);
+});
+
 test("Денежный ввод не теряет копейки",()=>{
   assert.strictEqual(walletApi.parseMoneyInput("1 234,56"),123456);
   assert.strictEqual(walletApi.parseMoneyInput("100"),10000);
