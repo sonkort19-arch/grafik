@@ -271,9 +271,9 @@ body{
     display:grid!important;
     grid-template-columns:repeat(5,minmax(0,1fr))!important;
   }
-  body:not(.startup-shift-mode) .bottom-inner.employee-three{
+  body:not(.startup-shift-mode) .bottom-inner.staff-four{
     display:grid!important;
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
   }
   body:not(.startup-shift-mode) .tab{
     min-width:0;

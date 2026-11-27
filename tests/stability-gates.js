@@ -189,6 +189,7 @@ assertScriptOrder('index.html', [
   'history.js',
   'kpi.js',
   'safety.js',
+  'repair-calculator.js',
   'app.js'
 ]);
 
@@ -212,6 +213,7 @@ if (fs.existsSync(manifestPath)) {
 
 assertSupabaseFunctionClassification();
 checkClassicJavaScriptSyntax();
+execFileSync(process.execPath, [path.join(ROOT, 'tests/repair-calculator-tests.js')], {cwd:ROOT, stdio:'inherit'});
 
 if (failures.length) {
   console.error('\nSTABILITY GATES FAILED');

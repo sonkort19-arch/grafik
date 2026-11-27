@@ -238,6 +238,22 @@ async function handleSubscribe(req:Request,body:any){
   if(!delivered) throw new Error("Тестовое уведомление не доставлено. Создай новую подписку на устройстве.");
   return {ok:true,verified:true};
 }
+async function handleRepairCalculator(req:Request,body:any){
+  if(body.deviceToken){
+    await verifyShiftDevice(String(body.service||""),String(body.deviceToken),body.deviceProof,"repair-calculator","");
+  }else if(body.employee || body.pin){
+    const employee=String(body.employee||"").trim(),pin=String(body.pin||"");
+    if(!employee || !/^\d{4}$/.test(pin)) throw new Error("Введите имя сотрудника и личный PIN");
+    if(!(await configuredEmployeeNames(await loadScheduleSettings())).has(employee)) throw new Error("Сотрудник не найден в графике");
+    await verifyEmployeeSubscriptionPin(employee,pin);
+  }else{
+    await assertAdmin(req);
+  }
+  const {data,error}=await admin.from("ma_repair_calculator").select("html").eq("id",1).single();
+  if(error || !data?.html) throw new Error("Калькулятор пока недоступен. Повторите позже.");
+  return new Response(JSON.stringify({ok:true,html:data.html}),{headers:{...corsHeaders,"Content-Type":"application/json","Cache-Control":"no-store"}});
+}
+
 async function handleSubscribeEmployee(req:Request,body:any){
   const employee=String(body.employee||"").trim();
   const sub=body.subscription;
@@ -537,6 +553,7 @@ Deno.serve(async(req)=>{
   if(req.method==="OPTIONS") return new Response("ok",{headers:corsHeaders});
   try{
     const body=await req.json().catch(()=>({}));
+    if(body.op==="repair-calculator") return await handleRepairCalculator(req,body);
     if(body.op==="subscribe") return json(await handleSubscribe(req,body));
     if(body.op==="subscribe-employee") return json(await handleSubscribeEmployee(req,body));
     if(body.op==="subscription-status") return json(await handleSubscriptionStatus(req,body));
