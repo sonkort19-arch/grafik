@@ -1999,6 +1999,30 @@
     switchTab(tab);
   }
 
+  function repairAccessContext(){
+    if(isAdmin()) return {kind:"admin",id:currentAdminUserId()};
+    if(isServiceDeviceMode()) return {kind:"device",id:currentDeviceAccess.device.id};
+    return {kind:"employee",id:isEmployeePhoneMode()?selectedEmployee():""};
+  }
+
+  const repairCalculator=window.MARepairCalculator?.create({
+    context:repairAccessContext,
+    employees:()=>[...new Set([...activeManagerNames(),...activeEmployeeNames()])],
+    async load(access,employee,pin){
+      const body={op:"repair-calculator"};
+      if(access.kind==="device"){
+        body.service=serviceDeviceName();
+        body.deviceToken=loadShiftDeviceToken();
+        body.deviceProof=await signDeviceProof("shift",["repair-calculator",body.service,""]);
+      }else if(access.kind==="employee"){
+        body.employee=employee;
+        body.pin=pin;
+      }
+      const result=await shiftFunction(body,{admin:access.kind==="admin"});
+      return result.html;
+    }
+  });
+
   function applyUserMode(){
     const employeeMode=isEmployeePhoneMode();
     const serviceMode=isServiceDeviceMode();
@@ -2010,11 +2034,16 @@
     const t1=$("bottomTab1"),t2=$("bottomTab2"),t3=$("bottomTab3"),t4=$("bottomTab4"),t5=$("bottomTab5"),t6=$("bottomTab6"),tMore=$("bottomTabMore");
     const brand=document.querySelector(".brand");
 
+    const repairOpen=!$("repairCalculatorPage").classList.contains("hidden");
+    const showRepairTab=employeeMode || serviceMode || !isMobileAdminNav();
+    $("repairTab").classList.toggle("hidden",!showRepairTab);
+    repairCalculator?.sync(repairOpen);
+
     if(employeeMode){
       updateDesktopNavBrand("employee");
       if(brand) brand.textContent="MA График";
       inner.classList.remove("admin-four","admin-five","admin-six");
-      inner.classList.add("employee-three");
+      inner.classList.add("staff-four");
 
       t1.textContent="Сегодня"; t1.dataset.tab="employeeToday"; t1.classList.remove("hidden");
       t2.textContent="Мой график"; t2.dataset.tab="employeeMy"; t2.classList.remove("hidden");
@@ -2028,7 +2057,7 @@
       ensureEmployeeSelected();
       renderEmployeePages();
 
-      const visible =
+      const visible = repairOpen ||
         !$("employeeTodayPage").classList.contains("hidden") ||
         !$("employeeMyPage").classList.contains("hidden") ||
         !$("employeeCalendarPage").classList.contains("hidden");
@@ -2051,7 +2080,7 @@
       updateDesktopNavBrand("service",service);
       if(brand) brand.textContent=`${service} · Смена`;
       inner.classList.remove("admin-four","admin-five","admin-six");
-      inner.classList.add("employee-three");
+      inner.classList.add("staff-four");
 
       t1.textContent="Сегодня"; t1.dataset.tab="adminToday"; t1.classList.remove("hidden");
       t2.textContent="График"; t2.dataset.tab="schedule"; t2.classList.remove("hidden");
@@ -2083,7 +2112,7 @@
     if(brand) brand.textContent="MA График";
     if($("attentionTitle")) $("attentionTitle").textContent="Требует внимания";
     const mobileAdmin=isMobileAdminNav();
-    inner.classList.remove("employee-three","admin-four","admin-five","admin-six");
+    inner.classList.remove("staff-four","admin-four","admin-five","admin-six");
     inner.classList.add(mobileAdmin?"admin-five":"admin-six");
 
     t1.textContent="Сегодня"; t1.dataset.tab="adminToday"; t1.classList.remove("hidden");
@@ -2101,12 +2130,12 @@
       t5.textContent="Настройки"; t5.dataset.tab="settings"; t5.classList.remove("hidden");
       if(tMore) tMore.classList.add("hidden");
     }
-    if(tMore) tMore.classList.toggle("active",mobileAdmin && (!$("historyPage").classList.contains("hidden") || !$("kpiPage").classList.contains("hidden") ||
+    if(tMore) tMore.classList.toggle("active",mobileAdmin && (repairOpen || !$("historyPage").classList.contains("hidden") || !$("kpiPage").classList.contains("hidden") ||
          !$("settingsPage").classList.contains("hidden")));
 
     $("employeePickerModal").classList.add("hidden");
 
-    const anyVisible =
+    const anyVisible = repairOpen ||
       !$("adminTodayPage").classList.contains("hidden") ||
       !$("schedulePage").classList.contains("hidden") ||
       !$("desktopCalendarPage").classList.contains("hidden") ||
@@ -5815,7 +5844,7 @@
       tab="employeeToday";
     }
 
-    if(serviceMode && !["adminToday","schedule","desktopCalendar"].includes(tab)){
+    if(serviceMode && !["adminToday","schedule","desktopCalendar","repairCalculator"].includes(tab)){
       tab="adminToday";
     }
 
@@ -5828,6 +5857,10 @@
       }
     }
 
+    const repair=tab==="repairCalculator";
+    $("repairCalculatorPage").classList.toggle("hidden",!repair);
+    if(repair && !repairCalculator) $("repairStatus").textContent="Не удалось загрузить калькулятор. Обновите приложение.";
+    repairCalculator?.sync(repair);
     const empToday=tab==="employeeToday";
     const empMy=tab==="employeeMy";
     const empCal=tab==="employeeCalendar";
@@ -5855,8 +5888,9 @@
       if(!b.classList.contains("hidden")) b.classList.toggle("active",b.dataset.tab===tab);
     });
     const moreTab=$("bottomTabMore");
-    if(moreTab) moreTab.classList.toggle("active",isMobileAdminNav() && (hist || sett));
+    if(moreTab) moreTab.classList.toggle("active",isMobileAdminNav() && (hist || sett || repair));
 
+    if(employeeMode && repair) employeeMobileView=tab;
     if(employeeMode && (empToday || empMy || empCal)){
       employeeMobileView=tab;
       ensureEmployeeSelected();
@@ -6392,7 +6426,7 @@
       return;
     }
     const more=$("bottomTabMore");
-    if(more) more.classList.toggle("active",isMobileAdminNav() && (!$("historyPage").classList.contains("hidden") || !$("kpiPage").classList.contains("hidden") ||
+    if(more) more.classList.toggle("active",isMobileAdminNav() && (!$("repairCalculatorPage").classList.contains("hidden") || !$("historyPage").classList.contains("hidden") || !$("kpiPage").classList.contains("hidden") ||
          !$("settingsPage").classList.contains("hidden")));
   }
 

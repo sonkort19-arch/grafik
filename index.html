@@ -88,7 +88,7 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
 </script>
 <title>MA График</title>
 <link rel="icon" type="image/png" sizes="64x64" href="ma-favicon-final-v6.png">
-<link rel="stylesheet" href="styles.css?v=20261012-daily-report-v1">
+<link rel="stylesheet" href="styles.css?v=20261127-repair">
 <link rel="stylesheet" href="irma.css?v=20261012-v1">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="ma-apple-touch-final-v6.png">
@@ -146,6 +146,19 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
       <div><span>Сотрудник</span><b id="employeeIdentityName">—</b></div>
       <button class="employee-identity-change" id="changeEmployeeGlobal">Сменить</button>
     </div>
+    <section id="repairCalculatorPage" class="hidden" aria-label="Калькулятор ремонта">
+      <div id="repairAccess" class="card repair-access">
+        <h2>Калькулятор ремонта</h2>
+        <p id="repairStatus" role="status"></p>
+        <form id="repairUnlock" class="hidden">
+          <label id="repairEmployeeField" class="hidden">Сотрудник<select id="repairEmployee"></select></label>
+          <label>Личный PIN<input id="repairPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required></label>
+          <button class="primary" type="submit">Открыть калькулятор</button>
+        </form>
+        <button id="repairRetry" class="secondary hidden" type="button">Повторить</button>
+      </div>
+      <div id="repairContent"></div>
+    </section>
     <section id="employeeTodayPage" class="hidden">
       <div class="employee-hero">
         <div class="employee-hero-top">
@@ -589,6 +602,7 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
     <button class="tab" id="bottomTab4" data-tab="history">История</button>
     <button class="tab" id="bottomTab5" data-tab="settings">Настройки</button>
     <button class="tab" id="bottomTab6" data-tab="wallets">Кошельки</button>
+    <button class="tab hidden" id="repairTab" data-tab="repairCalculator">Калькулятор</button>
     <button class="tab hidden" id="bottomTabMore" data-tab="more">Ещё</button>
   </div>
 </nav>
@@ -606,6 +620,7 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
       <button class="secondary mobile-more-action" data-mobile-more-tab="kpi"><span class="mobile-more-icon">◎</span><span><b>KPI сотрудников</b><small>Дисциплина и нарушения</small></span></button>
       <button class="secondary mobile-more-action" data-mobile-more-tab="history"><span class="mobile-more-icon">◷</span><span><b>История</b><small>Смены и нарушения</small></span></button>
       <button class="secondary mobile-more-action" data-mobile-more-tab="settings"><span class="mobile-more-icon">⚙</span><span><b>Настройки</b><small>Система, PIN и устройства</small></span></button>
+      <button class="secondary mobile-more-action" data-mobile-more-tab="repairCalculator"><span class="mobile-more-icon">▦</span><span><b>Калькулятор</b><small>Стоимость ремонта</small></span></button>
     </div>
   </div>
 </div>
@@ -1002,7 +1017,8 @@ body.app-booting .app-boot-text{margin-top:8px;color:#64748b;font-size:14px}
 <script defer src="history.js?v=20261012-daily-report-v1" onerror="window.MABoot&&window.MABoot.assetError('history.js')"></script>
 <script defer src="kpi.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('kpi.js')"></script>
 <script defer src="safety.js?v=20260927-boot-recovery-v1" onerror="window.MABoot&&window.MABoot.assetError('safety.js')"></script>
-<script defer src="app.js?v=20261025-cycle25-v1" onerror="window.MABoot&&window.MABoot.assetError('app.js')"></script>
+<script defer src="repair-calculator.js?v=20261127"></script>
+<script defer src="app.js?v=20261127-repair" onerror="window.MABoot&&window.MABoot.assetError('app.js')"></script>
 <script defer src="irma.js?v=20261012-v1" onerror="window.MABoot&&window.MABoot.assetError('irma.js')"></script>
 
 </body>

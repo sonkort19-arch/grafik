@@ -262,7 +262,7 @@ button,a,input,select,textarea,label{touch-action:manipulation}
 }
 
 /* Навигация: 4 вкладки для рабочего/админ режима, 3 для телефона сотрудника */
-.bottom-inner.employee-three{grid-template-columns:repeat(3,1fr)!important}
+.bottom-inner.staff-four{grid-template-columns:repeat(4,1fr)!important}
 @media(max-width:420px){
   .employee-cal-cell{min-height:60px;padding:5px 3px}
   .employee-cal-cell span{font-size:7.5px}
@@ -1269,7 +1269,7 @@ body{padding-bottom:88px}
   body:not(.startup-shift-mode) .bottom-inner,
   body:not(.startup-shift-mode) .bottom-inner.admin-five,
   body:not(.startup-shift-mode) .bottom-inner.admin-six,
-  body:not(.startup-shift-mode) .bottom-inner.employee-three,
+  body:not(.startup-shift-mode) .bottom-inner.staff-four,
   body:not(.startup-shift-mode) .bottom-inner.admin-four,
   body:not(.startup-shift-mode).service-device-mode .bottom-inner{
     max-width:none;
